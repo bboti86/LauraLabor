@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folyadékok Sűrűsége - Inline Labor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Mérőhenger stílusok és üveg effektus (Inline optimalizált méret) */
+        .beaker-container {
+            position: relative;
+            width: 220px;
+            height: 380px;
+            border-left: 5px solid rgba(148, 163, 184, 0.7);
+            border-right: 5px solid rgba(148, 163, 184, 0.7);
+            border-bottom: 8px solid rgba(148, 163, 184, 0.85);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.45) 0%, 
+                rgba(255,255,255,0.15) 20%, 
+                rgba(255,255,255,0.05) 80%, 
+                rgba(255,255,255,0.35) 100%);
+            box-shadow: 
+                inset 10px 0 16px -8px rgba(255, 255, 255, 0.9),
+                inset -10px 0 16px -8px rgba(0, 0, 0, 0.12),
+                0 15px 25px -8px rgba(15, 23, 42, 0.12);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .beaker-rim {
+            width: 236px;
+            height: 12px;
+            background: linear-gradient(90deg, #cbd5e1, #f8fafc, #94a3b8);
+            border-radius: 999px;
+            border: 2px solid #94a3b8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 30;
+        }
+
+        .liquid-layer {
+            width: 100%;
+            transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        background-color 0.4s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes shakeBeaker {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            15% { transform: translate(-10px, -4px) rotate(-4deg); }
+            30% { transform: translate(10px, 3px) rotate(4deg); }
+            45% { transform: translate(-8px, -3px) rotate(-3deg); }
+            60% { transform: translate(8px, 4px) rotate(3deg); }
+            75% { transform: translate(-4px, -1px) rotate(-1deg); }
+            90% { transform: translate(4px, 1px) rotate(1deg); }
+        }
+
+        .shaking {
+            animation: shakeBeaker 0.6s ease-in-out infinite;
+        }
+
+        .dropped-object {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: bottom 0.8s cubic-bezier(0.34, 1.45, 0.64, 1), left 0.4s ease, transform 0.3s ease;
+            z-index: 25;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .dropped-object:hover {
+            transform: scale(1.15) !important;
+            z-index: 40;
+        }
+
+        @keyframes floatBob {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-4px) rotate(2deg); }
+        }
+
+        .floating-bob {
+            animation: floatBob 2.4s ease-in-out infinite;
+        }
+
+        .pour-stream {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 0;
+            z-index: 15;
+            border-radius: 0 0 6px 6px;
+            transition: height 0.2s ease-out, opacity 0.15s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes bubbleRise {
+            0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+            100% { transform: translateY(-100px) scale(1.1); opacity: 0; }
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleRise 1s ease-out forwards;
+            z-index: 22;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-5 max-w-5xl mx-auto">
+
+    <!-- Kompakt Fejléc -->
+    <div class="bg-gradient-to-r from-sky-600 via-indigo-600 to-emerald-600 rounded-3xl p-4 sm:p-6 text-white shadow-md mb-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5 text-center sm:text-left">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner shrink-0">
+                🧪
+            </div>
+            <div>
+                <h1 class="text-lg sm:text-2xl font-black tracking-tight">Folyadékok Sűrűsége – Inline Labor</h1>
+                <p class="text-xs sm:text-sm text-sky-100 font-medium">Fedezd fel közvetlenül a csevegésablakban, hogyan úsznak vagy süllyednek a folyadékok!</p>
+            </div>
+        </div>
+        <!-- Lapváltó gombok -->
+        <div class="flex bg-black/15 p-1 rounded-2xl backdrop-blur-sm gap-1 shrink-0">
+            <button onclick="switchTab('lab')" id="tab-lab" class="px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition bg-white text-sky-900 shadow-sm">
+                <span>🗼</span> Torony
+            </button>
+            <button onclick="switchTab('micro')" id="tab-micro" class="px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition text-white/90 hover:bg-white/10">
+                <span>🔍</span> Mikroszkóp
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition text-white/90 hover:bg-white/10">
+                <span>🏆</span> Kvíz
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== 1. FÜL: SŰRŰSÉGTORONY LABOR ==================== -->
+    <div id="section-lab" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Bal oszlop: Folyadékok beöntése -->
+        <div class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <span>🫗</span> 1. Önts folyadékot!
+                </h3>
+                <span id="layer-counter" class="text-[11px] font-extrabold px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-full">
+                    0 / 6 adag
+                </span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3 font-semibold">
+                Kattints a folyadékokra! Automatikusan sűrűség szerint rétegződnek.
+            </p>
+            <div id="liquid-buttons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                <!-- JS tölti fel -->
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100">
+                <button onclick="fillRainbowTower()" class="w-full py-2 px-3 rounded-2xl font-extrabold text-xs bg-gradient-to-r from-amber-500 via-emerald-500 to-indigo-500 text-white shadow hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5">
+                    <span>🌈</span> Teljes Szivárvány Torony
+                </button>
+            </div>
+        </div>
+
+        <!-- Középső oszlop: Mérőhenger -->
+        <div class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100 flex flex-col items-center">
+            <div id="lab-status-box" class="w-full mb-3 px-3 py-2 rounded-2xl bg-sky-50 border border-sky-100 text-sky-900 text-xs font-bold text-center min-h-[42px] flex items-center justify-center transition-all">
+                👋 A henger üres. Válassz folyadékot vagy dobozolj be tárgyat!
+            </div>
+
+            <div class="relative flex flex-col items-center my-2 select-none">
+                <div class="beaker-rim"></div>
+                <div id="beaker" class="beaker-container flex flex-col justify-end relative">
+                    <div id="pour-stream" class="pour-stream"></div>
+                    <div class="absolute inset-y-0 left-0 w-8 pointer-events-none z-20 flex flex-col justify-between py-5 opacity-40">
+                        <div class="flex items-center gap-1"><div class="w-3 h-0.5 bg-slate-600"></div><span class="text-[9px] font-bold text-slate-700">600</span></div>
+                        <div class="flex items-center gap-1"><div class="w-2 h-0.5 bg-slate-500"></div><span class="text-[9px] font-bold text-slate-600">450</span></div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-0.5 bg-slate-600"></div><span class="text-[9px] font-bold text-slate-700">300</span></div>
+                        <div class="flex items-center gap-1"><div class="w-2 h-0.5 bg-slate-500"></div><span class="text-[9px] font-bold text-slate-600">150</span></div>
+                    </div>
+                    <div id="objects-layer" class="absolute inset-0 pointer-events-auto z-25"></div>
+                    <div id="liquids-layer" class="w-full flex flex-col justify-end relative z-10"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 mt-3 w-full">
+                <button onclick="shakeBeaker()" class="flex-1 py-2 px-3 rounded-2xl font-extrabold text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-200 transition active:scale-95 flex items-center justify-center gap-1 shadow-sm">
+                    <span>🌪️</span> Rázás
+                </button>
+                <button onclick="clearObjectsOnly()" class="py-2 px-2.5 rounded-2xl font-extrabold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition active:scale-95 flex items-center justify-center gap-1 shadow-sm" title="Tárgyak ki">
+                    <span>🧲</span> Tárgyak ki
+                </button>
+                <button onclick="emptyBeaker()" class="py-2 px-3 rounded-2xl font-extrabold text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-200 transition active:scale-95 flex items-center justify-center gap-1.5 shadow-sm">
+                    <span>🗑️</span> Ürítés
+                </button>
+            </div>
+        </div>
+
+        <!-- Jobb oszlop: Tárgyak bedobása -->
+        <div class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <span>⚓</span> 2. Dobj be tárgyakat!
+                </h3>
+                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    Lebegés
+                </span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3 font-semibold">
+                Kattints egy tárgyra a bedobáshoz! Ott áll meg, amilyen sűrűségű réteget talál.
+            </p>
+            <div id="object-buttons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                <!-- JS tölti fel -->
+            </div>
+            <div class="mt-3 p-3 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-[11px] text-indigo-950">
+                <span class="font-extrabold">💡 Tipp:</span> A jégkocka (0.91) úszik a vízen (1.00), de elmerül az alkoholban (0.79).
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== 2. FÜL: MIKROSZKÓP ==================== -->
+    <div id="section-micro" class="hidden space-y-4">
+        <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100">
+            <h3 class="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2 mb-1">
+                <span>🔬</span> Részecske Mikroszkóp: Sűrűség összehasonlítás
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 mb-4">
+                Ugyanakkora méretű (1 cm³) kockákban mennyi részecske zsúfolódik össze?
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col items-center">
+                    <div class="w-full flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-extrabold uppercase text-slate-400">1. Minta</span>
+                        <select id="micro-select-1" onchange="updateMicroComparison()" class="text-xs font-extrabold bg-white border border-slate-300 rounded-xl px-2 py-1 text-slate-800">
+                        </select>
+                    </div>
+                    <canvas id="canvas-micro-1" width="180" height="180" class="rounded-xl border-2 border-white shadow-inner bg-slate-900 w-full max-w-[180px] aspect-square"></canvas>
+                    <div id="micro-info-1" class="mt-2 text-center text-xs"></div>
+                </div>
+
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col items-center">
+                    <div class="w-full flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-extrabold uppercase text-slate-400">2. Minta</span>
+                        <select id="micro-select-2" onchange="updateMicroComparison()" class="text-xs font-extrabold bg-white border border-slate-300 rounded-xl px-2 py-1 text-slate-800">
+                        </select>
+                    </div>
+                    <canvas id="canvas-micro-2" width="180" height="180" class="rounded-xl border-2 border-white shadow-inner bg-slate-900 w-full max-w-[180px] aspect-square"></canvas>
+                    <div id="micro-info-2" class="mt-2 text-center text-xs"></div>
+                </div>
+            </div>
+
+            <div id="micro-comparison-verdict" class="mt-4 p-3.5 rounded-2xl bg-sky-50 border border-sky-200 text-xs sm:text-sm font-bold text-sky-950 text-center">
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 3. FÜL: KVÍZ ==================== -->
+    <div id="section-quiz" class="hidden">
+        <div class="max-w-xl mx-auto bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div>
+                    <h3 class="text-lg font-black text-slate-800 flex items-center gap-1.5">
+                        <span>🏆</span> Sűrűség Mini Kvíz
+                    </h3>
+                    <p class="text-xs text-slate-500 font-semibold">Teszteld a tudásod 3 gyors kérdésben!</p>
+                </div>
+                <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                    <span class="text-base">⭐</span>
+                    <div>
+                        <div class="text-[9px] font-bold uppercase text-amber-700">Pont</div>
+                        <div id="quiz-score" class="text-sm font-black text-amber-900">0 / 3</div>
+                    </div>
+                </div>
+            </div>
+            <div id="quiz-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const LIQUIDS = [
+            { id: 'honey', name: 'Méz', emoji: '🍯', density: 1.42, bgGradient: 'linear-gradient(90deg, #b45309 0%, #f59e0b 50%, #d97706 100%)', textColor: '#fff', desc: 'Nagyon sűrű, legalulra süllyed!' },
+            { id: 'syrup', name: 'Juharszirup', emoji: '🍁', density: 1.33, bgGradient: 'linear-gradient(90deg, #7c2d12 0%, #c2410c 50%, #9a3412 100%)', textColor: '#fff', desc: 'Sűrűbb a víznél, de a méznél könnyebb.' },
+            { id: 'milk', name: 'Tej', emoji: '🥛', density: 1.03, bgGradient: 'linear-gradient(90deg, #e2e8f0 0%, #ffffff 50%, #f1f5f9 100%)', textColor: '#1e293b', desc: 'Picivel sűrűbb a tiszta víznél.' },
+            { id: 'water', name: 'Víz', emoji: '💧', density: 1.00, bgGradient: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #0ea5e9 100%)', textColor: '#fff', desc: 'Az alappont: pontosan 1.00 g/cm³.' },
+            { id: 'oil', name: 'Étolaj', emoji: '🌻', density: 0.92, bgGradient: 'linear-gradient(90deg, #ca8a04 0%, #facc15 50%, #eab308 100%)', textColor: '#422006', desc: 'Könnyebb a víznél, a víz tetején úszik.' },
+            { id: 'alcohol', name: 'Alkohol', emoji: '🧪', density: 0.79, bgGradient: 'linear-gradient(90deg, #9333ea 0%, #d8b4fe 50%, #a855f7 100%)', textColor: '#fff', desc: 'A legkisebb sűrűségű folyadék.' }
+        ];
+
+        const OBJECTS = [
+            { id: 'nut', name: 'Vascsavar', emoji: '🔩', density: 7.80, horizontalOffset: 20, desc: 'Rendkívül sűrű, a méz aljára is lemerül.' },
+            { id: 'glass', name: 'Üveggyöngy', emoji: '🔮', density: 2.50, horizontalOffset: 50, desc: 'Sűrűbb a szirupnál, de a méz tetején lebeg.' },
+            { id: 'cube', name: 'Műanyag kocka', emoji: '🧊', density: 1.05, horizontalOffset: 75, desc: 'Sűrűbb a víznél, de a szirup megtartja.' },
+            { id: 'ice', name: 'Jégkocka', emoji: '🧊', density: 0.91, horizontalOffset: 30, desc: 'Úszik a vízen, de elmerül alkoholban.' },
+            { id: 'cork', name: 'Parafa', emoji: '🪵', density: 0.24, horizontalOffset: 65, desc: 'Könnyű, minden folyadék tetején úszik.' },
+            { id: 'ball', name: 'Pingponglabda', emoji: '🏓', density: 0.08, horizontalOffset: 42, desc: 'Levegős, a legfelső réteg tetején táncol.' }
+        ];
+
+        const QUIZ_QUESTIONS = [
+            {
+                q: 'Miért úszik az 🌻 Étolaj (0.92) a 💧 Víz (1.00) tetején?',
+                options: ['Mert nagyobb a sűrűsége', 'Mert kisebb a sűrűsége, mint a vízé', 'Mert hidegebb'],
+                correct: 1,
+                explanation: 'A kisebb sűrűségű anyagok mindig a nagyobb sűrűségűek tetején úsznak!'
+            },
+            {
+                q: 'Melyik folyadék süllyed le a Sűrűségtorony LEGALJÁRA?',
+                options: ['🧪 Alkohol (0.79)', '💧 Víz (1.00)', '🍯 Méz (1.42)'],
+                correct: 2,
+                explanation: 'A legmagasabb sűrűségű (1.42 g/cm³) méz kerül legalulra.'
+            },
+            {
+                q: 'Mi történik a 🧊 Jégkockával (0.91), ha 💧 Vízbe (1.00) dobod?',
+                options: ['Fennmarad a vízen, mert kisebb a sűrűsége', 'Azonnal lesüllyed az aljára', 'Felrobban'],
+                correct: 0,
+                explanation: 'A jég sűrűsége kisebb a folyékony víznél, ezért úszik.'
+            }
+        ];
+
+        const MAX_PORTIONS = 6;
+        const LAYER_HEIGHT_PX = 48;
+        let beakerLiquids = [];
+        let droppedObjectIds = [];
+        let isShaking = false;
+        let microParticles1 = [];
+        let microParticles2 = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let quizAnswered = false;
+
+        window.onload = function() {
+            renderLiquidButtons();
+            renderObjectButtons();
+            initMicroscopeSelects();
+            renderQuiz();
+
+            beakerLiquids = [
+                { liquidId: 'honey', portions: 1 },
+                { liquidId: 'water', portions: 1 },
+                { liquidId: 'oil', portions: 1 }
+            ];
+            renderBeaker();
+            setStatus('✨ Alaphelyzet: Méz, Víz és Étolaj a hengerben. Önts még hozzá vagy dobj be tárgyat!');
+            requestAnimationFrame(animateMicroscope);
+        };
+
+        function switchTab(tab) {
+            ['lab', 'micro', 'quiz'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = 'px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition bg-white text-sky-900 shadow-sm';
+                } else {
+                    btn.className = 'px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition text-white/90 hover:bg-white/10';
+                }
+            });
+            if (tab === 'micro') updateMicroComparison();
+        }
+
+        function renderLiquidButtons() {
+            document.getElementById('liquid-buttons').innerHTML = LIQUIDS.map(liq => `
+                <button onclick="pourLiquid('${liq.id}')" class="group w-full p-2.5 rounded-2xl border border-slate-200 hover:border-sky-400 bg-slate-50 hover:bg-white transition flex items-center justify-between text-left shadow-xs">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-inner border border-black/10" style="background: ${liq.bgGradient}; color: ${liq.textColor}">
+                            ${liq.emoji}
+                        </div>
+                        <div>
+                            <div class="font-extrabold text-xs text-slate-800 group-hover:text-sky-700">${liq.name}</div>
+                            <div class="text-[10px] font-bold text-slate-500">${liq.density.toFixed(2)} g/cm³</div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-lg bg-sky-100 text-sky-800 group-hover:bg-sky-600 group-hover:text-white font-extrabold text-[11px] transition">+ Öntés</span>
+                </button>
+            `).join('');
+        }
+
+        function renderObjectButtons() {
+            document.getElementById('object-buttons').innerHTML = OBJECTS.map(obj => {
+                const isDropped = droppedObjectIds.includes(obj.id);
+                return `
+                <button onclick="toggleObject('${obj.id}')" class="w-full p-2.5 rounded-2xl border transition flex items-center justify-between text-left shadow-xs ${isDropped ? 'bg-emerald-50 border-emerald-400 ring-1 ring-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-indigo-400 hover:bg-white'}">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-lg shadow-xs">${obj.emoji}</div>
+                        <div>
+                            <div class="font-extrabold text-xs text-slate-800">${obj.name}</div>
+                            <div class="text-[10px] font-bold text-slate-500">${obj.density.toFixed(2)} g/cm³</div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-lg font-extrabold text-[11px] ${isDropped ? 'bg-emerald-600 text-white' : 'bg-indigo-100 text-indigo-800'}">
+                        ${isDropped ? '✓ Bent' : 'Dobás'}
+                    </span>
+                </button>`;
+            }).join('');
+        }
+
+        function getTotalPortions() {
+            return beakerLiquids.reduce((sum, item) => sum + item.portions, 0);
+        }
+
+        function pourLiquid(liquidId) {
+            if (isShaking) return;
+            if (getTotalPortions() >= MAX_PORTIONS) {
+                setStatus('⚠️ A mérőhenger megtelt (6/6 adag)! Ürítsd ki a folytatáshoz.');
+                return;
+            }
+            const liq = LIQUIDS.find(l => l.id === liquidId);
+            triggerPourStream(liq.bgGradient);
+
+            const existing = beakerLiquids.find(item => item.liquidId === liquidId);
+            if (existing) existing.portions += 1;
+            else beakerLiquids.push({ liquidId, portions: 1 });
+
+            sortLiquidsByDensity();
+            renderBeaker();
+            createBubbles();
+            setStatus(`${liq.emoji} <strong>${liq.name} (${liq.density.toFixed(2)})</strong> beöntve! ${liq.desc}`);
+        }
+
+        function fillRainbowTower() {
+            if (isShaking) return;
+            beakerLiquids = LIQUIDS.map(l => ({ liquidId: l.id, portions: 1 }));
+            sortLiquidsByDensity();
+            triggerPourStream('#38bdf8');
+            renderBeaker();
+            createBubbles();
+            setStatus('🌈 <strong>Teljes Szivárvány Torony!</strong> Mind a 6 folyadék tökéletes sorrendben.');
+        }
+
+        function sortLiquidsByDensity() {
+            beakerLiquids.sort((a, b) => {
+                const da = LIQUIDS.find(l => l.id === a.liquidId).density;
+                const db = LIQUIDS.find(l => l.id === b.liquidId).density;
+                return da - db;
+            });
+        }
+
+        function triggerPourStream(bg) {
+            const stream = document.getElementById('pour-stream');
+            stream.style.background = bg;
+            stream.style.height = '360px';
+            stream.style.opacity = '0.85';
+            setTimeout(() => {
+                stream.style.opacity = '0';
+                setTimeout(() => { stream.style.height = '0'; }, 200);
+            }, 300);
+        }
+
+        function createBubbles() {
+            const beaker = document.getElementById('beaker');
+            for (let i = 0; i < 5; i++) {
+                const b = document.createElement('div');
+                b.className = 'bubble';
+                const size = 5 + Math.random() * 8;
+                b.style.width = `${size}px`; b.style.height = `${size}px`;
+                b.style.left = `${30 + Math.random() * 140}px`;
+                b.style.bottom = `${15 + Math.random() * 100}px`;
+                beaker.appendChild(b);
+                setTimeout(() => b.remove(), 1000);
+            }
+        }
+
+        function renderBeaker() {
+            document.getElementById('layer-counter').textContent = `${getTotalPortions()} / ${MAX_PORTIONS} adag`;
+            const container = document.getElementById('liquids-layer');
+            sortLiquidsByDensity();
+
+            if (beakerLiquids.length === 0) {
+                container.innerHTML = '';
+            } else {
+                container.innerHTML = beakerLiquids.map(item => {
+                    const liq = LIQUIDS.find(l => l.id === item.liquidId);
+                    return `
+                        <div class="liquid-layer" style="height: ${item.portions * LAYER_HEIGHT_PX}px; background: ${liq.bgGradient}; color: ${liq.textColor};">
+                            <div class="pl-6 flex items-center gap-1 font-extrabold text-xs drop-shadow-xs">
+                                <span>${liq.emoji}</span><span>${liq.name}</span>
+                            </div>
+                            <div class="text-[10px] font-black px-1.5 py-0.2 rounded bg-black/15">${liq.density.toFixed(2)}</div>
+                        </div>`;
+                }).join('');
+            }
+            renderDroppedObjects();
+        }
+
+        function toggleObject(objectId) {
+            const obj = OBJECTS.find(o => o.id === objectId);
+            const idx = droppedObjectIds.indexOf(objectId);
+            if (idx > -1) {
+                droppedObjectIds.splice(idx, 1);
+                setStatus(`🧲 ${obj.emoji} ${obj.name} kivéve.`);
+            } else {
+                droppedObjectIds.push(objectId);
+                setStatus(`${obj.emoji} <strong>${obj.name} (${obj.density.toFixed(2)})</strong>: ${obj.desc}`);
+            }
+            renderObjectButtons();
+            renderDroppedObjects();
+        }
+
+        function renderDroppedObjects() {
+            const container = document.getElementById('objects-layer');
+            const bottomUpLayers = [...beakerLiquids].reverse().map(item => ({
+                ...LIQUIDS.find(l => l.id === item.liquidId),
+                heightPx: item.portions * LAYER_HEIGHT_PX
+            }));
+
+            container.innerHTML = droppedObjectIds.map(objId => {
+                const obj = OBJECTS.find(o => o.id === objId);
+                const bottomPx = calculateObjectBottomPx(obj, bottomUpLayers);
+                const isFloating = bottomPx > 6;
+                return `
+                    <div onclick="toggleObject('${obj.id}')" title="${obj.name}" class="dropped-object ${isFloating ? 'floating-bob' : ''}" style="bottom: ${bottomPx}px; left: ${obj.horizontalOffset}%;">
+                        <span>${obj.emoji}</span>
+                        <span class="absolute -bottom-2.5 px-1 py-0.1 bg-slate-900/85 text-white text-[8px] font-extrabold rounded">${obj.density.toFixed(2)}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        function calculateObjectBottomPx(obj, bottomUpLayers) {
+            if (bottomUpLayers.length === 0) return 5;
+            let cumulativeHeight = 0;
+            for (let i = 0; i < bottomUpLayers.length; i++) {
+                const layer = bottomUpLayers[i];
+                if (obj.density > layer.density) {
+                    if (i === 0) return 5;
+                    return Math.max(5, cumulativeHeight - 14);
+                }
+                cumulativeHeight += layer.heightPx;
+            }
+            return Math.max(5, cumulativeHeight - 16);
+        }
+
+        function shakeBeaker() {
+            if (beakerLiquids.length < 2 || isShaking) return;
+            isShaking = true;
+            const beaker = document.getElementById('beaker');
+            beaker.classList.add('shaking');
+            setStatus('🌪️ Összerázás folyamatban...');
+            setTimeout(() => {
+                beaker.classList.remove('shaking');
+                isShaking = false;
+                setStatus('✨ Újra szétváltak a folyadékok a sűrűségük szerint!');
+            }, 1200);
+        }
+
+        function clearObjectsOnly() {
+            droppedObjectIds = [];
+            renderObjectButtons();
+            renderDroppedObjects();
+            setStatus('🧲 Tárgyak eltávolítva a hengerből.');
+        }
+
+        function emptyBeaker() {
+            beakerLiquids = [];
+            droppedObjectIds = [];
+            renderObjectButtons();
+            renderBeaker();
+            setStatus('🗑️ A mérőhenger kiürítve.');
+        }
+
+        function setStatus(html) {
+            document.getElementById('lab-status-box').innerHTML = `<span>${html}</span>`;
+        }
+
+        const ALL_MATERIALS = [
+            ...LIQUIDS.map(l => ({ id: l.id, name: `${l.emoji} ${l.name}`, density: l.density, color: l.bgGradient.includes('#b45309') ? '#d97706' : '#38bdf8' })),
+            { id: 'nut', name: '🔩 Vascsavar', density: 7.80, color: '#94a3b8' },
+            { id: 'ice', name: '🧊 Jégkocka', density: 0.91, color: '#7dd3fc' }
+        ];
+
+        function initMicroscopeSelects() {
+            const html = ALL_MATERIALS.map(m => `<option value="${m.id}">${m.name} (${m.density})</option>`).join('');
+            document.getElementById('micro-select-1').innerHTML = html;
+            document.getElementById('micro-select-2').innerHTML = html;
+            document.getElementById('micro-select-1').value = 'honey';
+            document.getElementById('micro-select-2').value = 'oil';
+            updateMicroComparison();
+        }
+
+        function createParticles(density) {
+            const count = Math.min(90, Math.max(8, Math.round(density * 26)));
+            const particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: 15 + Math.random() * 150,
+                    y: 15 + Math.random() * 150,
+                    vx: (Math.random() - 0.5) * 1,
+                    vy: (Math.random() - 0.5) * 1,
+                    r: 5
+                });
+            }
+            return particles;
+        }
+
+        function updateMicroComparison() {
+            const m1 = ALL_MATERIALS.find(m => m.id === document.getElementById('micro-select-1').value);
+            const m2 = ALL_MATERIALS.find(m => m.id === document.getElementById('micro-select-2').value);
+            microParticles1 = createParticles(m1.density);
+            microParticles2 = createParticles(m2.density);
+
+            document.getElementById('micro-info-1').innerHTML = `<span class="font-black text-slate-800">${m1.name}</span> <span class="text-sky-600">(${microParticles1.size || microParticles1.length} részecske)</span>`;
+            document.getElementById('micro-info-2').innerHTML = `<span class="font-black text-slate-800">${m2.name}</span> <span class="text-sky-600">(${microParticles2.size || microParticles2.length} részecske)</span>`;
+
+            const verdict = document.getElementById('micro-comparison-verdict');
+            if (m1.density > m2.density) verdict.innerHTML = `⚖️ <strong>${m1.name}</strong> sűrűbb (${m1.density} > ${m2.density}), több részecske zsúfolódik össze benne!`;
+            else if (m2.density > m1.density) verdict.innerHTML = `⚖️ <strong>${m2.name}</strong> sűrűbb (${m2.density} > ${m1.density})!`;
+            else verdict.innerHTML = `⚖️ A sűrűségük megegyezik!`;
+        }
+
+        function drawMicroCanvas(canvasId, particles, color) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 10 || p.x > 170) p.vx *= -1;
+                if (p.y < 10 || p.y > 170) p.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fill();
+            });
+        }
+
+        function animateMicroscope() {
+            if (!document.getElementById('section-micro').classList.contains('hidden')) {
+                drawMicroCanvas('canvas-micro-1', microParticles1);
+                drawMicroCanvas('canvas-micro-2', microParticles2);
+            }
+            requestAnimationFrame(animateMicroscope);
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            document.getElementById('quiz-score').textContent = `${quizScore} / ${QUIZ_QUESTIONS.length}`;
+
+            if (currentQuizIndex >= QUIZ_QUESTIONS.length) {
+                container.innerHTML = `
+                    <div class="text-center py-6 space-y-3">
+                        <div class="text-4xl">🎉</div>
+                        <h4 class="text-lg font-black text-slate-800">Kvíz teljesítve!</h4>
+                        <p class="text-xs text-slate-600 font-bold">Eredményed: <span class="text-indigo-600 font-black">${quizScore} / ${QUIZ_QUESTIONS.length} pont</span></p>
+                        <button onclick="restartQuiz()" class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-extrabold text-xs shadow">Újra</button>
+                    </div>`;
+                return;
+            }
+
+            const item = QUIZ_QUESTIONS[currentQuizIndex];
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <div class="text-[10px] font-extrabold text-slate-400 uppercase">${currentQuizIndex + 1}. Kérdés / ${QUIZ_QUESTIONS.length}</div>
+                    <h4 class="text-sm font-black text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200">${item.q}</h4>
+                    <div class="space-y-2">
+                        ${item.options.map((opt, idx) => `
+                            <button onclick="answerQuiz(${idx})" id="quiz-opt-${idx}" class="w-full p-3 rounded-xl border border-slate-200 bg-white text-left font-bold text-xs text-slate-700 hover:border-indigo-400 transition flex items-center gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-black flex items-center justify-center text-[10px] shrink-0">${String.fromCharCode(65 + idx)}</span>
+                                <span>${opt}</span>
+                            </button>`).join('')}
+                    </div>
+                    <div id="quiz-feedback" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    <div id="quiz-next-wrap" class="hidden flex justify-end">
+                        <button onclick="nextQuizQuestion()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-extrabold text-xs shadow">Következő ➡️</button>
+                    </div>
+                </div>`;
+        }
+
+        function answerQuiz(selectedIdx) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+            const item = QUIZ_QUESTIONS[currentQuizIndex];
+            const feedback = document.getElementById('quiz-feedback');
+            const nextWrap = document.getElementById('quiz-next-wrap');
+
+            item.options.forEach((_, idx) => {
+                const btn = document.getElementById(`quiz-opt-${idx}`);
+                if (idx === item.correct) btn.className = 'w-full p-3 rounded-xl border border-emerald-500 bg-emerald-50 text-left font-extrabold text-xs text-emerald-900 flex items-center gap-2.5';
+                else if (idx === selectedIdx) btn.className = 'w-full p-3 rounded-xl border border-rose-400 bg-rose-50 text-left font-bold text-xs text-rose-900 flex items-center gap-2.5';
+                else btn.classList.add('opacity-50');
+            });
+
+            if (selectedIdx === item.correct) {
+                quizScore++;
+                document.getElementById('quiz-score').textContent = `${quizScore} / ${QUIZ_QUESTIONS.length}`;
+                feedback.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300';
+                feedback.innerHTML = `✅ Helyes! ${item.explanation}`;
+            } else {
+                feedback.className = 'p-3 rounded-xl text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300';
+                feedback.innerHTML = `❌ Nem talált. ${item.explanation}`;
+            }
+            feedback.classList.remove('hidden');
+            nextWrap.classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            currentQuizIndex++;
+            quizAnswered = false;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            quizAnswered = false;
+            renderQuiz();
+        }
+    </script>
+</body>
+</html>

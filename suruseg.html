@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧪 Víz Varázslabor (3. osztály)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes shiver {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-2px, 1px); }
+      50% { transform: translate(2px, -1px); }
+      75% { transform: translate(-1px, -2px); }
+    }
+    @keyframes swim {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(12px, -8px) rotate(8deg); }
+      66% { transform: translate(-10px, 6px) rotate(-8deg); }
+    }
+    @keyframes fly {
+      0% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(28px, -45px) scale(1.1); }
+      50% { transform: translate(-25px, -80px) scale(0.95); }
+      75% { transform: translate(20px, -25px) scale(1.05); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 0.9; }
+      100% { transform: translateY(-130px) scale(1.3); opacity: 0; }
+    }
+    .animate-shiver { animation: shiver 0.25s infinite; }
+    .animate-swim { animation: swim 3s ease-in-out infinite; }
+    .animate-fly { animation: fly 1.5s ease-in-out infinite; }
+    .animate-evap { animation: floatUp 2.8s ease-in infinite; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 p-4 md:p-8 font-sans text-slate-800 m-0">
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Fejléc -->
+    <header class="text-center mb-6">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-blue-900 flex items-center justify-center gap-3">
+        <span>🧪</span> Víz Varázslabor <span>💧</span>
+      </h1>
+      <p class="text-slate-600 mt-1 text-lg">
+        Fedezd fel, hogyan változik a víz halmazállapota! (3. osztályos környezetismeret)
+      </p>
+    </header>
+
+    <!-- Fő navigáció -->
+    <div class="flex flex-wrap justify-center gap-2 mb-6">
+      <button id="tab-btn-labor" onclick="switchTab('labor')" class="px-5 py-3 rounded-2xl font-bold text-base transition-all shadow-md scale-105 bg-blue-600 text-white flex items-center gap-2">
+        <span>🔬</span> 1. Varázslabor
+      </button>
+      <button id="tab-btn-atalakulasok" onclick="switchTab('atalakulasok')" class="px-5 py-3 rounded-2xl font-bold text-base transition-all shadow-sm bg-white text-slate-700 hover:bg-blue-50 flex items-center gap-2">
+        <span>🔄</span> 2. Átalakulások
+      </button>
+      <button id="tab-btn-kviz" onclick="switchTab('kviz')" class="px-5 py-3 rounded-2xl font-bold text-base transition-all shadow-sm bg-white text-slate-700 hover:bg-blue-50 flex items-center gap-2">
+        <span>🏆</span> 3. Kvíz
+      </button>
+    </div>
+
+    <!-- 1. FÜL: VARÁZSLABOR -->
+    <div id="section-labor" class="bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-blue-100">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        
+        <!-- Bal oldal: Főzőpohár -->
+        <div class="flex flex-col items-center">
+          <div class="flex bg-slate-100 p-1.5 rounded-xl mb-4">
+            <button id="view-btn-micro" onclick="setViewMode('micro')" class="px-4 py-1.5 rounded-lg font-semibold text-sm transition bg-white text-blue-700 shadow">
+              🔬 Vízmanó nézet
+            </button>
+            <button id="view-btn-real" onclick="setViewMode('real')" class="px-4 py-1.5 rounded-lg font-semibold text-sm transition text-slate-600 hover:text-slate-900">
+              👀 Valódi nézet
+            </button>
+          </div>
+
+          <div class="relative w-64 h-72 border-4 border-t-0 border-slate-400 rounded-b-3xl bg-gradient-to-b from-slate-50 to-blue-50/40 overflow-hidden shadow-inner flex items-end justify-center">
+            <div class="absolute right-2 top-6 bottom-6 flex flex-col justify-between text-xs font-mono text-slate-400 z-20 pointer-events-none">
+              <span>300 ml -</span>
+              <span>200 ml -</span>
+              <span>100 ml -</span>
+            </div>
+            <div id="beaker-content" class="relative w-full h-full"></div>
+          </div>
+
+          <div id="heat-indicator" class="mt-3 text-2xl">🌤️</div>
+        </div>
+
+        <!-- Jobb oldal: Szabályzó és Magyarázat -->
+        <div class="flex flex-col space-y-5">
+          <div id="state-card" class="p-5 rounded-2xl border-2 bg-sky-50 border-sky-300 transition-colors">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Jelenlegi halmazállapot:</span>
+              <span id="temp-badge" class="px-3 py-1 rounded-full text-sm font-extrabold bg-white shadow-sm">20 °C</span>
+            </div>
+            <h2 id="state-title" class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
+              💧 Folyékony (Víz)
+            </h2>
+            <p id="state-desc" class="text-slate-700 mt-2 text-sm leading-relaxed"></p>
+          </div>
+
+          <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex gap-3 items-start">
+            <div class="text-3xl">🗣️</div>
+            <div>
+              <div class="text-xs font-bold text-amber-800 uppercase">Mit mondanak a vízmanók?</div>
+              <p id="mano-text" class="text-sm text-amber-950 font-medium mt-1"></p>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <label class="block text-sm font-bold text-slate-700 mb-2">
+              🌡️ Állítsd be a hőmérsékletet: <span id="slider-label" class="text-blue-600">20 °C</span>
+            </label>
+            <input id="temp-slider" type="range" min="-20" max="120" value="20" oninput="updateTemp(this.value)"
+              class="w-full h-3 bg-gradient-to-r from-cyan-400 via-sky-400 to-red-500 rounded-lg appearance-none cursor-pointer" />
+            <div class="flex justify-between text-xs font-bold text-slate-500 mt-1">
+              <span>-20 °C (Jég)</span>
+              <span>0 °C (Olvadás)</span>
+              <span>100 °C (Forrás)</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mt-4">
+              <button onclick="updateTemp(-10)" class="py-2 px-3 rounded-xl bg-cyan-100 hover:bg-cyan-200 text-cyan-900 font-bold text-xs transition">
+                🧊 Fagyasztás (-10 °C)
+              </button>
+              <button onclick="updateTemp(25)" class="py-2 px-3 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-xs transition">
+                💧 Szobahő (25 °C)
+              </button>
+              <button onclick="updateTemp(105)" class="py-2 px-3 rounded-xl bg-red-100 hover:bg-red-200 text-red-900 font-bold text-xs transition">
+                🔥 Forralás (105 °C)
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. FÜL: ÁTALAKULÁSOK -->
+    <div id="section-atalakulasok" class="hidden bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-blue-100">
+      <h2 class="text-2xl font-extrabold text-center text-blue-900 mb-2">
+        Hogyan alakul át a víz egyik állapotból a másikba?
+      </h2>
+      <p class="text-center text-slate-600 mb-6 text-sm">
+        Kattints a folyamatokra, és nézd meg a hétköznapi példákat!
+      </p>
+      <div id="process-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6"></div>
+      <div id="process-detail" class="p-6 rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 text-center text-blue-800 font-semibold">
+        👆 Válassz ki fent egy kártyát (pl. Olvadás vagy Lecsapódás) a részletekért!
+      </div>
+    </div>
+
+    <!-- 3. FÜL: KVÍZ -->
+    <div id="section-kviz" class="hidden bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-blue-100 max-w-2xl mx-auto">
+      <div id="quiz-container"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentTemp = 20;
+    let currentView = 'micro';
+    let selectedProcessId = null;
+    let quizIndex = 0;
+    let selectedAnswer = null;
+    let score = 0;
+
+    const processes = [
+      { id: 'olvadas', title: 'Olvadás', from: '🧊 Szilárd (Jég)', to: '💧 Folyékony (Víz)', tempChange: 'Melegítés hatására (+)', color: 'bg-amber-100 border-amber-400 text-amber-900', icon: '☀️', explanation: 'Amikor a jeget melegítjük és eléri a 0 °C-ot (olvadáspont), a vízmanók elengedik egymás kezét, és a jég folyékony vízzé olvad.', example: 'Hóember olvadása tavasszal, vagy a jégkocka elolvadása a limonádéban.' },
+      { id: 'fagyas', title: 'Fagyás', from: '💧 Folyékony (Víz)', to: '🧊 Szilárd (Jég)', tempChange: 'Hűtés hatására (-)', color: 'bg-cyan-100 border-cyan-400 text-cyan-900', icon: '❄️', explanation: 'Amikor a vizet 0 °C-ra vagy az alá hűtjük (fagyáspont), a részecskék lelassulnak, szorosan összekapaszkodnak, és jéggé fagynak.', example: 'Télen befagy a tó vize, vagy jégkockát készítünk a fagyasztóban.' },
+      { id: 'parolgas', title: 'Párolgás', from: '💧 Folyékony (Víz)', to: '☁️ Légnemű (Vízgőz)', tempChange: 'Melegítés hatására (+)', color: 'bg-sky-100 border-sky-400 text-sky-900', icon: '🌬️', explanation: 'A víz felszínéről a leggyorsabb vízmanók bármilyen (0 °C feletti) hőmérsékleten képesek kiszökni a levegőbe. Minél melegebb van és minél jobban fúj a szél, annál gyorsabb!', example: 'Megszáradnak a kiteregetett ruhák, vagy felszárad a pocsolya az eső után.' },
+      { id: 'forras', title: 'Forrás', from: '💧 Folyékony (Víz)', to: '☁️ Légnemű (Vízgőz)', tempChange: 'Erős melegítés (100 °C)', color: 'bg-red-100 border-red-400 text-red-900', icon: '🔥', explanation: '100 °C-on (forráspont) már nemcsak a víz felszínén, hanem a víz belsejében is gőzbuborékok keletkeznek, amelyek feljönnek a felszínre.', example: 'Bugyog a teavíz vagy a leves a tűzhelyen.' },
+      { id: 'lecsapodas', title: 'Lecsapódás', from: '☁️ Légnemű (Vízgőz)', to: '💧 Folyékony (Víz)', tempChange: 'Hűtés hatására (-)', color: 'bg-indigo-100 border-indigo-400 text-indigo-900', icon: '🌧️', explanation: 'Amikor a láthatatlan vízgőz hideg felülettel vagy hideg levegővel találkozik, lelassul, újra összekapaszkodik, és apró vízcseppekké alakul.', example: 'Bepárásodik a fürdőszobai tükör, hajnali harmat a füvön, vagy a felhőkből hulló eső.' }
+    ];
+
+    const questions = [
+      { q: 'Hány fokon kezd el olvadni a jég (és megfagyni a víz)?', options: ['-10 °C-on', '0 °C-on', '100 °C-on'], correct: 1, explanation: 'A 0 °C a víz fagyáspontja és a jég olvadáspontja!' },
+      { q: 'Mi történik, amikor az eső után eltűnik a pocsolya a járdáról?', options: ['Elpárolog', 'Megfagy', 'Lecsapódik'], correct: 0, explanation: 'A nap melegétől a folyékony víz lassan vízgőzzé alakul a felszínről – ezt hívjuk párolgásnak!' },
+      { q: 'Milyen halmazállapotú a láthatatlan vízgőz a levegőben?', options: ['Szilárd', 'Folyékony', 'Légnemű'], correct: 2, explanation: 'A vízgőz légnemű halmazállapotú, a részecskék szabadon repkednek benne.' },
+      { q: 'Hány fokon forr a víz?', options: ['0 °C-on', '50 °C-on', '100 °C-on'], correct: 2, explanation: 'A víz forráspontja 100 °C. Ilyenkor a víz belsejében is gőzbuborékok keletkeznek!' },
+      { q: 'Miért lesz vizes a hideg üdítősüveg külseje nyáron?', options: ['Átszivárog az üvegen az üdítő', 'A levegő vízgőze lecsapódik a hideg üvegen', 'Elolvad az üveg'], correct: 1, explanation: 'A levegőben lévő láthatatlan vízgőz lehűl a hideg üveg falán, és apró vízcseppekben lecsapódik!' },
+      { q: 'Hogyan mozognak a „vízmanók” (részecskék) a jégben?', options: ['Szélsebesen szétrepülnek', 'Szorosan összekapaszkodva egy helyben rezegnek', 'Szabadon úszkálnak egymás körül'], correct: 1, explanation: 'Szilárd halmazállapotban (jég) a részecskék szoros rácsban helyezkednek el, és csak rezegnek.' }
+    ];
+
+    function switchTab(tab) {
+      ['labor', 'atalakulasok', 'kviz'].forEach(t => {
+        document.getElementById('section-' + t).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById('tab-btn-' + t);
+        if (t === tab) {
+          btn.className = 'px-5 py-3 rounded-2xl font-bold text-base transition-all shadow-md scale-105 bg-blue-600 text-white flex items-center gap-2';
+        } else {
+          btn.className = 'px-5 py-3 rounded-2xl font-bold text-base transition-all shadow-sm bg-white text-slate-700 hover:bg-blue-50 flex items-center gap-2';
+        }
+      });
+    }
+
+    function setViewMode(mode) {
+      currentView = mode;
+      document.getElementById('view-btn-micro').className = mode === 'micro'
+        ? 'px-4 py-1.5 rounded-lg font-semibold text-sm transition bg-white text-blue-700 shadow'
+        : 'px-4 py-1.5 rounded-lg font-semibold text-sm transition text-slate-600 hover:text-slate-900';
+      document.getElementById('view-btn-real').className = mode === 'real'
+        ? 'px-4 py-1.5 rounded-lg font-semibold text-sm transition bg-white text-blue-700 shadow'
+        : 'px-4 py-1.5 rounded-lg font-semibold text-sm transition text-slate-600 hover:text-slate-900';
+      renderBeaker();
+    }
+
+    function updateTemp(val) {
+      currentTemp = Number(val);
+      document.getElementById('temp-slider').value = currentTemp;
+      document.getElementById('temp-badge').textContent = currentTemp + ' °C';
+      document.getElementById('slider-label').textContent = currentTemp + ' °C';
+
+      const card = document.getElementById('state-card');
+      const title = document.getElementById('state-title');
+      const desc = document.getElementById('state-desc');
+      const mano = document.getElementById('mano-text');
+      const heat = document.getElementById('heat-indicator');
+
+      if (currentTemp <= 0) {
+        card.className = 'p-5 rounded-2xl border-2 bg-cyan-50 border-cyan-300';
+        title.innerHTML = '<span>🧊</span> Szilárd (Jég)';
+        desc.textContent = '0 °C alatt a víz megfagy. A jégnek saját alakja és térfogata van, nem lehet összenyomni.';
+        mano.textContent = '„Brrr! Nagyon hideg van! 🥶 Szorosan összekapaszkodunk egy szabályos rácsban, és csak egy helyben vacogunk (rezgünk).”';
+        heat.textContent = '❄️❄️❄️';
+      } else if (currentTemp < 100) {
+        card.className = 'p-5 rounded-2xl border-2 bg-sky-50 border-sky-300';
+        title.innerHTML = '<span>💧</span> Folyékony (Víz)';
+        desc.textContent = '0 °C és 100 °C között a víz folyékony. Felveszi az edény alakját, folyik, de a térfogata állandó.';
+        mano.textContent = '„Juhé, pont jó az idő! 🏊‍♂️ Közel vagyunk egymáshoz, de szabadon elcsúszkálunk egymás mellett. Néhányan a felszínről már elpárolognak!”';
+        heat.textContent = currentTemp > 50 ? '🔥🔥' : '🌤️';
+      } else {
+        card.className = 'p-5 rounded-2xl border-2 bg-orange-50 border-orange-300';
+        title.innerHTML = '<span>☁️</span> Légnemű (Vízgőz)';
+        desc.textContent = '100 °C-on a víz forrni kezd, és vízgőzzé alakul. A gőznek nincs saját alakja sem térfogata, kitölti a teret.';
+        mano.textContent = '„Hűha, forróság van! 🚀 Rengeteg energiánk lett! Elszakadunk egymástól, és szélsebesen szétrepülünk a levegőben!”';
+        heat.textContent = '🔥🔥🔥';
+      }
+      renderBeaker();
+    }
+
+    function renderBeaker() {
+      const container = document.getElementById('beaker-content');
+      if (currentView === 'micro') {
+        let html = '';
+        if (currentTemp > 0 && currentTemp < 100) {
+          html += '<div class="absolute bottom-0 w-full h-44 bg-sky-200/50 border-t-2 border-sky-300"></div>';
+        } else if (currentTemp <= 0) {
+          html += '<div class="absolute bottom-4 left-8 right-8 h-40 bg-cyan-200/40 border-2 border-cyan-300 rounded-2xl"></div>';
+        }
+        for (let i = 0; i < 16; i++) {
+          const row = Math.floor(i / 4);
+          const col = i % 4;
+          let bottomPos = 24 + row * 34;
+          let leftPos = 42 + col * 44;
+          let animClass = 'animate-shiver';
+          let face = '🥶';
+
+          if (currentTemp > 0 && currentTemp < 100) {
+            bottomPos = 18 + row * 32 + (col % 2) * 8;
+            leftPos = 28 + col * 48;
+            animClass = 'animate-swim';
+            face = currentTemp > 60 ? '😅' : '😊';
+            if (row === 3 && (col === 1 || col === 3)) {
+              animClass = 'animate-evap';
+              face = '🎈';
+            }
+          } else if (currentTemp >= 100) {
+            bottomPos = 40 + row * 52;
+            leftPos = 24 + col * 50;
+            animClass = 'animate-fly';
+            face = '🤩';
+          }
+          const delay = (i * 0.15).toFixed(2) + 's';
+          html += `<div style="bottom:${bottomPos}px; left:${leftPos}px; animation-delay:${delay};" class="absolute w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 shadow-md flex items-center justify-center text-base border-2 border-white ${animClass}">${face}</div>`;
+        }
+        container.innerHTML = html;
+      } else {
+        if (currentTemp <= 0) {
+          container.innerHTML = `
+            <div class="w-full h-full flex items-end justify-center">
+              <div class="mb-4 w-44 h-40 bg-gradient-to-tr from-cyan-300 via-sky-200 to-white border-4 border-cyan-400 rounded-2xl shadow-lg flex flex-col items-center justify-center">
+                <span class="text-5xl">🧊</span>
+                <span class="text-xs font-bold text-cyan-800 mt-2">KEMÉNY JÉGTÖMB</span>
+              </div>
+            </div>`;
+        } else if (currentTemp < 100) {
+          container.innerHTML = `
+            <div class="w-full h-full flex items-end justify-center">
+              <div class="w-full h-44 bg-gradient-to-t from-blue-500 to-sky-400 border-t-4 border-sky-200 flex flex-col items-center justify-center relative">
+                <span class="text-5xl animate-bounce">💧</span>
+                <span class="text-xs font-bold text-white mt-2">FOLYÉKONY VÍZ</span>
+                <div class="absolute -top-10 flex gap-6 opacity-70">
+                  <span class="animate-evap text-xl">☁️</span>
+                  <span class="animate-evap text-xl" style="animation-delay:1.2s">☁️</span>
+                </div>
+              </div>
+            </div>`;
+        } else {
+          container.innerHTML = `
+            <div class="w-full h-full flex flex-col items-center justify-end">
+              <div class="flex gap-4 mb-6">
+                <span class="text-4xl animate-evap">☁️</span>
+                <span class="text-5xl animate-evap" style="animation-delay:0.7s">☁️</span>
+                <span class="text-4xl animate-evap" style="animation-delay:1.4s">☁️</span>
+              </div>
+              <div class="w-full h-24 bg-gradient-to-t from-blue-600 to-sky-400 flex items-center justify-around px-6">
+                <span class="w-4 h-4 bg-white/80 rounded-full animate-ping"></span>
+                <span class="w-6 h-6 bg-white/80 rounded-full animate-ping" style="animation-delay:0.3s"></span>
+                <span class="w-5 h-5 bg-white/80 rounded-full animate-ping" style="animation-delay:0.6s"></span>
+              </div>
+            </div>`;
+        }
+      }
+    }
+
+    function renderProcesses() {
+      const grid = document.getElementById('process-grid');
+      grid.innerHTML = processes.map(p => `
+        <button onclick="selectProcess('${p.id}')" class="p-4 rounded-2xl border-2 text-left transition-all ${selectedProcessId === p.id ? p.color + ' scale-105 shadow-md' : 'bg-slate-50 border-slate-200 hover:bg-blue-50/50'}">
+          <div class="text-3xl mb-1">${p.icon}</div>
+          <div class="font-extrabold text-lg text-slate-800">${p.title}</div>
+          <div class="text-xs font-semibold text-slate-600 mt-1">${p.from} ➡️ ${p.to}</div>
+          <div class="inline-block mt-2 px-2 py-0.5 rounded bg-white/80 text-xs font-bold">${p.tempChange}</div>
+        </button>
+      `).join('');
+
+      const detail = document.getElementById('process-detail');
+      const proc = processes.find(p => p.id === selectedProcessId);
+      if (proc) {
+        detail.className = `p-6 rounded-2xl border-2 ${proc.color} text-left transition-all`;
+        detail.innerHTML = `
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-4xl">${proc.icon}</span>
+            <div>
+              <h3 class="text-2xl font-extrabold">${proc.title}</h3>
+              <p class="text-sm font-bold opacity-80">${proc.from} ➡️ ${proc.to} (${proc.tempChange})</p>
+            </div>
+          </div>
+          <p class="mt-3 text-base leading-relaxed font-medium">${proc.explanation}</p>
+          <div class="mt-4 bg-white/70 p-3 rounded-xl text-sm">
+            <strong>💡 Példa a hétköznapokból:</strong> ${proc.example}
+          </div>`;
+      }
+    }
+
+    function selectProcess(id) {
+      selectedProcessId = id;
+      renderProcesses();
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+      if (quizIndex >= questions.length) {
+        container.innerHTML = `
+          <div class="text-center py-6">
+            <div class="text-6xl mb-4">🎉</div>
+            <h2 class="text-3xl font-extrabold text-blue-900 mb-2">Szép munka!</h2>
+            <p class="text-lg text-slate-700 mb-6">Elért eredményed: <strong>${score} / ${questions.length}</strong> pont!</p>
+            <button onclick="restartQuiz()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md transition">
+              🔄 Újrapróbálom a kvízt
+            </button>
+          </div>`;
+        return;
+      }
+
+      const q = questions[quizIndex];
+      const optionsHtml = q.options.map((opt, idx) => {
+        let style = 'bg-slate-50 border-slate-200 hover:bg-blue-50 text-slate-800';
+        let icon = '';
+        if (selectedAnswer !== null) {
+          if (idx === q.correct) {
+            style = 'bg-emerald-100 border-emerald-500 text-emerald-900 font-bold';
+            icon = '<span>✅</span>';
+          } else if (idx === selectedAnswer) {
+            style = 'bg-red-100 border-red-400 text-red-900';
+            icon = '<span>❌</span>';
+          }
+        }
+        return `<button onclick="answerQuiz(${idx})" class="w-full p-4 rounded-2xl border-2 text-left font-semibold transition flex items-center justify-between ${style}"><span>${opt}</span>${icon}</button>`;
+      }).join('');
+
+      const explanationHtml = selectedAnswer !== null ? `
+        <div class="mt-6 p-4 rounded-2xl bg-blue-50 border border-blue-200">
+          <p class="text-sm text-blue-900 font-medium"><strong>Magyarázat:</strong> ${q.explanation}</p>
+          <button onclick="nextQuizQuestion()" class="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow transition">
+            ${quizIndex + 1 < questions.length ? 'Következő kérdés ➡️' : 'Eredmény megtekintése 🏆'}
+          </button>
+        </div>` : '';
+
+      container.innerHTML = `
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Kérdés: ${quizIndex + 1} / ${questions.length}</span>
+          <span class="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">⭐ Pontszám: ${score}</span>
+        </div>
+        <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-6">${q.q}</h2>
+        <div class="space-y-3">${optionsHtml}</div>
+        ${explanationHtml}`;
+    }
+
+    function answerQuiz(idx) {
+      if (selectedAnswer !== null) return;
+      selectedAnswer = idx;
+      if (idx === questions[quizIndex].correct) score++;
+      renderQuiz();
+    }
+
+    function nextQuizQuestion() {
+      quizIndex++;
+      selectedAnswer = null;
+      renderQuiz();
+    }
+
+    function restartQuiz() {
+      quizIndex = 0;
+      selectedAnswer = null;
+      score = 0;
+      renderQuiz();
+    }
+
+    // Inicializálás induláskor
+    updateTemp(20);
+    renderProcesses();
+    renderQuiz();
+  </script>
+</body>
+</html>

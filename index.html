@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laura Tanulósaroka 🌟</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #ff6b6b;
+            font-size: 2rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        .category {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            text-align: left;
+            border-top: 6px solid #4d96ff;
+        }
+        .category.kornyezet {
+            border-top-color: #6bcb77;
+        }
+        .category h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .links-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .app-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #2b2d42;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+        .app-btn:hover {
+            background: #eef2f7;
+            transform: translateY(-2px);
+            border-color: #4d96ff;
+        }
+        .app-btn span.icon {
+            font-size: 1.5rem;
+        }
+        footer {
+            margin-top: auto;
+            color: #555;
+            font-size: 0.9rem;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Laura Tanulósarka 🚀</h1>
+        <p class="subtitle">Válaszd ki, mit szeretnél ma gyakorolni!</p>
+
+        <!-- Digitális kultúra -->
+        <div class="category">
+            <h2>💻 Digitális kultúra</h2>
+            <div class="links-grid">
+                <a href="./pcreszek.html" class="app-btn">
+                    <span>A számítógép részei és teremrend</span>
+                    <span class="icon">👉</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Környezetismeret -->
+        <div class="category kornyezet">
+            <h2>🌱 Környezetismeret</h2>
+            <div class="links-grid">
+                <a href="./folyadekok.html" class="app-btn">
+                    <span>Folyadékok világa</span>
+                    <span class="icon">👉</span>
+                </a>
+                <a href="./suruseg.html" class="app-btn">
+                    <span>Sűrűség és kísérletek</span>
+                    <span class="icon">👉</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Jó tanulást és jó szórakozást kíván apa! ❤️
+    </footer>
+</body>
+</html>

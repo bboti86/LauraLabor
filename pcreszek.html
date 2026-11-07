@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Informatika Gyakorló - 3. osztály</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #FCE7F3 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Játékos gomb árnyékok és animációk */
+        .btn-3d {
+            transition: all 0.15s ease;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.18);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+        }
+
+        /* SVG részek interakciója */
+        .pc-part {
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+        .pc-part:hover {
+            filter: brightness(1.08);
+        }
+        .pc-part.active-part {
+            filter: drop-shadow(0 0 12px #F59E0B) brightness(1.08);
+        }
+        .pc-part.correct-flash {
+            filter: drop-shadow(0 0 14px #10B981) brightness(1.15);
+        }
+        .pc-part.wrong-flash {
+            filter: drop-shadow(0 0 14px #EF4444) brightness(0.9);
+        }
+
+        /* Lebegő animáció */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+
+        /* Pulzáló fókusz jelölő */
+        @keyframes pulseRing {
+            0% { r: 14; opacity: 1; }
+            100% { r: 26; opacity: 0; }
+        }
+        .pulse-circle {
+            animation: pulseRing 1.5s infinite;
+        }
+
+        /* Konfetti animáció */
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(720deg);
+            }
+        }
+
+        /* Egyedi görgetősáv elrejtés taboknál */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-24">
+
+    <!-- Felső Fejléc & Csillagszámláló -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md shadow-sm border-b border-indigo-100 px-4 py-3">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2.5" onclick="switchTab('study')" style="cursor:pointer;">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center text-white text-xl shadow-md">
+                    💻
+                </div>
+                <div>
+                    <h1 class="font-black text-base sm:text-lg leading-tight text-indigo-950">InfoKuckó</h1>
+                    <p class="text-xs font-bold text-indigo-500">A számítógép és a terem rendje</p>
+                </div>
+            </div>
+
+            <!-- Gyűjtött csillagok és hang kapcsoló -->
+            <div class="flex items-center gap-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-base transition" title="Hang be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-300 px-3 py-1 rounded-2xl shadow-sm">
+                    <span class="text-lg">⭐</span>
+                    <span id="starCount" class="font-black text-amber-800 text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő Tartalom Konténer (Mobilra optimalizált szélesség) -->
+    <main class="max-w-md mx-auto px-3.5 pt-4">
+
+        <!-- ========================================== -->
+        <!-- 1. TANULÓKÁRTYÁK ÉS INTERAKTÍV ÁBRA (STUDY) -->
+        <!-- ========================================== -->
+        <section id="tab-study" class="space-y-5">
+            <!-- Belső választó: Számítógép részei VAGY Terem rendje -->
+            <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-indigo-100 grid grid-cols-2 gap-1.5">
+                <button id="studySubBtn-pc" onclick="switchStudySub('pc')" class="py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all bg-indigo-600 text-white shadow">
+                    🖥️ A számítógép részei
+                </button>
+                <button id="studySubBtn-rules" onclick="switchStudySub('rules')" class="py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all text-slate-600 hover:bg-slate-100">
+                    📜 A terem rendje (10)
+                </button>
+            </div>
+
+            <!-- 1/A: A SZÁMÍTÓGÉP RÉSZEI (Interaktív füzet-ábra) -->
+            <div id="study-pc-container" class="space-y-4">
+                <div class="bg-white rounded-3xl p-4 shadow-md border-2 border-indigo-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-lg">
+                            👆 Koppints a gép részeire!
+                        </span>
+                        <span id="exploredCounter" class="text-xs font-bold text-emerald-600">0 / 5 felfedezve</span>
+                    </div>
+
+                    <!-- SVG Ábra - Pontosan a füzet elrendezése alapján -->
+                    <div id="study-svg-wrapper" class="w-full bg-gradient-to-b from-slate-50 to-indigo-50/50 rounded-2xl border border-slate-200 p-2 relative overflow-hidden">
+                        <!-- Az SVG-t JS szúrja be, hogy a játék móddal közös legyen -->
+                    </div>
+
+                    <!-- Kiválasztott elem magyarázó kártyája -->
+                    <div id="partInfoCard" class="mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl p-4 shadow-lg transition-all">
+                        <div class="flex items-start gap-3">
+                            <div id="partInfoIcon" class="text-3xl bg-white/20 p-2.5 rounded-2xl">👆</div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold uppercase tracking-wider text-indigo-200" id="partInfoSubtitle">Füzetbeli elnevezés:</div>
+                                <h3 id="partInfoTitle" class="text-lg sm:text-xl font-black mt-0.5">Koppints egy részre a képen!</h3>
+                                <p id="partInfoDesc" class="text-xs sm:text-sm text-indigo-100 mt-1 leading-relaxed">
+                                    Nézd meg mind az 5 részt! Figyeld meg, melyiknek van két neve is (szinonimája) a füzetben!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Összesített szótár kártyák a füzet alapján -->
+                <div class="bg-white rounded-3xl p-4 shadow-md border border-indigo-100">
+                    <h3 class="font-black text-slate-800 text-base mb-3 flex items-center gap-2">
+                        <span>📌</span> Pontos elnevezések a füzetből:
+                    </h3>
+                    <div class="space-y-2.5" id="partsGlossaryList">
+                        <!-- JS tölti fel -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1/B: A SZÁMÍTÓGÉP TEREM RENDJE (10 szabály) -->
+            <div id="study-rules-container" class="hidden space-y-3">
+                <div class="bg-indigo-600 text-white rounded-3xl p-4 shadow-md flex items-center justify-between">
+                    <div>
+                        <h2 class="font-black text-lg">A számítógép terem rendje</h2>
+                        <p class="text-xs text-indigo-100">Koppints a szabályokra, ha már megjegyezted őket!</p>
+                    </div>
+                    <div class="bg-white/20 px-3 py-1.5 rounded-2xl text-center">
+                        <span id="learnedRulesCount" class="font-black text-lg">0/10</span>
+                        <div class="text-[10px] font-bold uppercase">Kész</div>
+                    </div>
+                </div>
+
+                <!-- 10 szabály kártya lista -->
+                <div id="rulesListContainer" class="space-y-2.5">
+                    <!-- JS tölti fel -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 2. GÉP-FELISMERŐ JÁTÉK (DIAGRAM GAME)      -->
+        <!-- ========================================== -->
+        <section id="tab-pcgame" class="hidden space-y-4">
+            <div class="bg-white rounded-3xl p-4 shadow-md border-2 border-indigo-100">
+                <!-- Fejléc sáv -->
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-black uppercase tracking-wider text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
+                        🖥️ Gép-mester Gyakorló
+                    </span>
+                    <span id="pcGameScoreBadge" class="text-xs font-extrabold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                        Kérdés: 1 / 8
+                    </span>
+                </div>
+
+                <!-- Feladat szövege -->
+                <div id="pcGamePromptBox" class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-3.5 text-center mb-3">
+                    <p id="pcGameInstruction" class="text-xs font-bold text-amber-800 uppercase tracking-wide">Koppints a képen erre a részre:</p>
+                    <h2 id="pcGameQuestionText" class="text-lg sm:text-xl font-black text-slate-900 mt-0.5">KÉPERNYŐ vagy MONITOR</h2>
+                </div>
+
+                <!-- Interaktív SVG terület (Koppintós módhoz) -->
+                <div id="pcGameSvgContainer" class="w-full bg-slate-50 rounded-2xl border border-slate-200 p-2 mb-3">
+                    <!-- SVG ide kerül -->
+                </div>
+
+                <!-- Feleletválasztós gombok (Szinonima és névfelismerő módhoz) -->
+                <div id="pcGameOptionsContainer" class="hidden grid grid-cols-1 gap-2.5 my-3">
+                    <!-- Gombok ide kerülnek -->
+                </div>
+
+                <!-- Visszajelző üzenet -->
+                <div id="pcGameFeedback" class="hidden rounded-2xl p-3 text-center font-extrabold text-sm"></div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 3. SZABÁLY-DETEKTÍV (RULES GAME)           -->
+        <!-- ========================================== -->
+        <section id="tab-rulesgame" class="hidden space-y-4">
+            <div class="bg-white rounded-3xl p-4 shadow-md border-2 border-indigo-100">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                        🚦 Szabály-detektív
+                    </span>
+                    <span id="rulesGameProgress" class="text-xs font-extrabold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                        1 / 10
+                    </span>
+                </div>
+
+                <!-- Haladásjelző csík -->
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-4">
+                    <div id="rulesProgressBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+
+                <!-- Kérdés kártya -->
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-center mb-4">
+                    <div id="rulesQuestionEmoji" class="text-4xl mb-2">📓</div>
+                    <span id="rulesQuestionTypeBadge" class="inline-block text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 mb-2">
+                        Egészítsd ki a szabályt!
+                    </span>
+                    <h3 id="rulesQuestionText" class="text-base sm:text-lg font-black text-slate-800 leading-snug">
+                        A _________ mindig magammal hozom.
+                    </h3>
+                </div>
+
+                <!-- Válaszlehetőségek -->
+                <div id="rulesOptionsBox" class="space-y-2.5">
+                    <!-- JS generálja -->
+                </div>
+
+                <!-- Visszajelzés + Eredeti füzetbeli szabály -->
+                <div id="rulesFeedbackBox" class="hidden mt-4 p-3.5 rounded-2xl border-2 text-center">
+                    <p id="rulesFeedbackTitle" class="font-black text-base"></p>
+                    <p id="rulesFeedbackRule" class="text-xs font-bold mt-1 opacity-90"></p>
+                    <button onclick="nextRulesQuestion()" class="mt-3 w-full py-2.5 bg-slate-900 text-white font-extrabold rounded-xl btn-3d text-sm">
+                        Következő feladat ➡️
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 4. NAGY CSILLAGGYŰJTŐ KIHÍVÁS (CHALLENGE)  -->
+        <!-- ========================================== -->
+        <section id="tab-challenge" class="hidden space-y-4">
+            <!-- Kezdőképernyő a teszthez -->
+            <div id="challengeStartCard" class="bg-white rounded-3xl p-6 shadow-md border-2 border-amber-200 text-center space-y-4">
+                <div class="w-20 h-20 mx-auto bg-amber-100 rounded-3xl flex items-center justify-center text-5xl shadow-inner animate-float">
+                    🏆
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">10 Kérdéses Szuper Kvíz!</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
+                        Vegyes kérdések a <strong>számítógép terem rendjéből</strong> és a <strong>számítógép részeiből</strong>. Gyűjts össze minél több csillagot!
+                    </p>
+                </div>
+                <div class="bg-indigo-50 rounded-2xl p-3 text-left text-xs font-bold text-indigo-900 space-y-1">
+                    <div>✨ Pontos füzetbeli mondatok</div>
+                    <div>✨ Képernyő / Monitor, Billentyűzet / Klaviatúra, Vezeték / Kábel</div>
+                    <div>✨ Azonnali dicséret és jutalomcsillagok</div>
+                </div>
+                <button onclick="startChallenge()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-base rounded-2xl btn-3d">
+                    🚀 Kvíz Indítása!
+                </button>
+            </div>
+
+            <!-- Aktív Kvíz Kártya -->
+            <div id="challengeActiveCard" class="hidden bg-white rounded-3xl p-4 shadow-md border-2 border-amber-200">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="challengeCounter" class="text-xs font-black text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
+                        1 / 10 kérdés
+                    </span>
+                    <span id="challengeStreak" class="text-xs font-black text-orange-600">
+                        🔥 Sorozat: 0
+                    </span>
+                </div>
+
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-4">
+                    <div id="challengeProgressBar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 text-center mb-4">
+                    <div id="challengeEmoji" class="text-3xl mb-1.5">🖥️</div>
+                    <h3 id="challengeQuestion" class="text-base sm:text-lg font-black text-slate-800 leading-snug"></h3>
+                </div>
+
+                <div id="challengeOptions" class="space-y-2.5"></div>
+
+                <div id="challengeFeedback" class="hidden mt-4 p-3 rounded-2xl text-center">
+                    <p id="challengeFeedbackText" class="font-black text-sm"></p>
+                    <button onclick="nextChallengeQuestion()" class="mt-2.5 w-full py-2.5 bg-indigo-600 text-white font-extrabold rounded-xl btn-3d text-sm">
+                        Tovább ➡️
+                    </button>
+                </div>
+            </div>
+
+            <!-- Eredmény Kártya -->
+            <div id="challengeResultCard" class="hidden bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-300 text-center space-y-4">
+                <div id="resultTrophy" class="text-6xl">🎉</div>
+                <h2 id="resultTitle" class="text-2xl font-black text-slate-900">Ügyes vagy!</h2>
+                <p id="resultScoreText" class="text-base font-extrabold text-indigo-600">10 / 10 helyes válasz!</p>
+                <p id="resultMessage" class="text-xs sm:text-sm text-slate-600 font-medium"></p>
+                <button onclick="startChallenge()" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-base rounded-2xl btn-3d">
+                    🔄 Újra játszom!
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Alsó Mobil Navigációs Sáv -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-indigo-100 shadow-lg px-2 py-1.5">
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+            <button id="nav-study" onclick="switchTab('study')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all bg-indigo-50 text-indigo-700 font-black">
+                <span class="text-xl">📖</span>
+                <span class="text-[11px] mt-0.5">Tanulás</span>
+            </button>
+            <button id="nav-pcgame" onclick="switchTab('pcgame')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all text-slate-500 font-bold hover:bg-slate-50">
+                <span class="text-xl">🖥️</span>
+                <span class="text-[11px] mt-0.5">Gép-részek</span>
+            </button>
+            <button id="nav-rulesgame" onclick="switchTab('rulesgame')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all text-slate-500 font-bold hover:bg-slate-50">
+                <span class="text-xl">🚦</span>
+                <span class="text-[11px] mt-0.5">Szabályok</span>
+            </button>
+            <button id="nav-challenge" onclick="switchTab('challenge')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all text-slate-500 font-bold hover:bg-slate-50">
+                <span class="text-xl">🏆</span>
+                <span class="text-[11px] mt-0.5">Kvíz</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        /* =========================================================================
+           1. PONTOS TANANYAG ADATBÁZIS (A FÜZET FOTÓJA ALAPJÁN)
+           ========================================================================= */
+
+        // 1. téma: A számítógép terem rendje (1-10 pontos mondatok)
+        const CLASSROOM_RULES = [
+            {
+                id: 1,
+                text: "A füzetemet mindig magammal hozom.",
+                icon: "📓",
+                keyword: "füzetemet",
+                blankSentence: "A __________ mindig magammal hozom.",
+                wrongWords: ["játékomat", "szendvicsemet", "táskámat"],
+                tfQuestion: "Az informatika órára a füzetemet mindig magammal kell hoznom.",
+                tfAnswer: true
+            },
+            {
+                id: 2,
+                text: "A teremben nem étkezhetem.",
+                icon: "🚫🍔",
+                keyword: "étkezhetem",
+                blankSentence: "A teremben nem __________.",
+                wrongWords: ["tanulhatok", "ülhetek le", "figyelhetek"],
+                tfQuestion: "Ha megéhezem óra közben, nyugodtan ehetek egy szendvicset a gépteremben.",
+                tfAnswer: false
+            },
+            {
+                id: 3,
+                text: "A székek között nem szaladgálhatok.",
+                icon: "🚶‍♀️🪑",
+                keyword: "szaladgálhatok",
+                blankSentence: "A székek között nem __________.",
+                wrongWords: ["sétálhatok", "ülhetek", "tanulhatok"],
+                tfQuestion: "A számítógép teremben a székek között tilos szaladgálni.",
+                tfAnswer: true
+            },
+            {
+                id: 4,
+                text: "Csak engedéllyel nyúlok a számítógéphez.",
+                icon: "✋💻",
+                keyword: "engedéllyel",
+                blankSentence: "Csak __________ nyúlok a számítógéphez.",
+                wrongWords: ["kesztyűvel", "szünetben", "titokban"],
+                tfQuestion: "Amint belépek a terembe, engedély nélkül is azonnal nyomkodhatom a gépet.",
+                tfAnswer: false
+            },
+            {
+                id: 5,
+                text: "Mindig figyelek az utasításokra.",
+                icon: "👂👩‍🏫",
+                keyword: "utasításokra",
+                blankSentence: "Mindig figyelek az __________.",
+                wrongWords: ["ablakokra", "órára", "társam gépére"],
+                tfQuestion: "Az órán mindig figyelnem kell a tanár utasításaira.",
+                tfAnswer: true
+            },
+            {
+                id: 6,
+                text: "Nem szemetelek.",
+                icon: "🗑️✨",
+                keyword: "szemetelek",
+                blankSentence: "Nem __________.",
+                wrongWords: ["kérdezek", "jegyzetelhetek", "figyelek"],
+                tfQuestion: "A papírzsebkendőt vagy szemetet a gép mellett hagyhatom az asztalon.",
+                tfAnswer: false
+            },
+            {
+                id: 7,
+                text: "A számítógép mellett nem ihatok.",
+                icon: "🚫🥤",
+                keyword: "ihatok",
+                blankSentence: "A számítógép mellett nem __________.",
+                wrongWords: ["ülhetek", "írhatok", "olvashatok"],
+                tfQuestion: "A számítógép mellett nem szabad inni, mert ráborulhat a gépre.",
+                tfAnswer: true
+            },
+            {
+                id: 8,
+                text: "Beszélgetésemmel nem zavarom az órát.",
+                icon: "🤫💬",
+                keyword: "zavarom",
+                blankSentence: "Beszélgetésemmel nem __________ az órát.",
+                wrongWords: ["segítem", "kezdem", "folytatom"],
+                tfQuestion: "Beszélgetésemmel nem szabad zavarnom az órát.",
+                tfAnswer: true
+            },
+            {
+                id: 9,
+                text: "Minden eszközt a helyére teszek vissza.",
+                icon: "🧹🖱️",
+                keyword: "helyére",
+                blankSentence: "Minden eszközt a __________ teszek vissza.",
+                wrongWords: ["földre", "székre", "táskámba"],
+                tfQuestion: "Óra végén minden eszközt szépen a helyére kell visszatennem.",
+                tfAnswer: true
+            },
+            {
+                id: 10,
+                text: "Óra közben a szomszédom eszközéhez nem nyúlhatok.",
+                icon: "🙅‍♀️⌨️",
+                keyword: "szomszédom",
+                blankSentence: "Óra közben a __________ eszközéhez nem nyúlhatok.",
+                wrongWords: ["saját", "tanár", "fali"],
+                tfQuestion: "Óra közben viccből elvehetem vagy megnyomhatom a szomszédom egerét és billentyűzetét.",
+                tfAnswer: false
+            }
+        ];
+
+        // 2. téma: A számítógép részei (Pontosan a füzetbeli feliratokkal és szinonimákkal)
+        const PC_PARTS = {
+            monitor: {
+                id: "monitor",
+                label: "KÉPERNYŐ vagy MONITOR",
+                primary: "KÉPERNYŐ",
+                synonym: "MONITOR",
+                icon: "🖥️",
+                description: "Ezen látjuk a képeket, szövegeket és programokat. Mindkét nevet jó, ha tudod: KÉPERNYŐ vagy MONITOR!"
+            },
+            gephaz: {
+                id: "gephaz",
+                label: "GÉPHÁZ",
+                primary: "GÉPHÁZ",
+                synonym: null,
+                icon: "🗄️",
+                description: "A számítógép „agya” és legfontosabb alkatrészei ebben a dobozban találhatók. Rajta van a bekapcsoló gomb is."
+            },
+            kabelek: {
+                id: "kabelek",
+                label: "VEZETÉK vagy KÁBEL",
+                primary: "VEZETÉK",
+                synonym: "KÁBEL",
+                icon: "🔌",
+                description: "Összeköti az egeret, a billentyűzetet és a monitort a gépházzal. Másik neve: KÁBEL."
+            },
+            eger: {
+                id: "eger",
+                label: "EGÉR",
+                primary: "EGÉR",
+                synonym: null,
+                icon: "🖱️",
+                description: "Kézbe illő kis eszköz, amivel a nyilat (kurzort) mozgatjuk és kattintunk a képernyőn."
+            },
+            billentyuzet: {
+                id: "billentyuzet",
+                label: "BILLENTYŰZET vagy KLAVIATÚRA",
+                primary: "BILLENTYŰZET",
+                synonym: "KLAVIATÚRA",
+                icon: "⌨️",
+                description: "Sok gomb (billentyű) van rajta, ezzel tudunk betűket és számokat gépelni. Idegen szóval: KLAVIATÚRA!"
+            }
+        };
+
+        /* =========================================================================
+           2. ÁLLAPOTVÁLTOZÓK ÉS HANGEFFEKTEK (Web Audio API)
+           ========================================================================= */
+        let stars = 0;
+        let soundEnabled = true;
+        let exploredParts = new Set();
+        let learnedRules = new Set();
+
+        // Egyszerű szintetizált hangok külső fájl nélkül
+        let audioCtx = null;
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(520, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.09); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.18); // G5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+                    osc.start(now);
+                    osc.stop(now + 0.38);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(170, now + 0.12);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                }
+            } catch (e) {
+                // Ha a böngésző tiltja az audiót
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function addStars(amount) {
+            stars += amount;
+            const starEl = document.getElementById('starCount');
+            starEl.textContent = stars;
+            starEl.parentElement.classList.add('scale-125');
+            setTimeout(() => starEl.parentElement.classList.remove('scale-125'), 250);
+        }
+
+        /* =========================================================================
+           3. EGYEDI SVG ÁBRA GENERÁLÓ (Pontosan a füzet képe alapján!)
+           ========================================================================= */
+        function createComputerSVG(mode = 'study') {
+            const clickHandler = mode === 'study' ? 'onStudyPartClick' : 'onGamePartClick';
+            return `
+            <svg viewBox="0 0 500 390" class="w-full h-auto select-none">
+                <defs>
+                    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#312E81" />
+                        <stop offset="50%" stop-color="#1E1B4B" />
+                        <stop offset="100%" stop-color="#0F172A" />
+                    </linearGradient>
+                    <linearGradient id="caseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#475569" />
+                        <stop offset="100%" stop-color="#1E293B" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Asztal háttér ív -->
+                <ellipse cx="250" cy="340" rx="235" ry="42" fill="#E2E8F0" opacity="0.6" />
+
+                <!-- ================= 1. VEZETÉK VAGY KÁBEL ================= -->
+                <g class="pc-part" data-part="kabelek" onclick="${clickHandler}('kabelek', this)">
+                    <!-- Láthatatlan vastagabb érintési sáv telefonra -->
+                    <path d="M 195 275 Q 245 275 275 245" fill="none" stroke="transparent" stroke-width="26" />
+                    <path d="M 340 245 Q 385 280 322 308" fill="none" stroke="transparent" stroke-width="26" />
+
+                    <!-- Billentyűzet/Monitor vezeték a gépházhoz -->
+                    <path d="M 195 275 Q 245 272 275 242" fill="none" stroke="#334155" stroke-width="6" stroke-linecap="round" />
+                    <!-- Egér vezeték a gépházhoz -->
+                    <path d="M 338 242 Q 392 278 322 308" fill="none" stroke="#334155" stroke-width="5.5" stroke-linecap="round" />
+
+                    <!-- Kábel címke jelölő pont -->
+                    <circle cx="362" cy="272" r="13" fill="#F59E0B" stroke="#FFF" stroke-width="2.5" />
+                    <text x="362" y="277" text-anchor="middle" fill="#FFF" font-size="13" font-weight="900">🔌</text>
+                </g>
+
+                <!-- ================= 2. KÉPERNYŐ VAGY MONITOR ================= -->
+                <g class="pc-part" data-part="monitor" onclick="${clickHandler}('monitor', this)">
+                    <!-- Talp és nyak -->
+                    <rect x="132" y="218" width="26" height="24" rx="3" fill="#64748B" />
+                    <polygon points="95,246 195,246 185,236 105,236" fill="#475569" />
+                    <!-- Káva -->
+                    <rect x="42" y="88" width="206" height="134" rx="10" fill="#CBD5E1" stroke="#475569" stroke-width="3" />
+                    <!-- Kijelző -->
+                    <rect x="52" y="98" width="186" height="110" rx="5" fill="url(#screenGrad)" />
+                    <!-- Fénycsillanás a képernyőn (mint a füzetben) -->
+                    <polygon points="52,208 165,98 238,98 238,208" fill="#FFFFFF" opacity="0.08" />
+                    <!-- Bekapcsoló LED -->
+                    <circle cx="58" cy="215" r="3" fill="#EF4444" />
+                </g>
+
+                <!-- ================= 3. GÉPHÁZ ================= -->
+                <g class="pc-part" data-part="gephaz" onclick="${clickHandler}('gephaz', this)">
+                    <!-- 3D tető rész (ahogy a füzetben látszik felülről) -->
+                    <polygon points="275,92 285,62 355,62 368,92" fill="#334155" stroke="#1E293B" stroke-width="2" />
+                    <!-- Előlap -->
+                    <rect x="275" y="92" width="93" height="168" rx="6" fill="url(#caseGrad)" stroke="#0F172A" stroke-width="3" />
+                    <!-- Bal oldali világos él -->
+                    <rect x="277" y="95" width="8" height="162" rx="2" fill="#94A3B8" opacity="0.5" />
+                    <!-- DVD meghajtók -->
+                    <rect x="292" y="112" width="62" height="14" rx="2" fill="#94A3B8" stroke="#1E293B" stroke-width="1.5" />
+                    <rect x="292" y="142" width="62" height="14" rx="2" fill="#94A3B8" stroke="#1E293B" stroke-width="1.5" />
+                    <!-- Bekapcsoló piros gomb és zöld LED -->
+                    <circle cx="348" cy="212" r="7" fill="#E11D48" stroke="#FFF" stroke-width="1.5" />
+                    <circle cx="348" cy="196" r="3" fill="#22C55E" />
+                    <!-- Előlapi USB portok -->
+                    <rect x="305" y="226" width="12" height="5" rx="1" fill="#CBD5E1" />
+                    <rect x="325" y="226" width="12" height="5" rx="1" fill="#CBD5E1" />
+                    <rect x="305" y="236" width="12" height="5" rx="1" fill="#CBD5E1" />
+                    <rect x="325" y="236" width="12" height="5" rx="1" fill="#CBD5E1" />
+                </g>
+
+                <!-- ================= 4. BILLENTYŰZET VAGY KLAVIATÚRA ================= -->
+                <g class="pc-part" data-part="billentyuzet" onclick="${clickHandler}('billentyuzet', this)">
+                    <!-- Alaptest -->
+                    <polygon points="48,266 256,266 268,322 34,322" fill="#334155" stroke="#0F172A" stroke-width="3" stroke-linejoin="round" />
+                    <!-- Alsó csuklótámasz ív -->
+                    <path d="M 34 322 Q 151 334 268 322" fill="#64748B" stroke="#0F172A" stroke-width="2.5" />
+                    <!-- Billentyű sorok stilizálva -->
+                    <g fill="#E2E8F0">
+                        <!-- 1. sor -->
+                        <rect x="56" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="74" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="92" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="110" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="128" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="146" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="164" y="273" width="14" height="7" rx="1.5" />
+                        <rect x="182" y="273" width="14" height="7" rx="1.5" />
+                        <!-- 2. sor -->
+                        <rect x="52" y="284" width="16" height="8" rx="1.5" />
+                        <rect x="72" y="284" width="14" height="8" rx="1.5" />
+                        <rect x="90" y="284" width="14" height="8" rx="1.5" />
+                        <rect x="108" y="284" width="14" height="8" rx="1.5" />
+                        <rect x="126" y="284" width="14" height="8" rx="1.5" />
+                        <rect x="144" y="284" width="14" height="8" rx="1.5" />
+                        <rect x="162" y="284" width="18" height="8" rx="1.5" />
+                        <!-- 3. sor -->
+                        <rect x="49" y="295" width="19" height="8" rx="1.5" />
+                        <rect x="72" y="295" width="14" height="8" rx="1.5" />
+                        <rect x="90" y="295" width="14" height="8" rx="1.5" />
+                        <rect x="108" y="295" width="14" height="8" rx="1.5" />
+                        <rect x="126" y="295" width="14" height="8" rx="1.5" />
+                        <rect x="144" y="295" width="14" height="8" rx="1.5" />
+                        <rect x="162" y="295" width="20" height="8" rx="1.5" />
+                        <!-- Szóköz sor -->
+                        <rect x="46" y="306" width="22" height="9" rx="1.5" />
+                        <rect x="74" y="306" width="76" height="9" rx="2" fill="#F8FAFC" />
+                        <rect x="156" y="306" width="26" height="9" rx="1.5" />
+                        <!-- Numerikus rész jobb oldalon -->
+                        <rect x="215" y="284" width="34" height="30" rx="2" fill="#CBD5E1" />
+                    </g>
+                </g>
+
+                <!-- ================= 5. EGÉR ================= -->
+                <g class="pc-part" data-part="eger" onclick="${clickHandler}('eger', this)">
+                    <!-- Egér test -->
+                    <ellipse cx="322" cy="332" rx="22" ry="28" fill="#475569" stroke="#0F172A" stroke-width="3" />
+                    <ellipse cx="318" cy="330" rx="14" ry="20" fill="#94A3B8" opacity="0.35" />
+                    <!-- Választóvonal és görgő -->
+                    <line x1="302" y1="324" x2="342" y2="324" stroke="#0F172A" stroke-width="2" />
+                    <line x1="322" y1="304" x2="322" y2="324" stroke="#0F172A" stroke-width="2" />
+                    <rect x="319" y="310" width="6" height="10" rx="3" fill="#E2E8F0" />
+                </g>
+
+                <!-- Ha Tanuló módban vagyunk, kis címkék segítik a tájékozódást -->
+                ${mode === 'study' ? `
+                <g font-family="Nunito, sans-serif" font-weight="900" font-size="11" text-anchor="middle" pointer-events="none">
+                    <rect x="65" y="45" width="160" height="24" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                    <text x="145" y="61" fill="#92400E">KÉPERNYŐ vagy MONITOR</text>
+
+                    <rect x="368" y="40" width="90" height="24" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                    <text x="413" y="56" fill="#92400E">GÉPHÁZ</text>
+
+                    <rect x="385" y="220" width="108" height="36" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                    <text x="439" y="235" fill="#92400E">VEZETÉK vagy</text>
+                    <text x="439" y="249" fill="#92400E">KÁBEL</text>
+
+                    <rect x="368" y="320" width="76" height="24" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                    <text x="406" y="336" fill="#92400E">EGÉR</text>
+
+                    <rect x="42" y="352" width="215" height="26" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+                    <text x="150" y="369" fill="#92400E">BILLENTYŰZET vagy KLAVIATÚRA</text>
+                </g>
+                ` : ''}
+            </svg>
+            `;
+        }
+
+        /* =========================================================================
+           4. TANULÓMÓD (1. FÜL) INICIALIZÁLÁSA ÉS LOGIKÁJA
+           ========================================================================= */
+        function initStudyMode() {
+            // SVG beszúrása
+            document.getElementById('study-svg-wrapper').innerHTML = createComputerSVG('study');
+
+            // Szótár lista feltöltése
+            const glossaryEl = document.getElementById('partsGlossaryList');
+            glossaryEl.innerHTML = Object.values(PC_PARTS).map(p => `
+                <div onclick="onStudyPartClick('${p.id}')" class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 cursor-pointer transition">
+                    <div class="text-2xl bg-white w-11 h-11 rounded-xl flex items-center justify-center shadow-sm">${p.icon}</div>
+                    <div class="flex-1">
+                        <div class="font-black text-sm text-indigo-950">${p.label}</div>
+                        <div class="text-xs text-slate-600">${p.description}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // 10 szabály feltöltése
+            renderRulesStudyList();
+        }
+
+        function onStudyPartClick(partId) {
+            playTone('click');
+            const part = PC_PARTS[partId];
+            if (!part) return;
+
+            // Kijelölés az SVG-n
+            document.querySelectorAll('#study-svg-wrapper .pc-part').forEach(el => {
+                el.classList.toggle('active-part', el.getAttribute('data-part') === partId);
+            });
+
+            // Információs kártya frissítése
+            document.getElementById('partInfoIcon').textContent = part.icon;
+            document.getElementById('partInfoTitle').textContent = part.label;
+            document.getElementById('partInfoDesc').textContent = part.description;
+
+            if (!exploredParts.has(partId)) {
+                exploredParts.add(partId);
+                addStars(1);
+                document.getElementById('exploredCounter').textContent = `${exploredParts.size} / 5 felfedezve`;
+            }
+        }
+
+        function renderRulesStudyList() {
+            const container = document.getElementById('rulesListContainer');
+            container.innerHTML = CLASSROOM_RULES.map(rule => {
+                const isLearned = learnedRules.has(rule.id);
+                return `
+                <div onclick="toggleRuleLearned(${rule.id})" class="p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 ${isLearned ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-indigo-100 shadow-sm'}">
+                    <div class="w-9 h-9 rounded-xl font-black text-sm flex items-center justify-center shrink-0 ${isLearned ? 'bg-emerald-500 text-white' : 'bg-indigo-100 text-indigo-800'}">
+                        ${isLearned ? '✓' : rule.id + '.'}
+                    </div>
+                    <div class="text-2xl shrink-0">${rule.icon}</div>
+                    <div class="flex-1">
+                        <p class="font-extrabold text-sm sm:text-base ${isLearned ? 'text-emerald-950' : 'text-slate-800'}">${rule.text}</p>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            document.getElementById('learnedRulesCount').textContent = `${learnedRules.size}/10`;
+        }
+
+        function toggleRuleLearned(id) {
+            if (learnedRules.has(id)) {
+                learnedRules.delete(id);
+                playTone('click');
+            } else {
+                learnedRules.add(id);
+                playTone('success');
+                addStars(1);
+            }
+            renderRulesStudyList();
+        }
+
+        function switchStudySub(sub) {
+            playTone('click');
+            const isPC = sub === 'pc';
+            document.getElementById('study-pc-container').classList.toggle('hidden', !isPC);
+            document.getElementById('study-rules-container').classList.toggle('hidden', isPC);
+
+            document.getElementById('studySubBtn-pc').className = isPC
+                ? 'py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all bg-indigo-600 text-white shadow'
+                : 'py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all text-slate-600 hover:bg-slate-100';
+
+            document.getElementById('studySubBtn-rules').className = !isPC
+                ? 'py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all bg-indigo-600 text-white shadow'
+                : 'py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all text-slate-600 hover:bg-slate-100';
+        }
+
+        /* =========================================================================
+           5. GÉP-FELISMERŐ ÉS SZINONIMA JÁTÉK (2. FÜL)
+           ========================================================================= */
+        const PC_GAME_QUESTIONS = [
+            { mode: 'tap', target: 'monitor', instruction: 'Koppints a képen erre a részre:', question: 'KÉPERNYŐ vagy MONITOR' },
+            { mode: 'tap', target: 'gephaz', instruction: 'Koppints a képen erre a részre:', question: 'GÉPHÁZ' },
+            { mode: 'tap', target: 'billentyuzet', instruction: 'Koppints a képen erre a részre:', question: 'BILLENTYŰZET vagy KLAVIATÚRA' },
+            { mode: 'tap', target: 'eger', instruction: 'Koppints a képen erre a részre:', question: 'EGÉR' },
+            { mode: 'tap', target: 'kabelek', instruction: 'Koppints a képen erre a részre:', question: 'VEZETÉK vagy KÁBEL' },
+            { mode: 'choice', highlight: 'monitor', instruction: 'Szinonima kérdés:', question: 'Hogy hívják másképp a KÉPERNYŐT?', answer: 'MONITOR', options: ['MONITOR', 'KLAVIATÚRA', 'GÉPHÁZ'] },
+            { mode: 'choice', highlight: 'billentyuzet', instruction: 'Szinonima kérdés:', question: 'Hogy hívják másképp a BILLENTYŰZETET?', answer: 'KLAVIATÚRA', options: ['KLAVIATÚRA', 'MONITOR', 'KÁBEL'] },
+            { mode: 'choice', highlight: 'kabelek', instruction: 'Szinonima kérdés:', question: 'Hogy hívják másképp a VEZETÉKET?', answer: 'KÁBEL', options: ['KÁBEL', 'EGÉR', 'GÉPHÁZ'] }
+        ];
+
+        let pcGameIdx = 0;
+        let pcGameLocked = false;
+
+        function initPCGame() {
+            pcGameIdx = 0;
+            document.getElementById('pcGameSvgContainer').innerHTML = createComputerSVG('game');
+            renderPCGameQuestion();
+        }
+
+        function renderPCGameQuestion() {
+            pcGameLocked = false;
+            const q = PC_GAME_QUESTIONS[pcGameIdx];
+            document.getElementById('pcGameScoreBadge').textContent = `Kérdés: ${pcGameIdx + 1} / ${PC_GAME_QUESTIONS.length}`;
+            document.getElementById('pcGameInstruction').textContent = q.instruction;
+            document.getElementById('pcGameQuestionText').textContent = q.question;
+
+            const feedbackEl = document.getElementById('pcGameFeedback');
+            feedbackEl.classList.add('hidden');
+
+            // Reset SVG highlights
+            document.querySelectorAll('#pcGameSvgContainer .pc-part').forEach(el => {
+                el.classList.remove('active-part', 'correct-flash', 'wrong-flash');
+                if (q.mode === 'choice' && el.getAttribute('data-part') === q.highlight) {
+                    el.classList.add('active-part');
+                }
+            });
+
+            const optionsBox = document.getElementById('pcGameOptionsContainer');
+            if (q.mode === 'choice') {
+                optionsBox.classList.remove('hidden');
+                const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+                optionsBox.innerHTML = shuffled.map(opt => `
+                    <button onclick="onPCChoiceAnswer('${opt}')" class="w-full py-3 px-4 bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl font-black text-indigo-950 text-base btn-3d">
+                        ${opt}
+                    </button>
+                `).join('');
+            } else {
+                optionsBox.classList.add('hidden');
+            }
+        }
+
+        function onGamePartClick(partId, el) {
+            const q = PC_GAME_QUESTIONS[pcGameIdx];
+            if (pcGameLocked || q.mode !== 'tap') return;
+
+            const feedbackEl = document.getElementById('pcGameFeedback');
+            feedbackEl.classList.remove('hidden');
+
+            if (partId === q.target) {
+                pcGameLocked = true;
+                playTone('success');
+                addStars(2);
+                el.classList.add('correct-flash');
+                feedbackEl.className = 'rounded-2xl p-3 text-center font-extrabold text-sm bg-emerald-100 text-emerald-800 border-2 border-emerald-300';
+                feedbackEl.innerHTML = `🌟 Szuper! Ez bizony a <u>${PC_PARTS[partId].label}</u>!`;
+                setTimeout(nextPCGameQuestion, 1400);
+            } else {
+                playTone('error');
+                el.classList.add('wrong-flash');
+                setTimeout(() => el.classList.remove('wrong-flash'), 500);
+                feedbackEl.className = 'rounded-2xl p-3 text-center font-extrabold text-sm bg-rose-100 text-rose-800 border-2 border-rose-300';
+                feedbackEl.innerHTML = `❌ Ez a(z) ${PC_PARTS[partId].label}. Keresd ezt: <b>${q.question}</b>!`;
+            }
+        }
+
+        function onPCChoiceAnswer(selected) {
+            if (pcGameLocked) return;
+            const q = PC_GAME_QUESTIONS[pcGameIdx];
+            const feedbackEl = document.getElementById('pcGameFeedback');
+            feedbackEl.classList.remove('hidden');
+
+            if (selected === q.answer) {
+                pcGameLocked = true;
+                playTone('success');
+                addStars(2);
+                feedbackEl.className = 'rounded-2xl p-3 text-center font-extrabold text-sm bg-emerald-100 text-emerald-800 border-2 border-emerald-300';
+                feedbackEl.innerHTML = `🎉 Helyes! Mindkét szó ugyanazt jelenti!`;
+                setTimeout(nextPCGameQuestion, 1400);
+            } else {
+                playTone('error');
+                feedbackEl.className = 'rounded-2xl p-3 text-center font-extrabold text-sm bg-rose-100 text-rose-800 border-2 border-rose-300';
+                feedbackEl.innerHTML = `🤔 Próbáld újra! Melyik a párja a füzetben?`;
+            }
+        }
+
+        function nextPCGameQuestion() {
+            pcGameIdx++;
+            if (pcGameIdx >= PC_GAME_QUESTIONS.length) {
+                launchConfetti();
+                pcGameIdx = 0;
+            }
+            renderPCGameQuestion();
+        }
+
+        /* =========================================================================
+           6. SZABÁLY-DETEKTÍV KVÍZ (3. FÜL)
+           ========================================================================= */
+        let rulesQuestionsPool = [];
+        let currentRuleQIdx = 0;
+        let rulesLocked = false;
+
+        function buildRulesQuestions() {
+            const list = [];
+            CLASSROOM_RULES.forEach(r => {
+                // Felváltva generálunk kiegészítős és Igaz/Hamis kérdéseket, hogy változatos legyen
+                list.push({
+                    type: 'blank',
+                    ruleId: r.id,
+                    emoji: r.icon,
+                    question: r.blankSentence,
+                    correct: r.keyword,
+                    options: [r.keyword, ...r.wrongWords].sort(() => Math.random() - 0.5),
+                    originalRule: `${r.id}. ${r.text}`
+                });
+                list.push({
+                    type: 'tf',
+                    ruleId: r.id,
+                    emoji: r.icon,
+                    question: r.tfQuestion,
+                    correct: r.tfAnswer ? 'IGAZ' : 'HAMIS',
+                    options: ['IGAZ', 'HAMIS'],
+                    originalRule: `${r.id}. ${r.text}`
+                });
+            });
+            // Keverjük meg és vegyünk 10-et egy körre
+            return list.sort(() => Math.random() - 0.5).slice(0, 10);
+        }
+
+        function initRulesGame() {
+            rulesQuestionsPool = buildRulesQuestions();
+            currentRuleQIdx = 0;
+            renderRulesQuestion();
+        }
+
+        function renderRulesQuestion() {
+            rulesLocked = false;
+            const q = rulesQuestionsPool[currentRuleQIdx];
+            document.getElementById('rulesGameProgress').textContent = `${currentRuleQIdx + 1} / ${rulesQuestionsPool.length}`;
+            document.getElementById('rulesProgressBar').style.width = `${((currentRuleQIdx + 1) / rulesQuestionsPool.length) * 100}%`;
+
+            document.getElementById('rulesQuestionEmoji').textContent = q.emoji;
+            document.getElementById('rulesQuestionTypeBadge').textContent = q.type === 'blank'
+                ? '✏️ Egészítsd ki a füzet mondatát!'
+                : '🚦 Igaz vagy Hamis?';
+            document.getElementById('rulesQuestionText').textContent = q.question;
+
+            document.getElementById('rulesFeedbackBox').classList.add('hidden');
+
+            const optionsBox = document.getElementById('rulesOptionsBox');
+            optionsBox.innerHTML = q.options.map(opt => {
+                let extraStyle = 'bg-white border-indigo-200 text-slate-800 hover:bg-indigo-50';
+                if (opt === 'IGAZ') extraStyle = 'bg-emerald-50 border-emerald-300 text-emerald-900';
+                if (opt === 'HAMIS') extraStyle = 'bg-rose-50 border-rose-300 text-rose-900';
+
+                return `
+                <button onclick="answerRulesQuestion('${opt}', this)" class="w-full py-3.5 px-4 rounded-2xl border-2 font-black text-base btn-3d transition ${extraStyle}">
+                    ${opt === 'IGAZ' ? '✅ IGAZ (Szabad / Így helyes)' : opt === 'HAMIS' ? '❌ HAMIS (Tilos!)' : opt}
+                </button>
+                `;
+            }).join('');
+        }
+
+        function answerRulesQuestion(selected, btnEl) {
+            if (rulesLocked) return;
+            rulesLocked = true;
+            const q = rulesQuestionsPool[currentRuleQIdx];
+            const fbBox = document.getElementById('rulesFeedbackBox');
+            const fbTitle = document.getElementById('rulesFeedbackTitle');
+            const fbRule = document.getElementById('rulesFeedbackRule');
+
+            fbBox.classList.remove('hidden');
+
+            if (selected === q.correct) {
+                playTone('success');
+                addStars(2);
+                btnEl.classList.add('ring-4', 'ring-emerald-400');
+                fbBox.className = 'mt-4 p-3.5 rounded-2xl border-2 text-center bg-emerald-50 border-emerald-300 text-emerald-900';
+                fbTitle.textContent = '🌟 Pontosan így van!';
+            } else {
+                playTone('error');
+                btnEl.classList.add('ring-4', 'ring-rose-400');
+                fbBox.className = 'mt-4 p-3.5 rounded-2xl border-2 text-center bg-rose-50 border-rose-300 text-rose-900';
+                fbTitle.textContent = `💡 A helyes válasz: ${q.correct}`;
+            }
+            fbRule.textContent = `Füzetbeli szabály: „${q.originalRule}”`;
+        }
+
+        function nextRulesQuestion() {
+            playTone('click');
+            currentRuleQIdx++;
+            if (currentRuleQIdx >= rulesQuestionsPool.length) {
+                launchConfetti();
+                initRulesGame();
+            } else {
+                renderRulesQuestion();
+            }
+        }
+
+        /* =========================================================================
+           7. VEGYES CSILLAGGYŰJTŐ KVÍZ (4. FÜL)
+           ========================================================================= */
+        let challengePool = [];
+        let challengeIdx = 0;
+        let challengeScore = 0;
+        let challengeStreak = 0;
+        let challengeLocked = false;
+
+        function generateChallengePool() {
+            const pcQuestions = [
+                {
+                    emoji: '🖥️',
+                    q: 'Melyik szó jelenti pontosan ugyanazt, mint a KÉPERNYŐ?',
+                    correct: 'MONITOR',
+                    options: ['MONITOR', 'GÉPHÁZ', 'KLAVIATÚRA', 'EGÉR']
+                },
+                {
+                    emoji: '⌨️',
+                    q: 'Melyik szó a BILLENTYŰZET másik neve a füzetben?',
+                    correct: 'KLAVIATÚRA',
+                    options: ['KLAVIATÚRA', 'MONITOR', 'KÁBEL', 'GÉPHÁZ']
+                },
+                {
+                    emoji: '🔌',
+                    q: 'Hogy hívhatjuk még a VEZETÉKET?',
+                    correct: 'KÁBEL',
+                    options: ['KÁBEL', 'EGÉR', 'MONITOR', 'KLAVIATÚRA']
+                },
+                {
+                    emoji: '🗄️',
+                    q: 'Melyik részhez csatlakozik a vezetékekkel a monitor és az egér?',
+                    correct: 'GÉPHÁZ',
+                    options: ['GÉPHÁZ', 'KLAVIATÚRA', 'KÉPERNYŐ', 'SZÉK']
+                },
+                {
+                    emoji: '🖱️',
+                    q: 'Melyik eszközt fogjuk a kezünkbe a nyíl irányításához?',
+                    correct: 'EGÉR',
+                    options: ['EGÉR', 'GÉPHÁZ', 'MONITOR', 'VEZETÉK']
+                }
+            ];
+
+            const ruleQuestions = CLASSROOM_RULES.map(r => ({
+                emoji: r.icon,
+                q: `Egészítsd ki a ${r.id}. szabályt:\n„${r.blankSentence}”`,
+                correct: r.keyword,
+                options: [r.keyword, ...r.wrongWords]
+            }));
+
+            return [...pcQuestions, ...ruleQuestions]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 10);
+        }
+
+        function startChallenge() {
+            playTone('click');
+            challengePool = generateChallengePool();
+            challengeIdx = 0;
+            challengeScore = 0;
+            challengeStreak = 0;
+
+            document.getElementById('challengeStartCard').classList.add('hidden');
+            document.getElementById('challengeResultCard').classList.add('hidden');
+            document.getElementById('challengeActiveCard').classList.remove('hidden');
+
+            renderChallengeQuestion();
+        }
+
+        function renderChallengeQuestion() {
+            challengeLocked = false;
+            const item = challengePool[challengeIdx];
+
+            document.getElementById('challengeCounter').textContent = `${challengeIdx + 1} / 10 kérdés`;
+            document.getElementById('challengeStreak').textContent = `🔥 Sorozat: ${challengeStreak}`;
+            document.getElementById('challengeProgressBar').style.width = `${((challengeIdx + 1) / 10) * 100}%`;
+
+            document.getElementById('challengeEmoji').textContent = item.emoji;
+            document.getElementById('challengeQuestion').innerText = item.q;
+            document.getElementById('challengeFeedback').classList.add('hidden');
+
+            const shuffledOpts = [...item.options].sort(() => Math.random() - 0.5);
+            document.getElementById('challengeOptions').innerHTML = shuffledOpts.map(opt => `
+                <button onclick="submitChallengeAnswer('${opt}', this)" class="w-full py-3 px-4 bg-white hover:bg-indigo-50 border-2 border-indigo-200 rounded-2xl font-black text-slate-800 text-base btn-3d transition">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+
+        function submitChallengeAnswer(selected, btnEl) {
+            if (challengeLocked) return;
+            challengeLocked = true;
+
+            const item = challengePool[challengeIdx];
+            const fb = document.getElementById('challengeFeedback');
+            const fbText = document.getElementById('challengeFeedbackText');
+            fb.classList.remove('hidden');
+
+            if (selected === item.correct) {
+                playTone('success');
+                challengeScore++;
+                challengeStreak++;
+                addStars(3);
+                btnEl.className = 'w-full py-3 px-4 bg-emerald-500 text-white border-2 border-emerald-600 rounded-2xl font-black text-base shadow';
+                fb.className = 'mt-4 p-3 rounded-2xl text-center bg-emerald-50 border border-emerald-200 text-emerald-900';
+                fbText.textContent = '🎉 Szuper válasz! +3 csillag!';
+            } else {
+                playTone('error');
+                challengeStreak = 0;
+                btnEl.className = 'w-full py-3 px-4 bg-rose-500 text-white border-2 border-rose-600 rounded-2xl font-black text-base shadow';
+                fb.className = 'mt-4 p-3 rounded-2xl text-center bg-rose-50 border border-rose-200 text-rose-900';
+                fbText.textContent = `💡 A helyes válasz: ${item.correct}`;
+            }
+            document.getElementById('challengeStreak').textContent = `🔥 Sorozat: ${challengeStreak}`;
+        }
+
+        function nextChallengeQuestion() {
+            playTone('click');
+            challengeIdx++;
+            if (challengeIdx >= challengePool.length) {
+                showChallengeResults();
+            } else {
+                renderChallengeQuestion();
+            }
+        }
+
+        function showChallengeResults() {
+            document.getElementById('challengeActiveCard').classList.add('hidden');
+            const resCard = document.getElementById('challengeResultCard');
+            resCard.classList.remove('hidden');
+
+            document.getElementById('resultScoreText').textContent = `10 kérdésből ${challengeScore} helyes válasz!`;
+
+            if (challengeScore >= 9) {
+                launchConfetti();
+                document.getElementById('resultTrophy').textContent = '👑';
+                document.getElementById('resultTitle').textContent = 'Csillagos Ötös!';
+                document.getElementById('resultMessage').textContent = 'Fantasztikus vagy! Kívülről fújod a számítógép részeit és a terem rendjét is!';
+            } else if (challengeScore >= 6) {
+                launchConfetti();
+                document.getElementById('resultTrophy').textContent = '🌟';
+                document.getElementById('resultTitle').textContent = 'Nagyon ügyes vagy!';
+                document.getElementById('resultMessage').textContent = 'Már majdnem mindent hibátlanul tudsz! Próbáld meg még egyszer a 10/10-ért!';
+            } else {
+                document.getElementById('resultTrophy').textContent = '💪';
+                document.getElementById('resultTitle').textContent = 'Jó gyakorlás volt!';
+                document.getElementById('resultMessage').textContent = 'Nézd át még egyszer a Tanulókártyákat, és próbáld újra a kvízt!';
+            }
+        }
+
+        /* =========================================================================
+           8. FÜLEK KÖZÖTTI NAVIGÁCIÓ ÉS KONFETTI
+           ========================================================================= */
+        function switchTab(tabId) {
+            playTone('click');
+            const tabs = ['study', 'pcgame', 'rulesgame', 'challenge'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tabId);
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    navBtn.className = 'flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all bg-indigo-100 text-indigo-700 font-black scale-105';
+                } else {
+                    navBtn.className = 'flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all text-slate-500 font-bold hover:bg-slate-50';
+                }
+            });
+
+            if (tabId === 'pcgame') initPCGame();
+            if (tabId === 'rulesgame' && rulesQuestionsPool.length === 0) initRulesGame();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function launchConfetti() {
+            const colors = ['#F59E0B', '#10B981', '#6366F1', '#EC4899', '#3B82F6'];
+            for (let i = 0; i < 38; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti-piece rounded-sm';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 1.8 + 1.5) + 's';
+                conf.style.animationDelay = (Math.random() * 0.4) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3500);
+            }
+        }
+
+        // Oldal betöltésekor indul a Tanulómód
+        window.onload = function() {
+            initStudyMode();
+            initRulesGame();
+        };
+    </script>
+</body>
+</html>
