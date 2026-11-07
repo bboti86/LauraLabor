@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-        <!-- PWA beállítások -->
+    <!-- PWA beállítások -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff6b6b">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -48,6 +48,9 @@
         .category.kornyezet {
             border-top-color: #6bcb77;
         }
+        .category.matematika {
+            border-top-color: #a855f7;
+        }
         .category h2 {
             margin-top: 0;
             font-size: 1.3rem;
@@ -81,6 +84,12 @@
             transform: translateY(-2px);
             border-color: #4d96ff;
         }
+        .category.kornyezet .app-btn:hover {
+            border-color: #6bcb77;
+        }
+        .category.matematika .app-btn:hover {
+            border-color: #a855f7;
+        }
         .app-btn span.icon {
             font-size: 1.5rem;
         }
@@ -96,6 +105,17 @@
     <div class="container">
         <h1>Laura Tanulósarka 🚀</h1>
         <p class="subtitle">Válaszd ki, mit szeretnél ma gyakorolni!</p>
+
+        <!-- Matematika -->
+        <div class="category matematika">
+            <h2>🦄 Matematika</h2>
+            <div class="links-grid">
+                <a href="./szorzotabla_gyakorlo.html" class="app-btn">
+                    <span>Varázslatos Szorzótábla és Bennfoglaló</span>
+                    <span class="icon">👉</span>
+                </a>
+            </div>
+        </div>
 
         <!-- Digitális kultúra -->
         <div class="category">
