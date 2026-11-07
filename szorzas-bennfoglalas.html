@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Varázslatos Szorzótábla & Bennfoglaló Gyakorló 🦄</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            background-color: #f3e8ff;
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(252, 211, 77, 0.25) 0px, transparent 50%),
+                radial-gradient(at 90% 15%, rgba(244, 114, 182, 0.25) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, rgba(129, 140, 248, 0.25) 0px, transparent 50%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bouncy-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        .number-card-selected {
+            box-shadow: 0 10px 20px -5px rgba(217, 70, 239, 0.4), inset 0 0 0 3px #ffffff;
+            transform: translateY(-4px);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            70% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popIn 0.35s ease-out forwards;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Egyedi görgetősáv a tanulósarokhoz */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-12">
+
+    <!-- Felső Fejléc & Pontszámok -->
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-purple-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchMainTab('setup')">
+                <span class="text-3xl sm:text-4xl animate-float">🦄</span>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 bg-clip-text text-transparent leading-tight">
+                        Szorzótábla & Bennfoglaló
+                    </h1>
+                    <p class="text-xs font-bold text-slate-400 hidden sm:block">Játékos szorzás és maradék nélküli osztás gyakorló ✨</p>
+                </div>
+            </div>
+
+            <!-- Eredményjelző sáv -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="toggleSound()" id="soundBtn" title="Hangok ki/be kapcsolása" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm" title="Összegyűjtött csillagok">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 px-3 py-1.5 rounded-2xl shadow-sm" title="Hibátlan sorozat">
+                    <span class="text-xl">🔥</span>
+                    <span id="streakDisplay" class="font-black text-orange-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő Navigációs Fülek -->
+    <div class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="bg-white/80 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-purple-100 flex flex-wrap sm:flex-nowrap gap-1.5">
+            <button onclick="switchMainTab('setup')" id="tab-setup" class="flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-sm sm:text-base transition-all flex items-center justify-center gap-2 bg-purple-600 text-white shadow-md">
+                <span>🎛️</span> Számválasztó & Indítás
+            </button>
+            <button onclick="switchMainTab('play')" id="tab-play" class="flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-sm sm:text-base transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-purple-50">
+                <span>🎮</span> Jótékonysági Kvíz / Játék
+            </button>
+            <button onclick="switchMainTab('study')" id="tab-study" class="flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-sm sm:text-base transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-purple-50">
+                <span>📖</span> Tanulósarok (Puska)
+            </button>
+        </div>
+    </div>
+
+    <!-- Fő Tartalom Konténer -->
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- ==========================================
+             1. NÉZET: SZÁMVÁLASZTÓ ÉS BEÁLLÍTÁSOK
+             ========================================== -->
+        <section id="view-setup" class="space-y-6 animate-pop">
+            
+            <!-- Művelet (Szorzás / Bennfoglalás / Vegyes) Választó Kártya -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <div class="mb-3">
+                    <h2 class="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+                        <span>✨</span> Mit szeretnél gyakorolni?
+                    </h2>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">
+                        Választhatod a szorzást, a bennfoglalást (maradék nélküli osztást), vagy akár mindkettőt vegyesen!
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button onclick="setOperationMode('multiply')" id="op-multiply-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-purple-50 border-purple-500 ring-2 ring-purple-300">
+                        <span class="text-3xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-purple-100 font-black text-purple-600">×</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Szorzótábla</div>
+                            <div class="text-xs text-slate-500 font-semibold">Pl.: 6 × 7 = 42</div>
+                        </div>
+                    </button>
+
+                    <button onclick="setOperationMode('divide')" id="op-divide-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-slate-50 border-slate-200 hover:border-pink-300">
+                        <span class="text-3xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-pink-100 font-black text-pink-600">:</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Bennfoglalás (Osztás)</div>
+                            <div class="text-xs text-slate-500 font-semibold">Pl.: 42 : 7 = 6 (42-ben a 7)</div>
+                        </div>
+                    </button>
+
+                    <button onclick="setOperationMode('mixed')" id="op-mixed-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-slate-50 border-slate-200 hover:border-amber-300">
+                        <span class="text-2xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-amber-100 font-black text-amber-600">× :</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Vegyesen mindkettő</div>
+                            <div class="text-xs text-slate-500 font-semibold">Szorzás és osztás felváltva 🌟</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Számválasztó Kártya -->
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-lg border-2 border-purple-100">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                            <span>🔢</span> Melyik számokat gyakoroljuk ma?
+                        </h2>
+                        <p class="text-sm font-semibold text-slate-500 mt-0.5">
+                            Kattints a számokra! Egyszerre <span class="text-purple-600 font-bold">egy vagy több számot is</span> kiválaszthatsz!
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-bold text-purple-700 self-start sm:self-auto">
+                        Kiválasztva: <span id="selectedNumbersSummary" class="font-black">2, 5, 10</span>
+                    </div>
+                </div>
+
+                <!-- Gyorsválasztó gombok -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="selectPreset([1,2,3,4,5,6,7,8,9,10])" class="bouncy-btn text-xs sm:text-sm font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+                        🌟 Összes (1-10)
+                    </button>
+                    <button onclick="selectPreset([1,2,5,10])" class="bouncy-btn text-xs sm:text-sm font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+                        🌱 Könnyebbek (1, 2, 5, 10)
+                    </button>
+                    <button onclick="selectPreset([3,4,6])" class="bouncy-btn text-xs sm:text-sm font-bold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+                        🌼 Közepesek (3, 4, 6)
+                    </button>
+                    <button onclick="selectPreset([7,8,9])" class="bouncy-btn text-xs sm:text-sm font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+                        🔥 Nehéz diók (7, 8, 9)
+                    </button>
+                    <button onclick="selectPreset([])" class="bouncy-btn text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3.5 py-2 rounded-xl flex items-center gap-1.5 ml-auto">
+                        🗑️ Kijelölés törlése
+                    </button>
+                </div>
+
+                <!-- 1-10 Számgombok Rácsa -->
+                <div id="numberSelectorGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+                    <!-- JS tölti fel -->
+                </div>
+
+                <!-- Figyelmeztetés, ha nincs szám kiválasztva -->
+                <div id="noNumberAlert" class="hidden mt-4 bg-rose-50 border-2 border-rose-200 text-rose-700 px-4 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                    <span>⚠️</span> Kérlek válassz ki legalább egy számot a gyakorláshoz!
+                </div>
+            </div>
+
+            <!-- Játékmód és Körhossz Beállítások -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Játékmód választó -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800 mb-1 flex items-center gap-2">
+                            <span>🎮</span> Hogyan szeretnél játszani?
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">Játék közben is bármikor átválthatod!</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="setGameMode('quiz')" id="mode-quiz-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-purple-50 border-purple-500 ring-2 ring-purple-300">
+                            <div class="flex items-center justify-between w-full mb-2">
+                                <span class="text-3xl">🎯</span>
+                                <span id="mode-quiz-badge" class="bg-purple-600 text-white text-xs font-black px-2 py-0.5 rounded-full">Kiválasztva</span>
+                            </div>
+                            <div>
+                                <div class="font-black text-slate-800 text-base">Feleletválasztós</div>
+                                <div class="text-xs text-slate-500 font-semibold mt-0.5">4 gomb közül kell rábökni a helyes válaszra.</div>
+                            </div>
+                        </button>
+
+                        <button onclick="setGameMode('keypad')" id="mode-keypad-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-slate-50 border-slate-200 hover:border-purple-300">
+                            <div class="flex items-center justify-between w-full mb-2">
+                                <span class="text-3xl">⌨️</span>
+                                <span id="mode-keypad-badge" class="hidden bg-purple-600 text-white text-xs font-black px-2 py-0.5 rounded-full">Kiválasztva</span>
+                            </div>
+                            <div>
+                                <div class="font-black text-slate-800 text-base">Számbeírós mód</div>
+                                <div class="text-xs text-slate-500 font-semibold mt-0.5">Írd be magad a választ a gombokkal vagy gépről!</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kérdések száma -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800 mb-1 flex items-center gap-2">
+                            <span>🏁</span> Hány feladat legyen egy körben?
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">A kör végén megnézheted, hány csillagot szereztél!</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setQuestionCount(10)" id="qcount-10" class="bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-pink-50 border-pink-500 text-pink-700 ring-2 ring-pink-200">
+                            <div class="text-2xl mb-0.5">10</div>
+                            <div class="text-xs font-bold">Gyors kör ⚡</div>
+                        </button>
+                        <button onclick="setQuestionCount(20)" id="qcount-20" class="bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-pink-300">
+                            <div class="text-2xl mb-0.5">20</div>
+                            <div class="text-xs font-bold">Nagy kör 🌟</div>
+                        </button>
+                        <button onclick="setQuestionCount(0)" id="qcount-0" class="bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-pink-300">
+                            <div class="text-2xl mb-0.5">∞</div>
+                            <div class="text-xs font-bold">Végtelen 🚀</div>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Nagy Indító Gomb -->
+            <div class="text-center pt-2">
+                <button onclick="startNewGame()" class="bouncy-btn w-full sm:w-auto min-w-[280px] bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-xl sm:text-2xl py-4 px-10 rounded-3xl shadow-xl shadow-pink-500/25 border-b-4 border-purple-800 inline-flex items-center justify-center gap-3">
+                    <span>🚀</span> Gyakorlás Indítása!
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             2. NÉZET: JÁTÉKTÉR (KVÍZ ÉS BEÍRÓS)
+             ========================================== -->
+        <section id="view-play" class="hidden space-y-5 animate-pop">
+            
+            <!-- Felső infó sáv a játékban -->
+            <div class="bg-white rounded-2xl p-3.5 sm:px-6 shadow-md border border-purple-100 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center flex-wrap gap-2">
+                    <span class="text-xs sm:text-sm font-bold text-slate-400">Gyakorolt számok:</span>
+                    <div id="activeNumbersPills" class="flex flex-wrap gap-1"></div>
+                    <button onclick="switchMainTab('setup')" class="text-xs font-bold text-purple-600 hover:underline ml-1">⚙️ Módosítás</button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Gyors műveletváltó játék közben -->
+                    <div class="flex items-center gap-1 bg-purple-50 p-1 rounded-xl border border-purple-100">
+                        <button onclick="switchOpInGame('multiply')" id="ingame-op-multiply" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm">
+                            ✖️ Szorzás
+                        </button>
+                        <button onclick="switchOpInGame('divide')" id="ingame-op-divide" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600">
+                            ➗ Bennfoglalás
+                        </button>
+                        <button onclick="switchOpInGame('mixed')" id="ingame-op-mixed" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600">
+                            🌟 Vegyes
+                        </button>
+                    </div>
+
+                    <!-- Gyors módváltó gomb játék közben -->
+                    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                        <button onclick="switchModeInGame('quiz')" id="ingame-mode-quiz" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm">
+                            🎯 Választós
+                        </button>
+                        <button onclick="switchModeInGame('keypad')" id="ingame-mode-keypad" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600">
+                            ⌨️ Beírós
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Haladásjelző csík -->
+            <div id="progressContainer" class="bg-white rounded-2xl p-4 shadow-sm border border-purple-100">
+                <div class="flex justify-between items-center text-xs sm:text-sm font-extrabold text-slate-600 mb-2">
+                    <span id="questionCounterText">1 / 10. feladat</span>
+                    <span id="retryBadge" class="hidden bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full text-xs font-black">
+                        🔄 Javító kérdés! Most sikerülni fog!
+                    </span>
+                    <span id="scoreAccuracyText" class="text-emerald-600">Helyes: 0</span>
+                </div>
+                <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5">
+                    <div id="progressBar" class="bg-gradient-to-r from-purple-500 via-pink-500 to-amber-400 h-full rounded-full transition-all duration-500" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- Fő Feladat Kártya -->
+            <div id="questionCard" class="bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-2 border-purple-100 relative overflow-hidden">
+                
+                <!-- Bennfoglalás szöveges segítő felirat (pl. "56-ban a 8 megvan ...-szor") -->
+                <div id="bennfoglalasTextBanner" class="hidden text-center mb-1">
+                    <span id="bennfoglalasReadableText" class="inline-block bg-pink-50 border border-pink-200 text-pink-700 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full">
+                        56-ban a 8 megvan ?-szer
+                    </span>
+                </div>
+
+                <!-- Feladat Kijelző -->
+                <div class="text-center my-2 sm:my-4">
+                    <div class="inline-flex items-center justify-center gap-3 sm:gap-5 bg-gradient-to-b from-purple-50/80 to-pink-50/50 px-6 sm:px-12 py-5 sm:py-7 rounded-3xl border-2 border-purple-100 shadow-inner">
+                        <span id="factorA" class="text-5xl sm:text-7xl font-black text-purple-700">7</span>
+                        <span id="operatorSymbol" class="text-4xl sm:text-5xl font-black text-pink-500">×</span>
+                        <span id="factorB" class="text-5xl sm:text-7xl font-black text-indigo-600">8</span>
+                        <span class="text-4xl sm:text-5xl font-black text-slate-400">=</span>
+                        <span id="answerSlot" class="min-w-[80px] sm:min-w-[110px] h-[64px] sm:h-[84px] rounded-2xl bg-white border-4 border-dashed border-purple-300 flex items-center justify-center text-4xl sm:text-6xl font-black text-pink-600 px-3 shadow-sm">
+                            ?
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Vizuális segítség gomb ("Hogyan jön ki?") -->
+                <div class="text-center mb-5">
+                    <button onclick="toggleVisualHint()" id="hintToggleBtn" class="bouncy-btn inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border-2 border-amber-200 px-4 py-2 rounded-2xl font-extrabold text-xs sm:text-sm shadow-sm">
+                        <span>💡</span> Hogyan jön ki? (Vizuális segítség)
+                    </button>
+                </div>
+
+                <!-- Vizuális segítség doboz (alapból rejtve) -->
+                <div id="visualHintBox" class="hidden mb-6 bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-4 text-center animate-pop">
+                    <p id="visualHintExplanation" class="text-sm sm:text-base font-extrabold text-amber-900 mb-3"></p>
+                    <div id="visualHintGroups" class="flex flex-wrap justify-center gap-2.5 max-h-60 overflow-y-auto p-1">
+                        <!-- Emoji csoportok helye -->
+                    </div>
+                    <p id="visualHintAddition" class="text-xs sm:text-sm font-bold text-amber-700 mt-3 bg-white/80 inline-block px-4 py-1.5 rounded-xl border border-amber-200"></p>
+                </div>
+
+                <!-- Visszajelző Üzenet (Helyes / Hibás válasz után) -->
+                <div id="feedbackBanner" class="hidden mb-6 p-4 rounded-2xl text-center animate-pop">
+                    <div id="feedbackTitle" class="text-lg sm:text-2xl font-black mb-1"></div>
+                    <div id="feedbackSub" class="text-sm sm:text-base font-bold"></div>
+                    <button onclick="nextQuestion()" id="nextQuestionBtn" class="hidden mt-3 bouncy-btn bg-slate-800 hover:bg-slate-900 text-white font-black px-6 py-2.5 rounded-xl text-sm sm:text-base shadow-md">
+                        Következő feladat ➡️
+                    </button>
+                </div>
+
+                <!-- A) FELELETVÁLASZTÓS MÓD GOMBOK -->
+                <div id="quizModeArea" class="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto">
+                    <!-- 4 válaszgomb dinamikusan -->
+                </div>
+
+                <!-- B) SZÁMBEÍRÓS MÓD BILLENTYŰZET -->
+                <div id="keypadModeArea" class="hidden max-w-sm mx-auto">
+                    <div class="grid grid-cols-3 gap-2.5 sm:gap-3">
+                        <button onclick="pressKey('1')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">1</button>
+                        <button onclick="pressKey('2')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">2</button>
+                        <button onclick="pressKey('3')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">3</button>
+                        
+                        <button onclick="pressKey('4')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">4</button>
+                        <button onclick="pressKey('5')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">5</button>
+                        <button onclick="pressKey('6')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">6</button>
+                        
+                        <button onclick="pressKey('7')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">7</button>
+                        <button onclick="pressKey('8')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">8</button>
+                        <button onclick="pressKey('9')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">9</button>
+                        
+                        <button onclick="pressKey('BACK')" class="bouncy-btn bg-rose-100 hover:bg-rose-200 text-rose-700 font-black text-lg sm:text-xl py-3.5 rounded-2xl shadow-sm border-b-4 border-rose-300 flex items-center justify-center">
+                            ⌫ Töröl
+                        </button>
+                        <button onclick="pressKey('0')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">0</button>
+                        <button onclick="submitKeypadAnswer()" id="keypadSubmitBtn" class="bouncy-btn bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg sm:text-xl py-3.5 rounded-2xl shadow-md border-b-4 border-emerald-700 flex items-center justify-center gap-1">
+                            OK ✔️
+                        </button>
+                    </div>
+                    <p class="text-center text-xs font-bold text-slate-400 mt-3">
+                        💡 Tipp: A számítógép billentyűzetén is beírhatod a számokat (Enter = OK)!
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             3. NÉZET: KÖR VÉGI ÜNNEPLŐ KÉPERNYŐ
+             ========================================== -->
+        <section id="view-summary" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-2 border-purple-100 text-center max-w-2xl mx-auto">
+                <div id="summaryEmoji" class="text-6xl sm:text-7xl mb-3 animate-float">🏆</div>
+                <h2 id="summaryTitle" class="text-2xl sm:text-4xl font-black text-slate-800 mb-2">Fantasztikus munka!</h2>
+                <p id="summarySubtitle" class="text-sm sm:text-base font-bold text-slate-500 mb-6">Sikeresen végigcsináltad a gyakorló kört!</p>
+
+                <!-- Statisztika dobozok -->
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+                    <div class="bg-emerald-50 border-2 border-emerald-200 p-3 sm:p-4 rounded-2xl">
+                        <div class="text-2xl sm:text-3xl font-black text-emerald-600" id="sumCorrect">10 / 10</div>
+                        <div class="text-xs font-extrabold text-emerald-800 mt-1">Helyes válasz ✔️</div>
+                    </div>
+                    <div class="bg-amber-50 border-2 border-amber-200 p-3 sm:p-4 rounded-2xl">
+                        <div class="text-2xl sm:text-3xl font-black text-amber-500" id="sumStars">+10 ⭐</div>
+                        <div class="text-xs font-extrabold text-amber-800 mt-1">Szerzett csillag</div>
+                    </div>
+                    <div class="bg-purple-50 border-2 border-purple-200 p-3 sm:p-4 rounded-2xl">
+                        <div class="text-2xl sm:text-3xl font-black text-purple-600" id="sumAccuracy">100%</div>
+                        <div class="text-xs font-extrabold text-purple-800 mt-1">Pontosság 🎯</div>
+                    </div>
+                </div>
+
+                <!-- Rontott feladatok listája, ha volt -->
+                <div id="mistakesSummaryBox" class="hidden mb-8 bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 text-left">
+                    <h4 class="font-black text-rose-800 text-sm sm:text-base mb-2 flex items-center gap-2">
+                        <span>🌱</span> Ezeket érdemes még egy kicsit gyakorolni:
+                    </h4>
+                    <div id="mistakesList" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Gombok -->
+                <div class="flex flex-col sm:flex-row justify-center gap-3">
+                    <button onclick="retryMistakesOnly()" id="retryMistakesBtn" class="hidden bouncy-btn bg-amber-500 hover:bg-amber-600 text-white font-black py-3.5 px-6 rounded-2xl shadow-lg border-b-4 border-amber-700 flex items-center justify-center gap-2">
+                        <span>🔄</span> Hibásak gyakorlása
+                    </button>
+                    <button onclick="startNewGame()" class="bouncy-btn bg-purple-600 hover:bg-purple-700 text-white font-black py-3.5 px-8 rounded-2xl shadow-lg border-b-4 border-purple-800 flex items-center justify-center gap-2">
+                        <span>🎮</span> Új kör ugyanezekkel
+                    </button>
+                    <button onclick="switchMainTab('setup')" class="bouncy-btn bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-3.5 px-6 rounded-2xl border-b-4 border-slate-300 flex items-center justify-center gap-2">
+                        <span>🔢</span> Másik számokat választok
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             4. NÉZET: TANULÓSAROK (SZORZÓTÁBLA PUSKA)
+             ========================================== -->
+        <section id="view-study" class="hidden space-y-6 animate-pop">
+            
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-lg border-2 border-purple-100">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                            <span>📖</span> Varázslatos Szorzótábla & Bennfoglaló Puska
+                        </h2>
+                        <p class="text-sm font-semibold text-slate-500">
+                            Nézd át a kiválasztott számok szorzótábláját és bennfoglalóját, vagy böngészd a 10×10-es táblázatot!
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 self-start">
+                        <!-- Szorzás / Bennfoglalás váltó a puskában -->
+                        <div class="flex bg-purple-50 p-1 rounded-2xl border border-purple-100">
+                            <button onclick="switchStudyOpMode('multiply')" id="study-op-multiply" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-purple-600 text-white shadow-sm transition">
+                                ✖️ Szorzótábla
+                            </button>
+                            <button onclick="switchStudyOpMode('divide')" id="study-op-divide" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-purple-700 transition">
+                                ➗ Bennfoglaló
+                            </button>
+                        </div>
+
+                        <!-- Kártyák / Táblázat váltó -->
+                        <div class="flex bg-slate-100 p-1 rounded-2xl">
+                            <button onclick="switchStudySubView('cards')" id="study-sub-cards" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-white text-purple-700 shadow-sm transition">
+                                🗂️ Kártyák
+                            </button>
+                            <button onclick="switchStudySubView('grid')" id="study-sub-grid" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-slate-600 transition">
+                                🔢 10×10-es Tábla
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- A) Kártyás nézet -->
+                <div id="studyCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- JS tölti fel -->
+                </div>
+
+                <!-- B) Interaktív 10x10 Táblázat nézet -->
+                <div id="studyGridContainer" class="hidden">
+                    <div class="bg-purple-50 border border-purple-200 rounded-2xl p-3 mb-4 text-center">
+                        <span id="gridHoverInfo" class="font-black text-purple-800 text-base sm:text-lg">
+                            👆 Vidd az egeret vagy bökj rá bármelyik számra a táblázatban!
+                        </span>
+                    </div>
+                    <div class="overflow-x-auto pb-2">
+                        <table class="w-full border-collapse min-w-[500px] text-center">
+                            <tbody id="interactiveTableBody">
+                                <!-- JS generálja -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logika -->
+    <script>
+        // ==========================================
+        // ÁLLAPOTVÁLTOZÓK ÉS KONFIGURÁCIÓ
+        // ==========================================
+        const numberThemes = {
+            1:  { bg: 'bg-sky-500',    light: 'bg-sky-50',    border: 'border-sky-300',    text: 'text-sky-700',    emoji: '🎈', label: '1-es szorzótábla' },
+            2:  { bg: 'bg-emerald-500',light: 'bg-emerald-50',border: 'border-emerald-300',text: 'text-emerald-700',emoji: '🍒', label: '2-es szorzótábla' },
+            3:  { bg: 'bg-amber-500',  light: 'bg-amber-50',  border: 'border-amber-300',  text: 'text-amber-700',  emoji: '🍀', label: '3-as szorzótábla' },
+            4:  { bg: 'bg-purple-500', light: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700', emoji: '🦋', label: '4-es szorzótábla' },
+            5:  { bg: 'bg-pink-500',   light: 'bg-pink-50',   border: 'border-pink-300',   text: 'text-pink-700',   emoji: '⭐', label: '5-ös szorzótábla' },
+            6:  { bg: 'bg-teal-500',   light: 'bg-teal-50',   border: 'border-teal-300',   text: 'text-teal-700',   emoji: '🐞', label: '6-os szorzótábla' },
+            7:  { bg: 'bg-indigo-500', light: 'bg-indigo-50', border: 'border-indigo-300', text: 'text-indigo-700', emoji: '🌈', label: '7-es szorzótábla' },
+            8:  { bg: 'bg-rose-500',   light: 'bg-rose-50',   border: 'border-rose-300',   text: 'text-rose-700',   emoji: '🐙', label: '8-as szorzótábla' },
+            9:  { bg: 'bg-orange-500', light: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-700', emoji: '🦊', label: '9-es szorzótábla' },
+            10: { bg: 'bg-cyan-500',   light: 'bg-cyan-50',   border: 'border-cyan-300',   text: 'text-cyan-700',   emoji: '🚀', label: '10-es szorzótábla' }
+        };
+
+        const visualEmojis = ['🍓', '🐾', '🌸', '🧁', '🦄', '💎', '🐥', '🍎', '🍩', '🦋'];
+        const praises = [
+            "Szuper vagy! 🌟",
+            "Zseniális! 🦄",
+            "Megállíthatatlan! 🚀",
+            "Pontos találat! 🎯",
+            "Mesés munka! ✨",
+            "Így kell ezt csinálni! 💖",
+            "Szorzótábla Bajnok! 🏆"
+        ];
+
+        let state = {
+            selectedNumbers: [2, 5, 10], // Alapértelmezett kedves kezdés
+            operationMode: 'multiply',   // 'multiply' | 'divide' | 'mixed'
+            studyOpMode: 'multiply',     // 'multiply' | 'divide' a Tanulósarok kártyáihoz
+            gameMode: 'quiz',            // 'quiz' | 'keypad'
+            targetQuestions: 10,         // 10, 20, vagy 0 (végtelen)
+            soundEnabled: true,
+            totalStars: 0,
+            streak: 0,
+
+            // Aktuális kör adatai
+            questionQueue: [],
+            currentQuestion: null,
+            questionIndex: 0,
+            correctInRound: 0,
+            starsInRound: 0,
+            mistakesInRound: [],
+            typedAnswer: '',
+            isWaitingNext: false
+        };
+
+        // Mentett csillagok betöltése
+        try {
+            const savedStars = localStorage.getItem('varazs_szorzo_stars');
+            if (savedStars) state.totalStars = parseInt(savedStars, 10) || 0;
+        } catch (e) {}
+
+        // ==========================================
+        // HANGEFFEKTEK (Web Audio API - külső fájl nélkül)
+        // ==========================================
+        let audioCtx = null;
+        function playTone(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.07);
+                        gain.gain.setValueAtTime(0.12, now + i * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + i * 0.07);
+                        osc.stop(now + i * 0.07 + 0.25);
+                    });
+                } else if (type === 'wrong') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.linearRampToValueAtTime(190, now + 0.3);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'click') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('soundBtn').textContent = state.soundEnabled ? '🔊' : '🔇';
+            if (state.soundEnabled) playTone('click');
+        }
+
+        // ==========================================
+        // SZÁMVÁLASZTÓ ÉS BEÁLLÍTÁSOK LOGIKA
+        // ==========================================
+        function setOperationMode(opMode) {
+            playTone('click');
+            state.operationMode = opMode;
+            if (opMode !== 'mixed') {
+                state.studyOpMode = opMode;
+            }
+
+            const modes = [
+                { id: 'multiply', activeClass: 'bg-purple-50 border-purple-500 ring-2 ring-purple-300', hoverClass: 'hover:border-purple-300' },
+                { id: 'divide',   activeClass: 'bg-pink-50 border-pink-500 ring-2 ring-pink-300',     hoverClass: 'hover:border-pink-300' },
+                { id: 'mixed',    activeClass: 'bg-amber-50 border-amber-500 ring-2 ring-amber-300',   hoverClass: 'hover:border-amber-300' }
+            ];
+
+            modes.forEach(m => {
+                const btn = document.getElementById(`op-${m.id}-btn`);
+                if (!btn) return;
+                if (m.id === opMode) {
+                    btn.className = `bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 ${m.activeClass}`;
+                } else {
+                    btn.className = `bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-slate-50 border-slate-200 ${m.hoverClass}`;
+                }
+            });
+
+            renderNumberSelector();
+            renderStudySection();
+        }
+
+        function renderNumberSelector() {
+            const grid = document.getElementById('numberSelectorGrid');
+            grid.innerHTML = '';
+
+            for (let n = 1; n <= 10; n++) {
+                const isSelected = state.selectedNumbers.includes(n);
+                const theme = numberThemes[n];
+
+                let subText = `${n} × 1..10`;
+                if (state.operationMode === 'divide') {
+                    subText = `${n * 10} : ${n} ..`;
+                } else if (state.operationMode === 'mixed') {
+                    subText = `${n}× és :${n}`;
+                }
+
+                const btn = document.createElement('button');
+                btn.onclick = () => toggleNumberSelection(n);
+                btn.className = `bouncy-btn relative p-4 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                    isSelected 
+                        ? `${theme.bg} text-white border-transparent number-card-selected` 
+                        : `bg-white hover:${theme.light} text-slate-700 ${theme.border}`
+                }`;
+
+                btn.innerHTML = `
+                    <div class="absolute top-2.5 right-3 text-xs font-black ${isSelected ? 'text-white' : 'text-slate-300'}">
+                        ${isSelected ? '✔️' : '➕'}
+                    </div>
+                    <span class="text-2xl sm:text-3xl">${theme.emoji}</span>
+                    <span class="text-3xl sm:text-4xl font-black leading-none my-1">${n}</span>
+                    <span class="text-xs font-extrabold ${isSelected ? 'text-white/90' : 'text-slate-400'}">
+                        ${subText}
+                    </span>
+                `;
+                grid.appendChild(btn);
+            }
+
+            // Összesítő szöveg frissítése
+            const summaryEl = document.getElementById('selectedNumbersSummary');
+            const alertEl = document.getElementById('noNumberAlert');
+            const modeName = state.operationMode === 'divide' ? 'bennfoglaló' : (state.operationMode === 'mixed' ? 'szorzó és bennfoglaló' : 'szorzótábla');
+            if (state.selectedNumbers.length === 0) {
+                summaryEl.textContent = 'Nincs kiválasztva';
+                alertEl.classList.remove('hidden');
+            } else if (state.selectedNumbers.length === 10) {
+                summaryEl.textContent = `Összes (1-10) ${modeName}`;
+                alertEl.classList.add('hidden');
+            } else {
+                const sorted = [...state.selectedNumbers].sort((a, b) => a - b);
+                summaryEl.textContent = `${sorted.join(', ')}-es ${modeName}`;
+                alertEl.classList.add('hidden');
+            }
+        }
+
+        function toggleNumberSelection(num) {
+            playTone('click');
+            const idx = state.selectedNumbers.indexOf(num);
+            if (idx > -1) {
+                state.selectedNumbers.splice(idx, 1);
+            } else {
+                state.selectedNumbers.push(num);
+            }
+            renderNumberSelector();
+            renderStudySection();
+        }
+
+        function selectPreset(nums) {
+            playTone('click');
+            state.selectedNumbers = [...nums];
+            renderNumberSelector();
+            renderStudySection();
+        }
+
+        function setGameMode(mode) {
+            playTone('click');
+            state.gameMode = mode;
+            const quizBtn = document.getElementById('mode-quiz-btn');
+            const keypadBtn = document.getElementById('mode-keypad-btn');
+            const quizBadge = document.getElementById('mode-quiz-badge');
+            const keypadBadge = document.getElementById('mode-keypad-badge');
+
+            if (mode === 'quiz') {
+                quizBtn.className = "bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-purple-50 border-purple-500 ring-2 ring-purple-300";
+                keypadBtn.className = "bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-slate-50 border-slate-200 hover:border-purple-300";
+                quizBadge.classList.remove('hidden');
+                keypadBadge.classList.add('hidden');
+            } else {
+                keypadBtn.className = "bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-purple-50 border-purple-500 ring-2 ring-purple-300";
+                quizBtn.className = "bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-slate-50 border-slate-200 hover:border-purple-300";
+                keypadBadge.classList.remove('hidden');
+                quizBadge.classList.add('hidden');
+            }
+        }
+
+        function setQuestionCount(count) {
+            playTone('click');
+            state.targetQuestions = count;
+            [10, 20, 0].forEach(c => {
+                const btn = document.getElementById(`qcount-${c}`);
+                if (c === count) {
+                    btn.className = "bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-pink-50 border-pink-500 text-pink-700 ring-2 ring-pink-200";
+                } else {
+                    btn.className = "bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-pink-300";
+                }
+            });
+        }
+
+        // ==========================================
+        // NAVIGÁCIÓ FÜLEK KÖZÖTT
+        // ==========================================
+        function switchMainTab(tab) {
+            playTone('click');
+            if (tab === 'play' && state.selectedNumbers.length === 0) {
+                document.getElementById('noNumberAlert').classList.remove('hidden');
+                return;
+            }
+
+            ['setup', 'play', 'summary', 'study'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            ['setup', 'play', 'study'].forEach(t => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    tabBtn.className = "flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-sm sm:text-base transition-all flex items-center justify-center gap-2 bg-purple-600 text-white shadow-md";
+                } else {
+                    tabBtn.className = "flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-sm sm:text-base transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-purple-50";
+                }
+            });
+
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+            if (tab === 'play' && !state.currentQuestion) {
+                startNewGame();
+            } else if (tab === 'study') {
+                renderStudySection();
+            }
+        }
+
+        // ==========================================
+        // JÁTÉK INDÍTÁSA ÉS KÉRDÉSEK GENERÁLÁSA
+        // ==========================================
+        function buildQuestionPool(numbersList) {
+            let pool = [];
+            numbersList.forEach(a => {
+                for (let b = 1; b <= 10; b++) {
+                    // Eldöntjük, hogy ez a feladat szorzás vagy bennfoglalás (osztás) legyen
+                    let op = state.operationMode;
+                    if (op === 'mixed') {
+                        op = Math.random() < 0.5 ? 'multiply' : 'divide';
+                    }
+
+                    if (op === 'divide') {
+                        // Bennfoglalás: (a * b) : a = b
+                        // Pl. ha a 7-es táblát gyakorolja: 56 : 7 = 8 (56-ban a 7 megvan 8-szor)
+                        pool.push({
+                            a: a * b,      // Osztandó (pl. 56)
+                            b: a,          // Osztó (a kiválasztott szám, pl. 7)
+                            baseTable: a,
+                            answer: b,     // Hányados (1..10, pl. 8)
+                            op: 'divide',
+                            isRetry: false
+                        });
+                    } else {
+                        // Szorzás: a * b
+                        const swap = Math.random() < 0.35;
+                        pool.push({
+                            a: swap ? b : a,
+                            b: swap ? a : b,
+                            baseTable: a,
+                            answer: a * b,
+                            op: 'multiply',
+                            isRetry: false
+                        });
+                    }
+                }
+            });
+            // Keverés (Fisher-Yates)
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            return pool;
+        }
+
+        function startNewGame(customQueue = null) {
+            if (state.selectedNumbers.length === 0) {
+                document.getElementById('noNumberAlert').classList.remove('hidden');
+                switchMainTab('setup');
+                return;
+            }
+
+            state.questionIndex = 0;
+            state.correctInRound = 0;
+            state.starsInRound = 0;
+            state.mistakesInRound = [];
+            state.isWaitingNext = false;
+
+            if (customQueue && customQueue.length > 0) {
+                state.questionQueue = [...customQueue];
+            } else {
+                const count = state.targetQuestions === 0 ? 50 : state.targetQuestions;
+                let queue = [];
+                while (queue.length < count) {
+                    queue = queue.concat(buildQuestionPool(state.selectedNumbers));
+                }
+                state.questionQueue = queue.slice(0, count);
+            }
+
+            renderActiveNumbersPills();
+            updateInGameModeButtons();
+            updateInGameOpButtons();
+            loadCurrentQuestion();
+            switchMainTab('play');
+        }
+
+        function renderActiveNumbersPills() {
+            const container = document.getElementById('activeNumbersPills');
+            container.innerHTML = '';
+            const sorted = [...state.selectedNumbers].sort((a, b) => a - b);
+            const suffix = state.operationMode === 'divide' ? ':' : (state.operationMode === 'mixed' ? '×/:' : '×');
+            sorted.forEach(n => {
+                const theme = numberThemes[n];
+                const pill = document.createElement('span');
+                pill.className = `${theme.bg} text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm`;
+                pill.textContent = state.operationMode === 'divide' ? `:${n}` : `${n}${suffix}`;
+                container.appendChild(pill);
+            });
+        }
+
+        function switchOpInGame(newOp) {
+            playTone('click');
+            setOperationMode(newOp);
+            updateInGameOpButtons();
+            startNewGame();
+        }
+
+        function updateInGameOpButtons() {
+            ['multiply', 'divide', 'mixed'].forEach(op => {
+                const btn = document.getElementById(`ingame-op-${op}`);
+                if (!btn) return;
+                if (state.operationMode === op) {
+                    btn.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600 hover:text-purple-700";
+                }
+            });
+        }
+
+        function switchModeInGame(mode) {
+            playTone('click');
+            setGameMode(mode);
+            updateInGameModeButtons();
+            if (!state.isWaitingNext && state.currentQuestion) {
+                renderQuestionInputArea();
+            }
+        }
+
+        function updateInGameModeButtons() {
+            const qBtn = document.getElementById('ingame-mode-quiz');
+            const kBtn = document.getElementById('ingame-mode-keypad');
+            if (state.gameMode === 'quiz') {
+                qBtn.className = "px-3 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm";
+                kBtn.className = "px-3 py-1 rounded-lg text-xs font-extrabold transition text-slate-600";
+            } else {
+                kBtn.className = "px-3 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm";
+                qBtn.className = "px-3 py-1 rounded-lg text-xs font-extrabold transition text-slate-600";
+            }
+        }
+
+        function loadCurrentQuestion() {
+            // Ha végtelen mód van és fogy a sor, töltünk még hozzá
+            if (state.targetQuestions === 0 && state.questionIndex >= state.questionQueue.length - 3) {
+                state.questionQueue = state.questionQueue.concat(buildQuestionPool(state.selectedNumbers));
+            }
+
+            if (state.questionIndex >= state.questionQueue.length) {
+                showRoundSummary();
+                return;
+            }
+
+            state.currentQuestion = state.questionQueue[state.questionIndex];
+            state.typedAnswer = '';
+            state.isWaitingNext = false;
+
+            const isDivide = state.currentQuestion.op === 'divide';
+
+            // Kijelzők frissítése
+            document.getElementById('factorA').textContent = state.currentQuestion.a;
+            document.getElementById('operatorSymbol').textContent = isDivide ? ':' : '×';
+            document.getElementById('factorB').textContent = state.currentQuestion.b;
+
+            // Bennfoglalás olvasási segédlet ("56-ban a 7 megvan ?-szer")
+            const bennfoglalasBanner = document.getElementById('bennfoglalasTextBanner');
+            const bennfoglalasText = document.getElementById('bennfoglalasReadableText');
+            if (isDivide) {
+                bennfoglalasBanner.classList.remove('hidden');
+                bennfoglalasText.textContent = `💬 Bennfoglalás: ${state.currentQuestion.a}-ban/ben a(z) ${state.currentQuestion.b} megvan ?-szor`;
+            } else {
+                bennfoglalasBanner.classList.add('hidden');
+            }
+            
+            const slot = document.getElementById('answerSlot');
+            slot.textContent = '?';
+            slot.className = "min-w-[80px] sm:min-w-[110px] h-[64px] sm:h-[84px] rounded-2xl bg-white border-4 border-dashed border-purple-300 flex items-center justify-center text-4xl sm:text-6xl font-black text-pink-600 px-3 shadow-sm";
+
+            // Javító kérdés jelvény
+            const retryBadge = document.getElementById('retryBadge');
+            if (state.currentQuestion.isRetry) {
+                retryBadge.classList.remove('hidden');
+            } else {
+                retryBadge.classList.add('hidden');
+            }
+
+            // Haladás sáv
+            const total = state.questionQueue.length;
+            const currentNum = state.questionIndex + 1;
+            if (state.targetQuestions === 0) {
+                document.getElementById('questionCounterText').textContent = `${currentNum}. feladat (Végtelen mód 🚀)`;
+                document.getElementById('progressBar').style.width = '100%';
+            } else {
+                document.getElementById('questionCounterText').textContent = `${currentNum} / ${total}. feladat`;
+                const pct = Math.min(100, Math.round((currentNum / total) * 100));
+                document.getElementById('progressBar').style.width = `${pct}%`;
+            }
+            document.getElementById('scoreAccuracyText').textContent = `Helyes: ${state.correctInRound}`;
+
+            // Segítség és visszajelző elrejtése
+            document.getElementById('visualHintBox').classList.add('hidden');
+            document.getElementById('feedbackBanner').classList.add('hidden');
+            document.getElementById('nextQuestionBtn').classList.add('hidden');
+
+            renderQuestionInputArea();
+        }
+
+        function renderQuestionInputArea() {
+            const quizArea = document.getElementById('quizModeArea');
+            const keypadArea = document.getElementById('keypadModeArea');
+
+            if (state.gameMode === 'quiz') {
+                quizArea.classList.remove('hidden');
+                keypadArea.classList.add('hidden');
+                generateQuizChoices();
+            } else {
+                quizArea.classList.add('hidden');
+                keypadArea.classList.remove('hidden');
+                document.getElementById('keypadSubmitBtn').disabled = false;
+            }
+        }
+
+        // Okos csali válaszok generálása a 4 választós kvízhez
+        function generateQuizChoices() {
+            const { a, b, answer, op } = state.currentQuestion;
+            let choices = new Set([answer]);
+
+            if (op === 'divide') {
+                // Bennfoglalásnál a válasz mindig 1 és 10 közötti egész szám!
+                const divCandidates = [
+                    answer + 1,
+                    answer - 1,
+                    answer + 2,
+                    answer - 2,
+                    answer + 3,
+                    10 - answer
+                ].filter(val => val >= 1 && val <= 10 && val !== answer);
+
+                divCandidates.sort(() => Math.random() - 0.5);
+                for (const c of divCandidates) {
+                    if (choices.size < 4) choices.add(c);
+                }
+                while (choices.size < 4) {
+                    const rand = Math.floor(Math.random() * 10) + 1;
+                    if (rand !== answer) choices.add(rand);
+                }
+            } else {
+                // Szorzásnál közel álló, tipikus tévesztések
+                const smartCandidates = [
+                    a * (b + 1),
+                    a * (b - 1),
+                    (a + 1) * b,
+                    (a - 1) * b,
+                    answer + 2,
+                    answer - 2,
+                    answer + 10,
+                    answer - 10
+                ].filter(val => val > 0 && val <= 100 && val !== answer);
+
+                smartCandidates.sort(() => Math.random() - 0.5);
+                for (const c of smartCandidates) {
+                    if (choices.size < 4) choices.add(c);
+                }
+
+                while (choices.size < 4) {
+                    const rand = Math.floor(Math.random() * 90) + 1;
+                    if (rand !== answer) choices.add(rand);
+                }
+            }
+
+            const choiceArray = Array.from(choices).sort(() => Math.random() - 0.5);
+            const container = document.getElementById('quizModeArea');
+            container.innerHTML = '';
+
+            const btnColors = [
+                'bg-purple-50 hover:bg-purple-100 border-purple-300 text-purple-800',
+                'bg-pink-50 hover:bg-pink-100 border-pink-300 text-pink-800',
+                'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-800',
+                'bg-sky-50 hover:bg-sky-100 border-sky-300 text-sky-800'
+            ];
+
+            choiceArray.forEach((val, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `quiz-choice-btn bouncy-btn py-5 px-6 rounded-3xl border-b-4 border-2 font-black text-3xl sm:text-4xl shadow-sm transition-all ${btnColors[idx % 4]}`;
+                btn.textContent = val;
+                btn.onclick = () => evaluateAnswer(val, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        // ==========================================
+        // SZÁMBEÍRÓS MÓD ÉS FIZIKAI BILLENTYŰZET
+        // ==========================================
+        function pressKey(key) {
+            if (state.isWaitingNext || state.gameMode !== 'keypad') return;
+            playTone('click');
+
+            if (key === 'BACK') {
+                state.typedAnswer = state.typedAnswer.slice(0, -1);
+            } else if (state.typedAnswer.length < 3) {
+                state.typedAnswer += key;
+            }
+
+            const slot = document.getElementById('answerSlot');
+            slot.textContent = state.typedAnswer.length > 0 ? state.typedAnswer : '?';
+        }
+
+        function submitKeypadAnswer() {
+            if (state.isWaitingNext || state.gameMode !== 'keypad') return;
+            if (!state.typedAnswer) return;
+            const numVal = parseInt(state.typedAnswer, 10);
+            evaluateAnswer(numVal, null);
+        }
+
+        // Fizikai billentyűzet figyelése
+        window.addEventListener('keydown', (e) => {
+            const playViewVisible = !document.getElementById('view-play').classList.contains('hidden');
+            if (!playViewVisible) return;
+
+            if (state.isWaitingNext && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                nextQuestion();
+                return;
+            }
+
+            if (state.gameMode === 'keypad' && !state.isWaitingNext) {
+                if (e.key >= '0' && e.key <= '9') {
+                    pressKey(e.key);
+                } else if (e.key === 'Backspace') {
+                    pressKey('BACK');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitKeypadAnswer();
+                }
+            }
+        });
+
+        // ==========================================
+        // VÁLASZ KIÉRTÉKELÉSE ÉS OKOS HIBAKEZELÉS
+        // ==========================================
+        function evaluateAnswer(userValue, clickedBtn) {
+            if (state.isWaitingNext) return;
+            state.isWaitingNext = true;
+
+            const { a, b, answer, op } = state.currentQuestion;
+            const isDivide = (op === 'divide');
+            const opSymbol = isDivide ? ':' : '×';
+            const isCorrect = (userValue === answer);
+            const slot = document.getElementById('answerSlot');
+            const banner = document.getElementById('feedbackBanner');
+            const fbTitle = document.getElementById('feedbackTitle');
+            const fbSub = document.getElementById('feedbackSub');
+            const nextBtn = document.getElementById('nextQuestionBtn');
+
+            // Gombok letiltása feleletválasztós módban
+            const allQuizBtns = document.querySelectorAll('.quiz-choice-btn');
+            allQuizBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                playTone('correct');
+                state.correctInRound++;
+                state.streak++;
+                state.totalStars++;
+                state.starsInRound++;
+
+                // Ha 5-el osztható sorozat, extra csillag és mini konfetti
+                let bonusText = '';
+                if (state.streak > 0 && state.streak % 5 === 0) {
+                    state.totalStars += 2;
+                    state.starsInRound += 2;
+                    bonusText = ` 🔥 ${state.streak}-es sorozat! +2 Bónusz csillag!`;
+                    if (typeof confetti === 'function') {
+                        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                    }
+                }
+
+                updateHeaderStats();
+
+                slot.textContent = answer;
+                slot.className = "min-w-[80px] sm:min-w-[110px] h-[64px] sm:h-[84px] rounded-2xl bg-emerald-500 border-4 border-emerald-600 flex items-center justify-center text-4xl sm:text-6xl font-black text-white px-3 shadow-md animate-pop";
+
+                if (clickedBtn) {
+                    clickedBtn.className = "quiz-choice-btn py-5 px-6 rounded-3xl border-b-4 border-2 font-black text-3xl sm:text-4xl bg-emerald-500 border-emerald-700 text-white shadow-lg scale-105";
+                }
+
+                const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+                banner.className = "mb-6 p-4 rounded-2xl text-center animate-pop bg-emerald-50 border-2 border-emerald-200 text-emerald-800";
+                fbTitle.textContent = randomPraise;
+                const checkNote = isDivide ? ` (mert ${answer} × ${b} = ${a})` : '';
+                fbSub.textContent = `${a} ${opSymbol} ${b} = ${answer}${checkNote} ⭐${bonusText}`;
+                banner.classList.remove('hidden');
+
+                // Automatikus továbblépés rövid idő után
+                setTimeout(() => {
+                    if (state.isWaitingNext) nextQuestion();
+                }, 1150);
+
+            } else {
+                playTone('wrong');
+                state.streak = 0;
+                updateHeaderStats();
+
+                slot.textContent = answer;
+                slot.className = "min-w-[80px] sm:min-w-[110px] h-[64px] sm:h-[84px] rounded-2xl bg-rose-500 border-4 border-rose-600 flex items-center justify-center text-4xl sm:text-6xl font-black text-white px-3 shadow-md animate-shake";
+
+                if (clickedBtn) {
+                    clickedBtn.className = "quiz-choice-btn py-5 px-6 rounded-3xl border-b-4 border-2 font-black text-3xl sm:text-4xl bg-rose-100 border-rose-400 text-rose-800 opacity-75 animate-shake";
+                }
+                // Megmutatjuk a helyes gombot zölddel
+                allQuizBtns.forEach(b => {
+                    if (parseInt(b.textContent, 10) === answer) {
+                        b.className = "quiz-choice-btn py-5 px-6 rounded-3xl border-b-4 border-2 font-black text-3xl sm:text-4xl bg-emerald-500 border-emerald-700 text-white shadow-lg";
+                    }
+                });
+
+                banner.className = "mb-6 p-4 rounded-2xl text-center animate-pop bg-rose-50 border-2 border-rose-200 text-rose-900";
+                fbTitle.textContent = `Semmi baj, gyakoroljuk! 🤗`;
+                const extraExplanation = isDivide ? ` (mert ${answer} × ${b} = ${a})` : '';
+                fbSub.innerHTML = `Te a <span class="line-through font-black">${userValue}</span>-t választottad, de a helyes válasz: <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-lg font-black">${a} ${opSymbol} ${b} = ${answer}</span>${extraExplanation}`;
+                banner.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+
+                // Automatikusan megnyitjuk a vizuális segítséget is, hogy értse miért annyi!
+                renderVisualHint(true);
+
+                // Elmentjük a hibák közé, és visszatesszük a sor végére javító kérdésként
+                const mistakeKey = `${a}${opSymbol}${b}=${answer}`;
+                if (!state.mistakesInRound.some(m => m.key === mistakeKey)) {
+                    state.mistakesInRound.push({ a, b, answer, op, key: mistakeKey });
+                }
+
+                // Beszúrjuk 3 kérdéssel későbbre vagy a kör végére (max 1-szer kérdezzük vissza ugyanabban a körben)
+                if (!state.currentQuestion.isRetry) {
+                    const retryItem = { a, b, baseTable: state.currentQuestion.baseTable, answer, op, isRetry: true };
+                    const insertPos = Math.min(state.questionQueue.length, state.questionIndex + 4);
+                    state.questionQueue.splice(insertPos, 0, retryItem);
+                }
+            }
+        }
+
+        function nextQuestion() {
+            state.questionIndex++;
+            loadCurrentQuestion();
+        }
+
+        function updateHeaderStats() {
+            document.getElementById('totalStarsDisplay').textContent = state.totalStars;
+            document.getElementById('streakDisplay').textContent = state.streak;
+            try {
+                localStorage.setItem('varazs_szorzo_stars', state.totalStars.toString());
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // VIZUÁLIS SEGÍTSÉG ("HOGYAN JÖN KI?")
+        // ==========================================
+        function toggleVisualHint() {
+            playTone('click');
+            const box = document.getElementById('visualHintBox');
+            if (box.classList.contains('hidden')) {
+                renderVisualHint(true);
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function renderVisualHint(forceShow = false) {
+            const box = document.getElementById('visualHintBox');
+            if (forceShow) box.classList.remove('hidden');
+
+            const { a, b, answer, op } = state.currentQuestion;
+            const isDivide = (op === 'divide');
+            const emoji = visualEmojis[(a + b) % visualEmojis.length];
+            const groupsContainer = document.getElementById('visualHintGroups');
+            groupsContainer.innerHTML = '';
+
+            if (isDivide) {
+                // Bennfoglalás vizuális magyarázata: a db elemet pakolunk b-sével csoportokba -> answer db csoport lesz
+                const groupsCount = answer;
+                const itemsPerGroup = b;
+
+                document.getElementById('visualHintExplanation').innerHTML = 
+                    `A <span class="text-purple-700 font-black">${a} : ${b}</span> (vagyis <span class="italic">${a}-ban a ${b}</span>) azt jelenti, hogy a <span class="underline">${a} db ${emoji}</span>-t <span class="underline">${itemsPerGroup}-sával csomagoljuk</span>. Így pontosan <span class="text-emerald-700 font-black">${groupsCount} darab csoportunk</span> lesz:`;
+
+                for (let i = 1; i <= groupsCount; i++) {
+                    const groupEl = document.createElement('div');
+                    groupEl.className = "bg-white border-2 border-amber-300 rounded-2xl p-2 shadow-sm flex flex-col items-center min-w-[70px]";
+                    
+                    let emojisHtml = '';
+                    for (let j = 0; j < itemsPerGroup; j++) {
+                        emojisHtml += `<span class="text-lg sm:text-xl leading-tight">${emoji}</span>`;
+                    }
+
+                    groupEl.innerHTML = `
+                        <div class="text-[10px] font-black text-amber-600 mb-1">${i}. csomag</div>
+                        <div class="grid grid-cols-5 gap-0.5 justify-items-center">${emojisHtml}</div>
+                        <div class="text-xs font-black text-slate-500 mt-1">${i * itemsPerGroup} db</div>
+                    `;
+                    groupsContainer.appendChild(groupEl);
+                }
+
+                document.getElementById('visualHintAddition').textContent = 
+                    `Ellenőrzés szorzással: ${answer} × ${b} = ${a} ✔️`;
+
+            } else {
+                // Szorzás vizuális magyarázata
+                document.getElementById('visualHintExplanation').innerHTML = 
+                    `A <span class="text-purple-700 font-black">${a} × ${b}</span> azt jelenti, hogy van <span class="underline">${a} darab csoportunk</span>, és mindegyikben <span class="underline">${b} db ${emoji}</span> található:`;
+
+                for (let i = 1; i <= a; i++) {
+                    const groupEl = document.createElement('div');
+                    groupEl.className = "bg-white border-2 border-amber-300 rounded-2xl p-2 shadow-sm flex flex-col items-center min-w-[70px]";
+                    
+                    let emojisHtml = '';
+                    for (let j = 0; j < b; j++) {
+                        emojisHtml += `<span class="text-lg sm:text-xl leading-tight">${emoji}</span>`;
+                    }
+
+                    groupEl.innerHTML = `
+                        <div class="text-[10px] font-black text-amber-600 mb-1">${i}. csoport</div>
+                        <div class="grid grid-cols-5 gap-0.5 justify-items-center">${emojisHtml}</div>
+                        <div class="text-xs font-black text-slate-500 mt-1">= ${i * b}</div>
+                    `;
+                    groupsContainer.appendChild(groupEl);
+                }
+
+                const additionParts = Array(a).fill(b).join(' + ');
+                document.getElementById('visualHintAddition').textContent = 
+                    `Összeadva: ${additionParts} = ${answer}`;
+            }
+        }
+
+        // ==========================================
+        // KÖR VÉGI ÖSSZEGZÉS ÉS ÜNNEPLÉS
+        // ==========================================
+        function showRoundSummary() {
+            ['setup', 'play', 'study'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById('view-summary').classList.remove('hidden');
+
+            const totalAsked = state.questionQueue.length;
+            const accuracy = totalAsked > 0 ? Math.round((state.correctInRound / totalAsked) * 100) : 100;
+
+            document.getElementById('sumCorrect').textContent = `${state.correctInRound} / ${totalAsked}`;
+            document.getElementById('sumStars').textContent = `+${state.starsInRound} ⭐`;
+            document.getElementById('sumAccuracy').textContent = `${accuracy}%`;
+
+            const titleEl = document.getElementById('summaryTitle');
+            const subEl = document.getElementById('summarySubtitle');
+            const emojiEl = document.getElementById('summaryEmoji');
+
+            if (accuracy === 100) {
+                emojiEl.textContent = '👑';
+                titleEl.textContent = 'Hibátlan! Szorzótábla Királynő!';
+                subEl.textContent = 'Minden egyes kérdésre elsőre tudtad a választ! Elképesztő vagy!';
+            } else if (accuracy >= 80) {
+                emojiEl.textContent = '🦄';
+                titleEl.textContent = 'Szuper ügyes voltál!';
+                subEl.textContent = 'Nagyon szépen megy már ez a szorzótábla!';
+            } else {
+                emojiEl.textContent = '🌱';
+                titleEl.textContent = 'Szép kitartás!';
+                subEl.textContent = 'Minden gyakorlással egyre ügyesebb leszel!';
+            }
+
+            // Hibás feladatok megjelenítése
+            const mistakesBox = document.getElementById('mistakesSummaryBox');
+            const mistakesList = document.getElementById('mistakesList');
+            const retryBtn = document.getElementById('retryMistakesBtn');
+
+            if (state.mistakesInRound.length > 0) {
+                mistakesBox.classList.remove('hidden');
+                retryBtn.classList.remove('hidden');
+                mistakesList.innerHTML = '';
+                state.mistakesInRound.forEach(m => {
+                    const sym = m.op === 'divide' ? ':' : '×';
+                    const badge = document.createElement('span');
+                    badge.className = "bg-white border-2 border-rose-300 text-rose-800 font-black px-3 py-1.5 rounded-xl text-sm shadow-sm";
+                    badge.textContent = `${m.a} ${sym} ${m.b} = ${m.answer}`;
+                    mistakesList.appendChild(badge);
+                });
+            } else {
+                mistakesBox.classList.add('hidden');
+                retryBtn.classList.add('hidden');
+            }
+
+            // Ünneplő konfetti
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        function retryMistakesOnly() {
+            playTone('click');
+            const customQueue = state.mistakesInRound.map(m => ({
+                a: m.a,
+                b: m.b,
+                baseTable: m.op === 'divide' ? m.b : m.a,
+                answer: m.answer,
+                op: m.op || 'multiply',
+                isRetry: false
+            }));
+            startNewGame(customQueue);
+        }
+
+        // ==========================================
+        // TANULÓSAROK (PUSKA) LOGIKA
+        // ==========================================
+        function switchStudyOpMode(opMode) {
+            playTone('click');
+            state.studyOpMode = opMode;
+            const btnMul = document.getElementById('study-op-multiply');
+            const btnDiv = document.getElementById('study-op-divide');
+
+            if (opMode === 'multiply') {
+                btnMul.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-purple-600 text-white shadow-sm transition";
+                btnDiv.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-purple-700 transition";
+            } else {
+                btnDiv.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-pink-600 text-white shadow-sm transition";
+                btnMul.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-purple-700 transition";
+            }
+            renderStudySection();
+        }
+
+        function switchStudySubView(sub) {
+            playTone('click');
+            const cardsEl = document.getElementById('studyCardsContainer');
+            const gridEl = document.getElementById('studyGridContainer');
+            const btnCards = document.getElementById('study-sub-cards');
+            const btnGrid = document.getElementById('study-sub-grid');
+
+            if (sub === 'cards') {
+                cardsEl.classList.remove('hidden');
+                gridEl.classList.add('hidden');
+                btnCards.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-white text-purple-700 shadow-sm transition";
+                btnGrid.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-slate-600 transition";
+            } else {
+                cardsEl.classList.add('hidden');
+                gridEl.classList.remove('hidden');
+                btnGrid.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-white text-purple-700 shadow-sm transition";
+                btnCards.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-slate-600 transition";
+            }
+        }
+
+        function renderStudySection() {
+            const container = document.getElementById('studyCardsContainer');
+            container.innerHTML = '';
+
+            // Szinkronizáljuk a puska gombjait
+            const btnMul = document.getElementById('study-op-multiply');
+            const btnDiv = document.getElementById('study-op-divide');
+            if (btnMul && btnDiv) {
+                if (state.studyOpMode === 'multiply') {
+                    btnMul.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-purple-600 text-white shadow-sm transition";
+                    btnDiv.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-purple-700 transition";
+                } else {
+                    btnDiv.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-pink-600 text-white shadow-sm transition";
+                    btnMul.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-purple-700 transition";
+                }
+            }
+
+            const numbersToShow = state.selectedNumbers.length > 0 
+                ? [...state.selectedNumbers].sort((a, b) => a - b) 
+                : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+            const isDivideStudy = (state.studyOpMode === 'divide');
+
+            numbersToShow.forEach(n => {
+                const theme = numberThemes[n];
+                const card = document.createElement('div');
+                card.className = `rounded-3xl border-2 ${theme.border} ${theme.light} overflow-hidden shadow-sm`;
+
+                let rowsHtml = '';
+                for (let b = 1; b <= 10; b++) {
+                    if (isDivideStudy) {
+                        const dividend = n * b;
+                        rowsHtml += `
+                            <div class="flex justify-between items-center py-1.5 px-4 border-b border-white/60 last:border-none hover:bg-white/70 transition rounded-lg font-bold text-sm sm:text-base">
+                                <span class="text-slate-700">${dividend} : ${n}</span>
+                                <span class="text-xs text-slate-400 font-semibold hidden sm:inline">(${dividend}-ben a ${n})</span>
+                                <span class="text-slate-400">=</span>
+                                <span class="font-black ${theme.text} text-base sm:text-lg">${b}</span>
+                            </div>
+                        `;
+                    } else {
+                        rowsHtml += `
+                            <div class="flex justify-between items-center py-1.5 px-4 border-b border-white/60 last:border-none hover:bg-white/70 transition rounded-lg font-bold text-sm sm:text-base">
+                                <span class="text-slate-600">${n} × ${b}</span>
+                                <span class="text-slate-400">=</span>
+                                <span class="font-black ${theme.text} text-base sm:text-lg">${n * b}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                const cardTitle = isDivideStudy ? `${n}-es bennfoglaló` : theme.label;
+                const cardBadge = isDivideStudy ? `:${n}` : `${n}×`;
+
+                card.innerHTML = `
+                    <div class="${theme.bg} text-white px-4 py-3 font-black text-base sm:text-lg flex items-center justify-between">
+                        <span>${theme.emoji} ${cardTitle}</span>
+                        <span class="text-xs bg-white/20 px-2.5 py-0.5 rounded-full">${cardBadge}</span>
+                    </div>
+                    <div class="p-3 space-y-0.5">
+                        ${rowsHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            renderInteractive10x10Table();
+        }
+
+        function renderInteractive10x10Table() {
+            const tbody = document.getElementById('interactiveTableBody');
+            tbody.innerHTML = '';
+
+            // Fejléc sor
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<th class="p-2 bg-purple-600 text-white font-black rounded-tl-2xl">×</th>`;
+            for (let col = 1; col <= 10; col++) {
+                headerRow.innerHTML += `<th id="th-col-${col}" class="p-2 bg-purple-100 text-purple-900 font-black border border-purple-200 transition">${col}</th>`;
+            }
+            tbody.appendChild(headerRow);
+
+            // Sorok 1-10
+            for (let row = 1; row <= 10; row++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<th id="th-row-${row}" class="p-2 bg-purple-100 text-purple-900 font-black border border-purple-200 transition">${row}</th>`;
+
+                for (let col = 1; col <= 10; col++) {
+                    const val = row * col;
+                    const isSelectedRowOrCol = state.selectedNumbers.includes(row) || state.selectedNumbers.includes(col);
+                    const td = document.createElement('td');
+                    td.className = `p-2 border border-slate-200 font-bold cursor-pointer transition select-none ${
+                        isSelectedRowOrCol ? 'bg-amber-50/70 text-slate-800 font-extrabold' : 'bg-white text-slate-500'
+                    } hover:bg-purple-600 hover:text-white hover:scale-110 hover:rounded-lg hover:shadow-md`;
+                    td.textContent = val;
+
+                    td.onmouseenter = () => highlightTableCross(row, col);
+                    td.onclick = () => {
+                        playTone('click');
+                        highlightTableCross(row, col);
+                    };
+
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        }
+
+        function highlightTableCross(r, c) {
+            const product = r * c;
+            document.getElementById('gridHoverInfo').innerHTML = 
+                `<span class="text-purple-600">${r}</span> × <span class="text-pink-600">${c}</span> = <span class="bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-xl">${product}</span> &nbsp;|&nbsp; Bennfoglalás: <span class="text-emerald-700">${product} : ${r} = ${c}</span> ✨`;
+        }
+
+        // ==========================================
+        // INITIALIZÁLÁS BETÖLTÉSKOR
+        // ==========================================
+        window.onload = function() {
+            updateHeaderStats();
+            renderNumberSelector();
+            renderStudySection();
+        };
+    </script>
+</body>
+</html>
