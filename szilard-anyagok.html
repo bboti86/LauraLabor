@@ -974,15 +974,39 @@
             }
         }
 
+        let audioCtx = null;
+
+        function getAudioCtx() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                try { navigator.audioSession.type = 'playback'; } catch (e) {}
+            }
+            if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        ['touchstart', 'touchend', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (soundEnabled) {
+                    try { getAudioCtx(); } catch (e) {}
+                }
+            }, { once: true, passive: true });
+        });
+
         function toggleSound() {
             soundEnabled = !soundEnabled;
             document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) playTone('click');
         }
 
         function playTone(type) {
             if (!soundEnabled) return;
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = getAudioCtx();
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);

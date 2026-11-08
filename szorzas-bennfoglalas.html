@@ -605,10 +605,31 @@
         // HANGEFFEKTEK (Web Audio API - külső fájl nélkül)
         // ==========================================
         let audioCtx = null;
+        ['touchstart', 'touchend', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (state.soundEnabled) {
+                    try {
+                        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                            navigator.audioSession.type = 'playback';
+                        }
+                        if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                            audioCtx.resume();
+                        }
+                    } catch (e) {}
+                }
+            }, { once: true, passive: true });
+        });
         function playTone(type) {
             if (!state.soundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                    try { navigator.audioSession.type = 'playback'; } catch (e) {}
+                }
+                if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                    audioCtx.resume();
+                }
                 const now = audioCtx.currentTime;
 
                 if (type === 'correct') {
