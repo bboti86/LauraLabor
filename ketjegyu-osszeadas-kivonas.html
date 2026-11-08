@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kétjegyű Számok Összeadása és Kivonása ➕➖</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f3e8ff;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(168, 85, 247, 0.18) 0px, transparent 50%),
+                radial-gradient(at 90% 15%, rgba(56, 189, 248, 0.22) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, rgba(251, 191, 36, 0.18) 0px, transparent 50%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bouncy-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.01);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        .level-card-selected {
+            box-shadow: 0 10px 20px -5px rgba(147, 51, 234, 0.35), inset 0 0 0 3px #ffffff;
+            transform: translateY(-3px);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.88); }
+            70% { transform: scale(1.03); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popIn 0.32s ease-out forwards;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <!-- Felső Fejléc & Pontszámok -->
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-purple-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0" title="Vissza a főoldalra">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchMainTab('setup')">
+                    <span class="text-3xl sm:text-4xl animate-float">🧮</span>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent leading-tight">
+                            Kétjegyű Számok Összeadása & Kivonása
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">
+                            Tízesek és egyesek bontása, tízesátlépés és helyiérték-gyakorló (100-as számkör) ✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Eredményjelző sáv -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="toggleSound()" id="soundBtn" title="Hangok ki/be kapcsolása" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm" title="Összegyűjtött csillagok">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 px-3 py-1.5 rounded-2xl shadow-sm" title="Hibátlan sorozat">
+                    <span class="text-xl">🔥</span>
+                    <span id="streakDisplay" class="font-black text-orange-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő Navigációs Fülek -->
+    <div class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-purple-100 flex flex-wrap sm:flex-nowrap gap-1.5">
+            <button onclick="switchMainTab('setup')" id="tab-setup" class="flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-xs sm:text-base transition-all flex items-center justify-center gap-2 bg-purple-600 text-white shadow-md">
+                <span>🎛️</span> Beállítások & Indítás
+            </button>
+            <button onclick="switchMainTab('play')" id="tab-play" class="flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-xs sm:text-base transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-purple-50">
+                <span>🎮</span> Gyakorló Játék
+            </button>
+            <button onclick="switchMainTab('study')" id="tab-study" class="flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-xs sm:text-base transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-purple-50">
+                <span>📖</span> Tanulósarok & Varázsló
+            </button>
+        </div>
+    </div>
+
+    <!-- Fő Tartalom Konténer -->
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- =========================================================================
+             1. NÉZET: BEÁLLÍTÁSOK ÉS INDÍTÁS
+             ========================================================================= -->
+        <section id="view-setup" class="space-y-6 animate-pop">
+
+            <!-- Művelet (Összeadás / Kivonás / Vegyes) választó -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <div class="mb-3">
+                    <h2 class="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+                        <span>✨</span> 1. Melyik műveletet gyakoroljuk?
+                    </h2>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">
+                        Gyakorolhatod külön az összeadást, külön a kivonást, vagy mindkettőt vegyesen!
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button onclick="setOperationMode('add')" id="op-add-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-purple-50 border-purple-500 ring-2 ring-purple-300">
+                        <span class="text-3xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-purple-100 font-black text-emerald-600">+</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Összeadás</div>
+                            <div class="text-xs text-slate-500 font-semibold">Pl.: 34 + 25 = 59</div>
+                        </div>
+                    </button>
+
+                    <button onclick="setOperationMode('sub')" id="op-sub-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-slate-50 border-slate-200 hover:border-pink-300">
+                        <span class="text-3xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-pink-100 font-black text-rose-600">−</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Kivonás</div>
+                            <div class="text-xs text-slate-500 font-semibold">Pl.: 68 − 23 = 45</div>
+                        </div>
+                    </button>
+
+                    <button onclick="setOperationMode('mixed')" id="op-mixed-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-slate-50 border-slate-200 hover:border-amber-300">
+                        <span class="text-2xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-amber-100 font-black text-amber-600">+ −</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Vegyesen mindkettő</div>
+                            <div class="text-xs text-slate-500 font-semibold">Összeadás és kivonás 🌟</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feladattípusok / Nehézségi fokozatok kiválasztása -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+                            <span>🎯</span> 2. Milyen típusú feladatokat szeretnél?
+                        </h2>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-500">
+                            Kattints a kártyákra! Egyszerre <span class="text-purple-600 font-bold">egy vagy több típust is</span> bekapcsolhatsz!
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="selectAllLevels()" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold text-xs border border-purple-200">
+                            🌟 Összes típus
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="levelSelectorGrid">
+                    <!-- JS tölti fel a 4 típust -->
+                </div>
+
+                <div id="noLevelAlert" class="hidden mt-4 bg-rose-50 border-2 border-rose-200 text-rose-700 px-4 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                    <span>⚠️</span> Kérlek válassz ki legalább egy feladattípust!
+                </div>
+            </div>
+
+            <!-- Játékmód és Körhossz Beállítások -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Játékmód választó -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800 mb-1 flex items-center gap-2">
+                            <span>🎮</span> 3. Hogyan szeretnél válaszolni?
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">Játék közben is bármikor átválthatod!</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="setGameMode('quiz')" id="mode-quiz-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-purple-50 border-purple-500 ring-2 ring-purple-300">
+                            <div class="flex items-center justify-between w-full mb-2">
+                                <span class="text-3xl">🎯</span>
+                                <span id="mode-quiz-badge" class="bg-purple-600 text-white text-xs font-black px-2 py-0.5 rounded-full">Kiválasztva</span>
+                            </div>
+                            <div>
+                                <div class="font-black text-slate-800 text-base">Feleletválasztós</div>
+                                <div class="text-xs text-slate-500 font-semibold mt-0.5">4 gomb közül kell rábökni a helyes eredményre.</div>
+                            </div>
+                        </button>
+
+                        <button onclick="setGameMode('keypad')" id="mode-keypad-btn" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-slate-50 border-slate-200 hover:border-purple-300">
+                            <div class="flex items-center justify-between w-full mb-2">
+                                <span class="text-3xl">⌨️</span>
+                                <span id="mode-keypad-badge" class="hidden bg-purple-600 text-white text-xs font-black px-2 py-0.5 rounded-full">Kiválasztva</span>
+                            </div>
+                            <div>
+                                <div class="font-black text-slate-800 text-base">Számbeírós mód</div>
+                                <div class="text-xs text-slate-500 font-semibold mt-0.5">Írd be magad a választ a számjegygombokkal!</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kérdések száma -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800 mb-1 flex items-center gap-2">
+                            <span>🏁</span> 4. Hány feladat legyen egy körben?
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">A kör végén jutalomcsillagokat és értékelést kapsz!</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setQuestionCount(10)" id="qcount-10" class="bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-pink-50 border-pink-500 text-pink-700 ring-2 ring-pink-200">
+                            <div class="text-2xl mb-0.5">10</div>
+                            <div class="text-xs font-bold">Gyors kör ⚡</div>
+                        </button>
+                        <button onclick="setQuestionCount(20)" id="qcount-20" class="bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-pink-300">
+                            <div class="text-2xl mb-0.5">20</div>
+                            <div class="text-xs font-bold">Nagy kör 🌟</div>
+                        </button>
+                        <button onclick="setQuestionCount(0)" id="qcount-0" class="bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-pink-300">
+                            <div class="text-2xl mb-0.5">∞</div>
+                            <div class="text-xs font-bold">Végtelen 🚀</div>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Nagy Indító Gomb -->
+            <div class="text-center pt-2">
+                <button onclick="startNewGame()" class="bouncy-btn w-full sm:w-auto min-w-[280px] bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 hover:from-purple-700 hover:via-indigo-700 hover:to-sky-600 text-white font-black text-xl sm:text-2xl py-4 px-10 rounded-3xl shadow-xl shadow-purple-500/25 border-b-4 border-indigo-900 inline-flex items-center justify-center gap-3">
+                    <span>🚀</span> Gyakorlás Indítása!
+                </button>
+            </div>
+
+        </section>
+
+        <!-- =========================================================================
+             2. NÉZET: JÁTÉKTÉR (KVÍZ ÉS BEÍRÓS MÓD + LÉPÉSRŐL LÉPÉSRE SEGÍTSÉG)
+             ========================================================================= -->
+        <section id="view-play" class="hidden space-y-5 animate-pop">
+
+            <!-- Felső vezérlősáv játék közben -->
+            <div class="bg-white rounded-2xl p-3.5 sm:px-6 shadow-md border border-purple-100 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center flex-wrap gap-2">
+                    <span class="text-xs font-bold text-slate-400">Aktív szintek:</span>
+                    <div id="activeLevelsPills" class="flex flex-wrap gap-1"></div>
+                    <button onclick="switchMainTab('setup')" class="text-xs font-bold text-purple-600 hover:underline ml-1">⚙️ Módosítás</button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1 bg-purple-50 p-1 rounded-xl border border-purple-100">
+                        <button onclick="switchOpInGame('add')" id="ingame-op-add" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm">
+                            ➕ Összeadás
+                        </button>
+                        <button onclick="switchOpInGame('sub')" id="ingame-op-sub" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600">
+                            ➖ Kivonás
+                        </button>
+                        <button onclick="switchOpInGame('mixed')" id="ingame-op-mixed" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600">
+                            🌟 Vegyes
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                        <button onclick="switchModeInGame('quiz')" id="ingame-mode-quiz" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm">
+                            🎯 Választós
+                        </button>
+                        <button onclick="switchModeInGame('keypad')" id="ingame-mode-keypad" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600">
+                            ⌨️ Beírós
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Haladásjelző csík -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-purple-100">
+                <div class="flex justify-between items-center text-xs sm:text-sm font-extrabold text-slate-600 mb-2">
+                    <span id="questionCounterText">1 / 10. feladat</span>
+                    <span id="retryBadge" class="hidden bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full text-xs font-black">
+                        🔄 Javító kérdés! Most sikerülni fog!
+                    </span>
+                    <span id="scoreAccuracyText" class="text-emerald-600">Helyes: 0</span>
+                </div>
+                <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5">
+                    <div id="progressBar" class="bg-gradient-to-r from-purple-500 via-indigo-500 to-sky-400 h-full rounded-full transition-all duration-500" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- Fő Feladat Kártya -->
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-2 border-purple-100 relative overflow-hidden">
+
+                <!-- Feladattípus címke -->
+                <div class="text-center mb-2">
+                    <span id="questionCategoryBadge" class="inline-block bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-xs px-3.5 py-1 rounded-full">
+                        🌼 Tízesátlépés nélkül
+                    </span>
+                </div>
+
+                <!-- Nagy Feladat Kijelző -->
+                <div class="text-center my-3 sm:my-5">
+                    <div id="equationContainer" class="inline-flex flex-wrap items-center justify-center gap-2.5 sm:gap-5 bg-gradient-to-b from-purple-50/80 to-indigo-50/40 px-5 sm:px-10 py-5 sm:py-7 rounded-3xl border-2 border-purple-100 shadow-inner">
+                        <!-- JS tölti fel (normál vagy nyitott mondat) -->
+                    </div>
+                </div>
+
+                <!-- Segítség gombok: Szóbeli bontás & Helyiérték-táblázat -->
+                <div class="flex flex-wrap justify-center gap-2.5 mb-5">
+                    <button onclick="toggleStepByStepHint()" class="bouncy-btn inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-200 px-4 py-2 rounded-2xl font-extrabold text-xs sm:text-sm shadow-xs">
+                        <span>💡</span> Hogyan számoljuk ki? (Lépésről lépésre + Тиzes rudak)
+                    </button>
+                </div>
+
+                <!-- Vizuális segítség doboz (alapból rejtve) -->
+                <div id="visualHintBox" class="hidden mb-6 bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-4 sm:p-5 animate-pop space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                        <!-- Bal: Szóbeli lépések -->
+                        <div class="md:col-span-7 space-y-2 text-left" id="hintStepsText">
+                            <!-- JS tölti fel -->
+                        </div>
+                        <!-- Jobb: Helyiérték-táblázat (T | E) -->
+                        <div class="md:col-span-5 bg-white rounded-2xl p-3.5 border border-amber-200 shadow-xs" id="hintPlaceValueBox">
+                            <!-- JS tölti fel -->
+                        </div>
+                    </div>
+                    <!-- Tízes rudak és egyes kockák vizuálisan -->
+                    <div id="hintBlocksArea" class="bg-white/90 rounded-2xl p-3.5 border border-amber-200 text-xs">
+                        <!-- JS tölti fel -->
+                    </div>
+                </div>
+
+                <!-- Visszajelző Üzenet (Helyes / Hibás válasz után) -->
+                <div id="feedbackBanner" class="hidden mb-6 p-4 rounded-2xl text-center animate-pop">
+                    <div id="feedbackTitle" class="text-lg sm:text-2xl font-black mb-1"></div>
+                    <div id="feedbackSub" class="text-sm sm:text-base font-bold"></div>
+                    <button onclick="nextQuestion()" id="nextQuestionBtn" class="hidden mt-3 bouncy-btn bg-slate-800 hover:bg-slate-900 text-white font-black px-6 py-2.5 rounded-xl text-sm sm:text-base shadow-md">
+                        Következő feladat ➡️
+                    </button>
+                </div>
+
+                <!-- A) FELELETVÁLASZTÓS MÓD GOMBOK -->
+                <div id="quizModeArea" class="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto">
+                    <!-- 4 válaszgomb dinamikusan -->
+                </div>
+
+                <!-- B) SZÁMBEÍRÓS MÓD BILLENTYŰZET -->
+                <div id="keypadModeArea" class="hidden max-w-sm mx-auto">
+                    <div class="grid grid-cols-3 gap-2.5 sm:gap-3">
+                        <button onclick="pressKey('1')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">1</button>
+                        <button onclick="pressKey('2')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">2</button>
+                        <button onclick="pressKey('3')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">3</button>
+
+                        <button onclick="pressKey('4')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">4</button>
+                        <button onclick="pressKey('5')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">5</button>
+                        <button onclick="pressKey('6')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">6</button>
+
+                        <button onclick="pressKey('7')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">7</button>
+                        <button onclick="pressKey('8')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">8</button>
+                        <button onclick="pressKey('9')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">9</button>
+
+                        <button onclick="pressKey('BACK')" class="bouncy-btn bg-rose-100 hover:bg-rose-200 text-rose-700 font-black text-lg sm:text-xl py-3.5 rounded-2xl shadow-sm border-b-4 border-rose-300 flex items-center justify-center">
+                            ⌫ Töröl
+                        </button>
+                        <button onclick="pressKey('0')" class="bouncy-btn bg-slate-100 hover:bg-purple-100 active:bg-purple-200 text-slate-800 font-black text-2xl sm:text-3xl py-3.5 rounded-2xl shadow-sm border-b-4 border-slate-300">0</button>
+                        <button onclick="submitKeypadAnswer()" id="keypadSubmitBtn" class="bouncy-btn bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg sm:text-xl py-3.5 rounded-2xl shadow-md border-b-4 border-emerald-700 flex items-center justify-center gap-1">
+                            OK ✔️
+                        </button>
+                    </div>
+                    <p class="text-center text-xs font-bold text-slate-400 mt-3">
+                        💡 Tipp: Billentyűzetről is beírhatod a számokat (Enter = OK)!
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             3. NÉZET: KÖR VÉGI ÜNNEPLŐ KÉPERNYŐ
+             ========================================================================= -->
+        <section id="view-summary" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-2 border-purple-100 text-center max-w-2xl mx-auto">
+                <div id="summaryEmoji" class="text-6xl sm:text-7xl mb-3 animate-float">🏆</div>
+                <h2 id="summaryTitle" class="text-2xl sm:text-4xl font-black text-slate-800 mb-2">Fantasztikus munka!</h2>
+                <p id="summarySubtitle" class="text-sm sm:text-base font-bold text-slate-500 mb-6">Sikeresen végigcsináltad a gyakorló kört!</p>
+
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+                    <div class="bg-emerald-50 border-2 border-emerald-200 p-3 sm:p-4 rounded-2xl">
+                        <div class="text-2xl sm:text-3xl font-black text-emerald-600" id="sumCorrect">10 / 10</div>
+                        <div class="text-xs font-extrabold text-emerald-800 mt-1">Helyes válasz ✔️</div>
+                    </div>
+                    <div class="bg-amber-50 border-2 border-amber-200 p-3 sm:p-4 rounded-2xl">
+                        <div class="text-2xl sm:text-3xl font-black text-amber-600" id="sumStars">+15 ⭐</div>
+                        <div class="text-xs font-extrabold text-amber-800 mt-1">Szerzett csillag</div>
+                    </div>
+                    <div class="bg-purple-50 border-2 border-purple-200 p-3 sm:p-4 rounded-2xl">
+                        <div class="text-2xl sm:text-3xl font-black text-purple-600" id="sumPercent">100%</div>
+                        <div class="text-xs font-extrabold text-purple-800 mt-1">Pontosság 🎯</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-3">
+                    <button onclick="startNewGame()" class="bouncy-btn bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-base sm:text-lg py-3.5 px-8 rounded-2xl shadow-lg">
+                        🔄 Új kör indítása
+                    </button>
+                    <button onclick="switchMainTab('setup')" class="bouncy-btn bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-base py-3.5 px-6 rounded-2xl">
+                        🎛️ Másik beállítás választása
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             4. NÉZET: TANULÓSAROK ÉS INTERAKTÍV FELADAT-VARÁZSLÓ
+             ========================================================================= -->
+        <section id="view-study" class="hidden space-y-6 animate-pop">
+
+            <!-- Interaktív Feladat-varázsló (Próbálj ki bármilyen összeadást vagy kivonást!) -->
+            <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-lg border-2 border-purple-100 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                            <span>🧙‍♀️</span> Interaktív Számoló Varázsló
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 font-semibold">
+                            Írj be bármilyen két kétjegyű számot, és nézd meg lépésről lépésre, hogyan számoljuk ki fejben és helyiérték-táblázatban!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-purple-50/70 p-4 rounded-2xl border border-purple-200">
+                    <input type="number" id="wizNumA" min="10" max="99" value="38" oninput="updateWizard()" class="w-20 h-14 rounded-2xl border-2 border-purple-300 bg-white text-center font-black text-2xl text-purple-800">
+                    <select id="wizOp" onchange="updateWizard()" class="h-14 px-4 rounded-2xl border-2 border-pink-300 bg-white font-black text-2xl text-pink-600">
+                        <option value="+">+</option>
+                        <option value="-">−</option>
+                    </select>
+                    <input type="number" id="wizNumB" min="1" max="89" value="25" oninput="updateWizard()" class="w-20 h-14 rounded-2xl border-2 border-indigo-300 bg-white text-center font-black text-2xl text-indigo-800">
+                    <span class="text-3xl font-black text-slate-400">=</span>
+                    <div id="wizResultBadge" class="min-w-[80px] h-14 px-4 rounded-2xl bg-emerald-500 text-white font-black text-3xl flex items-center justify-center shadow">
+                        63
+                    </div>
+                </div>
+
+                <!-- Gyors példagombok -->
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <span class="text-xs font-extrabold text-slate-400 self-center mr-1">Gyors példák:</span>
+                    <button onclick="setWizardExample(34, '+', 25)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 font-extrabold text-xs text-slate-700">34 + 25 (átlépés nélkül)</button>
+                    <button onclick="setWizardExample(38, '+', 25)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 font-extrabold text-xs text-slate-700">38 + 25 (tízesátlépéssel)</button>
+                    <button onclick="setWizardExample(68, '-', 23)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 font-extrabold text-xs text-slate-700">68 − 23 (átlépés nélkül)</button>
+                    <button onclick="setWizardExample(73, '-', 26)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 font-extrabold text-xs text-slate-700">73 − 26 (tízesátlépéssel)</button>
+                </div>
+
+                <!-- Varázsló részletes levezetés -->
+                <div id="wizardOutput" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                    <!-- JS tölti fel -->
+                </div>
+            </div>
+
+            <!-- 3 Aranyszabály Kártyák -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-white rounded-3xl p-5 shadow-md border-2 border-emerald-100 space-y-2">
+                    <div class="text-3xl">1️⃣</div>
+                    <h3 class="font-black text-base sm:text-lg text-slate-800">Először a tízeseket, aztán az egyeseket!</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+                        Bontsd fel a második számot <strong>kerek tízesre</strong> és <strong>egyesekre</strong>!<br>
+                        Például: <strong>34 + 25</strong> esetén a 25 = <span class="text-purple-700 font-black">20</span> + <span class="text-sky-600 font-black">5</span>.<br>
+                        • 34 + <span class="text-purple-700 font-black">20</span> = 54<br>
+                        • 54 + <span class="text-sky-600 font-black">5</span> = <strong>59</strong>!
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-3xl p-5 shadow-md border-2 border-amber-100 space-y-2">
+                    <div class="text-3xl">2️⃣</div>
+                    <h3 class="font-black text-base sm:text-lg text-slate-800">Tízesátlépés: Pótolj kerek tízesre!</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+                        Ha az egyesek összege átlépi a 10-et (pl. <strong>38 + 25</strong>):<br>
+                        • Először add hozzá a tízeseket: 38 + 20 = <strong>58</strong>.<br>
+                        • Az 58-hoz előbb adj <strong>2-t</strong>, hogy kerek <strong>60</strong> legyen!<br>
+                        • Aztán add hozzá a maradék <strong>3-at</strong>: 60 + 3 = <strong>63</strong>!
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-3xl p-5 shadow-md border-2 border-sky-100 space-y-2">
+                    <div class="text-3xl">3️⃣</div>
+                    <h3 class="font-black text-base sm:text-lg text-slate-800">Helyiérték-táblázat (Tízesek és Egyesek)</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+                        Írásban mindig az <strong>egyeseket az egyesek alá (E)</strong>, a <strong>tízeseket a tízesek alá (T)</strong> írjuk, és hátulról (az egyesektől) kezdjük a számolást!
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        /* =========================================================================
+           FELADATTÍPUSOK ÉS ÁLLAPOT
+           ========================================================================= */
+        const LEVEL_TYPES = [
+            {
+                id: 'tens',
+                icon: '🌱',
+                title: 'Kerek tízesekkel',
+                desc: 'Pl.: 40 + 30 = 70, 36 + 20 = 56, 78 − 30 = 48',
+                badgeColor: 'bg-emerald-50 border-emerald-300 text-emerald-800'
+            },
+            {
+                id: 'no_carry',
+                icon: '🌼',
+                title: 'Tízesátlépés nélkül',
+                desc: 'Pl.: 34 + 25 = 59 vagy 68 − 23 = 45',
+                badgeColor: 'bg-sky-50 border-sky-300 text-sky-800'
+            },
+            {
+                id: 'carry',
+                icon: '🔥',
+                title: 'Tízesátlépéssel',
+                desc: 'Pl.: 38 + 25 = 63 vagy 73 − 26 = 47',
+                badgeColor: 'bg-amber-50 border-amber-300 text-amber-900'
+            },
+            {
+                id: 'missing',
+                icon: '🧩',
+                title: 'Hiányzó tag (Pótlás)',
+                desc: 'Pl.: 35 + [ ? ] = 60 vagy [ ? ] − 20 = 45',
+                badgeColor: 'bg-purple-50 border-purple-300 text-purple-800'
+            }
+        ];
+
+        let operationMode = 'mixed'; // 'add' | 'sub' | 'mixed'
+        let selectedLevels = new Set(['tens', 'no_carry', 'carry']);
+        let gameMode = 'quiz'; // 'quiz' | 'keypad'
+        let questionCount = 10; // 10 | 20 | 0 (infinite)
+
+        let totalStars = 0;
+        let streak = 0;
+        let soundEnabled = true;
+
+        // Kör állapota
+        let currentQuestionIndex = 0;
+        let correctInRound = 0;
+        let starsEarnedInRound = 0;
+        let currentQuestion = null;
+        let retryQueue = [];
+        let isAnswered = false;
+        let typedAnswer = '';
+
+        /* =========================================================================
+           HANG ÉS CSILLAGOK
+           ========================================================================= */
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(520, now);
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(210, now);
+                    osc.frequency.setValueAtTime(160, now + 0.14);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            } catch (e) {}
+        }
+
+        function awardStars(n) {
+            totalStars += n;
+            starsEarnedInRound += n;
+            document.getElementById('totalStarsDisplay').textContent = totalStars;
+        }
+
+        /* =========================================================================
+           BEÁLLÍTÁSOK KEZELÉSE
+           ========================================================================= */
+        function switchMainTab(tab) {
+            playTone('click');
+            ['setup', 'play', 'study'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = 'flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-xs sm:text-base transition-all flex items-center justify-center gap-2 bg-purple-600 text-white shadow-md';
+                } else {
+                    btn.className = 'flex-1 py-2.5 px-4 rounded-2xl font-extrabold text-xs sm:text-base transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-purple-50';
+                }
+            });
+
+            document.getElementById('view-setup').classList.toggle('hidden', tab !== 'setup');
+            document.getElementById('view-play').classList.toggle('hidden', tab !== 'play');
+            document.getElementById('view-summary').classList.add('hidden');
+            document.getElementById('view-study').classList.toggle('hidden', tab !== 'study');
+
+            if (tab === 'play' && !currentQuestion) {
+                startNewGame();
+            }
+            if (tab === 'study') {
+                updateWizard();
+            }
+        }
+
+        function setOperationMode(mode) {
+            playTone('click');
+            operationMode = mode;
+            const map = {
+                add: { btn: 'op-add-btn', active: 'bg-purple-50 border-purple-500 ring-2 ring-purple-300' },
+                sub: { btn: 'op-sub-btn', active: 'bg-pink-50 border-pink-500 ring-2 ring-pink-300' },
+                mixed: { btn: 'op-mixed-btn', active: 'bg-amber-50 border-amber-500 ring-2 ring-amber-300' }
+            };
+            ['add', 'sub', 'mixed'].forEach(k => {
+                const el = document.getElementById(map[k].btn);
+                if (k === mode) {
+                    el.className = `bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 ${map[k].active}`;
+                } else {
+                    el.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-3.5 bg-slate-50 border-slate-200 hover:border-purple-300';
+                }
+            });
+            updateInGameButtons();
+        }
+
+        function renderLevelSelector() {
+            const grid = document.getElementById('levelSelectorGrid');
+            grid.innerHTML = LEVEL_TYPES.map(lv => {
+                const active = selectedLevels.has(lv.id);
+                return `
+                    <button onclick="toggleLevel('${lv.id}')" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3.5 ${active ? 'bg-purple-600 text-white border-purple-700 level-card-selected' : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-purple-300'}">
+                        <span class="text-3xl bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center shrink-0">${lv.icon}</span>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-base">${lv.title}</span>
+                                <span class="text-xs font-extrabold px-2 py-0.5 rounded-full ${active ? 'bg-white text-purple-700' : 'bg-slate-200 text-slate-600'}">${active ? '✓ Aktív' : 'Kikapcsolva'}</span>
+                            </div>
+                            <p class="text-xs mt-1 font-semibold ${active ? 'text-purple-100' : 'text-slate-500'}">${lv.desc}</p>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleLevel(id) {
+            playTone('click');
+            if (selectedLevels.has(id)) selectedLevels.delete(id);
+            else selectedLevels.add(id);
+            document.getElementById('noLevelAlert').classList.toggle('hidden', selectedLevels.size > 0);
+            renderLevelSelector();
+        }
+
+        function selectAllLevels() {
+            playTone('click');
+            LEVEL_TYPES.forEach(l => selectedLevels.add(l.id));
+            document.getElementById('noLevelAlert').classList.add('hidden');
+            renderLevelSelector();
+        }
+
+        function setGameMode(mode) {
+            playTone('click');
+            gameMode = mode;
+            const qBtn = document.getElementById('mode-quiz-btn');
+            const kBtn = document.getElementById('mode-keypad-btn');
+            document.getElementById('mode-quiz-badge').classList.toggle('hidden', mode !== 'quiz');
+            document.getElementById('mode-keypad-badge').classList.toggle('hidden', mode !== 'keypad');
+
+            if (mode === 'quiz') {
+                qBtn.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-purple-50 border-purple-500 ring-2 ring-purple-300';
+                kBtn.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-slate-50 border-slate-200 hover:border-purple-300';
+            } else {
+                kBtn.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-purple-50 border-purple-500 ring-2 ring-purple-300';
+                qBtn.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-slate-50 border-slate-200 hover:border-purple-300';
+            }
+            updateInGameButtons();
+        }
+
+        function setQuestionCount(cnt) {
+            playTone('click');
+            questionCount = cnt;
+            [10, 20, 0].forEach(c => {
+                const btn = document.getElementById(`qcount-${c}`);
+                if (c === cnt) {
+                    btn.className = 'bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-pink-50 border-pink-500 text-pink-700 ring-2 ring-pink-200';
+                } else {
+                    btn.className = 'bouncy-btn py-3.5 px-3 rounded-2xl border-2 font-black text-center transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-pink-300';
+                }
+            });
+        }
+
+        function updateInGameButtons() {
+            ['add', 'sub', 'mixed'].forEach(op => {
+                const btn = document.getElementById(`ingame-op-${op}`);
+                if (!btn) return;
+                btn.className = op === operationMode
+                    ? 'px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm'
+                    : 'px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600';
+            });
+            ['quiz', 'keypad'].forEach(m => {
+                const btn = document.getElementById(`ingame-mode-${m}`);
+                if (!btn) return;
+                btn.className = m === gameMode
+                    ? 'px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-white text-purple-700 shadow-sm'
+                    : 'px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-600';
+            });
+        }
+
+        function switchOpInGame(op) {
+            setOperationMode(op);
+            generateAndRenderQuestion();
+        }
+
+        function switchModeInGame(mode) {
+            setGameMode(mode);
+            renderAnswerInputArea();
+        }
+
+        /* =========================================================================
+           FELADATGENERÁLÓ LOGIKA (100-AS SZÁMKÖR, KÉTJEGYŰ SZÁMOK)
+           ========================================================================= */
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function createProblem() {
+            const levelsArr = Array.from(selectedLevels);
+            const levelId = levelsArr[randInt(0, levelsArr.length - 1)];
+            const op = operationMode === 'mixed' ? (Math.random() < 0.5 ? '+' : '-') : (operationMode === 'add' ? '+' : '-');
+
+            let a, b, result;
+
+            if (levelId === 'tens') {
+                // Kerek tízesekkel vagy kétjegyű + kerek tízes
+                if (op === '+') {
+                    const pureTens = Math.random() < 0.45;
+                    const tA = randInt(1, 7);
+                    const uA = pureTens ? 0 : randInt(1, 8);
+                    const tB = randInt(1, 9 - tA);
+                    a = tA * 10 + uA;
+                    b = tB * 10;
+                    result = a + b;
+                } else {
+                    const pureTens = Math.random() < 0.45;
+                    const tA = randInt(3, 9);
+                    const uA = pureTens ? 0 : randInt(1, 8);
+                    const tB = randInt(1, tA - 1);
+                    a = tA * 10 + uA;
+                    b = tB * 10;
+                    result = a - b;
+                }
+            } else if (levelId === 'no_carry') {
+                // Tízesátlépés nélkül
+                if (op === '+') {
+                    const tA = randInt(1, 6);
+                    const uA = randInt(1, 7);
+                    const tB = randInt(1, 8 - tA);
+                    const uB = randInt(1, 9 - uA);
+                    a = tA * 10 + uA;
+                    b = tB * 10 + uB;
+                    result = a + b;
+                } else {
+                    const tA = randInt(3, 9);
+                    const uA = randInt(2, 9);
+                    const tB = randInt(1, tA - 1);
+                    const uB = randInt(1, uA - 1);
+                    a = tA * 10 + uA;
+                    b = tB * 10 + uB;
+                    result = a - b;
+                }
+            } else if (levelId === 'carry') {
+                // Tízesátlépéssel
+                if (op === '+') {
+                    const tA = randInt(1, 6);
+                    const uA = randInt(3, 9);
+                    const tB = randInt(1, 8 - tA);
+                    const uB = randInt(10 - uA, 9);
+                    a = tA * 10 + uA;
+                    b = tB * 10 + uB;
+                    result = a + b;
+                } else {
+                    const tA = randInt(3, 9);
+                    const uA = randInt(1, 7);
+                    const tB = randInt(1, tA - 2);
+                    const uB = randInt(uA + 1, 9);
+                    a = tA * 10 + uA;
+                    b = tB * 10 + uB;
+                    result = a - b;
+                }
+            } else {
+                // 'missing': Hiányzó tag keresése (pl. a + ? = result, vagy a - ? = result)
+                if (op === '+') {
+                    a = randInt(12, 65);
+                    b = randInt(11, 95 - a);
+                    result = a + b;
+                } else {
+                    a = randInt(35, 95);
+                    b = randInt(12, a - 12);
+                    result = a - b;
+                }
+            }
+
+            const missingSlot = levelId === 'missing' ? 'b' : 'result';
+            const correctAnswer = missingSlot === 'b' ? b : result;
+
+            return {
+                a,
+                b,
+                op,
+                result,
+                levelId,
+                missingSlot,
+                correctAnswer,
+                isRetry: false
+            };
+        }
+
+        function generateOptions(correct) {
+            const set = new Set([correct]);
+            const offsets = [-10, 10, -1, 1, -2, 2, -9, 9, -11, 11];
+            // Keverjük meg az eltolásokat, hogy tipikus helyiérték-tévesztések is legyenek a válaszok közt
+            for (const off of offsets.sort(() => Math.random() - 0.5)) {
+                const cand = correct + off;
+                if (cand >= 1 && cand <= 100 && !set.has(cand)) {
+                    set.add(cand);
+                    if (set.size === 4) break;
+                }
+            }
+            while (set.size < 4) {
+                const r = randInt(10, 99);
+                if (!set.has(r)) set.add(r);
+            }
+            return Array.from(set).sort(() => Math.random() - 0.5);
+        }
+
+        /* =========================================================================
+           JÁTÉK INDÍTÁSA ÉS MEGJELENÍTÉSE
+           ========================================================================= */
+        function startNewGame() {
+            if (selectedLevels.size === 0) {
+                document.getElementById('noLevelAlert').classList.remove('hidden');
+                return;
+            }
+            currentQuestionIndex = 0;
+            correctInRound = 0;
+            starsEarnedInRound = 0;
+            retryQueue = [];
+
+            switchMainTab('play');
+            renderActivePills();
+            updateInGameButtons();
+            generateAndRenderQuestion();
+        }
+
+        function renderActivePills() {
+            const container = document.getElementById('activeLevelsPills');
+            container.innerHTML = LEVEL_TYPES.filter(l => selectedLevels.has(l.id)).map(l => `
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${l.badgeColor}">
+                    ${l.icon} ${l.title}
+                </span>
+            `).join('');
+        }
+
+        function generateAndRenderQuestion() {
+            isAnswered = false;
+            typedAnswer = '';
+            document.getElementById('visualHintBox').classList.add('hidden');
+            document.getElementById('feedbackBanner').classList.add('hidden');
+
+            if (retryQueue.length > 0 && Math.random() < 0.45) {
+                currentQuestion = retryQueue.shift();
+                currentQuestion.isRetry = true;
+            } else {
+                currentQuestion = createProblem();
+            }
+
+            currentQuestion.options = generateOptions(currentQuestion.correctAnswer);
+
+            // Fejléc és számláló
+            const lvMeta = LEVEL_TYPES.find(l => l.id === currentQuestion.levelId);
+            const badge = document.getElementById('questionCategoryBadge');
+            badge.className = `inline-block border font-extrabold text-xs px-3.5 py-1 rounded-full ${lvMeta.badgeColor}`;
+            badge.textContent = `${lvMeta.icon} ${lvMeta.title}`;
+
+            document.getElementById('retryBadge').classList.toggle('hidden', !currentQuestion.isRetry);
+
+            const qNum = currentQuestionIndex + 1;
+            if (questionCount > 0) {
+                document.getElementById('questionCounterText').textContent = `${qNum} / ${questionCount}. feladat`;
+                const pct = Math.min(100, Math.round((currentQuestionIndex / questionCount) * 100));
+                document.getElementById('progressBar').style.width = `${Math.max(8, pct)}%`;
+            } else {
+                document.getElementById('questionCounterText').textContent = `${qNum}. feladat (Végtelen mód)`;
+                document.getElementById('progressBar').style.width = '100%';
+            }
+            document.getElementById('scoreAccuracyText').textContent = `Helyes: ${correctInRound}`;
+
+            renderEquationDisplay('?');
+            renderAnswerInputArea();
+        }
+
+        function renderEquationDisplay(slotContent, slotState = 'default') {
+            const q = currentQuestion;
+            const opSymbol = q.op === '+' ? '+' : '−';
+            const opColor = q.op === '+' ? 'text-emerald-600' : 'text-rose-600';
+
+            let slotClasses = 'min-w-[82px] sm:min-w-[110px] h-[64px] sm:h-[82px] rounded-2xl bg-white border-4 border-dashed border-purple-300 flex items-center justify-center text-4xl sm:text-6xl font-black text-purple-600 px-3 shadow-sm transition-all';
+            if (slotState === 'correct') {
+                slotClasses = 'min-w-[82px] sm:min-w-[110px] h-[64px] sm:h-[82px] rounded-2xl bg-emerald-500 border-4 border-emerald-600 flex items-center justify-center text-4xl sm:text-6xl font-black text-white px-3 shadow-md scale-105 transition-all';
+            } else if (slotState === 'wrong') {
+                slotClasses = 'min-w-[82px] sm:min-w-[110px] h-[64px] sm:h-[82px] rounded-2xl bg-rose-500 border-4 border-rose-600 flex items-center justify-center text-4xl sm:text-6xl font-black text-white px-3 shadow-md animate-shake transition-all';
+            }
+
+            const eq = document.getElementById('equationContainer');
+            if (q.missingSlot === 'b') {
+                eq.innerHTML = `
+                    <span class="text-5xl sm:text-7xl font-black text-purple-700">${q.a}</span>
+                    <span class="text-4xl sm:text-5xl font-black ${opColor}">${opSymbol}</span>
+                    <span id="answerSlot" class="${slotClasses}">${slotContent}</span>
+                    <span class="text-4xl sm:text-5xl font-black text-slate-400">=</span>
+                    <span class="text-5xl sm:text-7xl font-black text-indigo-700">${q.result}</span>
+                `;
+            } else {
+                eq.innerHTML = `
+                    <span class="text-5xl sm:text-7xl font-black text-purple-700">${q.a}</span>
+                    <span class="text-4xl sm:text-5xl font-black ${opColor}">${opSymbol}</span>
+                    <span class="text-5xl sm:text-7xl font-black text-indigo-600">${q.b}</span>
+                    <span class="text-4xl sm:text-5xl font-black text-slate-400">=</span>
+                    <span id="answerSlot" class="${slotClasses}">${slotContent}</span>
+                `;
+            }
+        }
+
+        function renderAnswerInputArea() {
+            const quizArea = document.getElementById('quizModeArea');
+            const keypadArea = document.getElementById('keypadModeArea');
+
+            if (gameMode === 'quiz') {
+                quizArea.classList.remove('hidden');
+                keypadArea.classList.add('hidden');
+                quizArea.innerHTML = currentQuestion.options.map(opt => `
+                    <button onclick="checkAnswer(${opt})" id="opt-btn-${opt}" ${isAnswered ? 'disabled' : ''} class="bouncy-btn py-4 sm:py-5 px-6 rounded-2xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-200 hover:border-purple-400 font-black text-2xl sm:text-4xl text-slate-800 shadow-sm">
+                        ${opt}
+                    </button>
+                `).join('');
+            } else {
+                quizArea.classList.add('hidden');
+                keypadArea.classList.remove('hidden');
+                if (!isAnswered) {
+                    renderEquationDisplay(typedAnswer || '?');
+                }
+            }
+        }
+
+        /* =========================================================================
+           VÁLASZ ELLENŐRZÉSE ÉS BILLENTYŰZET
+           ========================================================================= */
+        function pressKey(key) {
+            if (isAnswered) return;
+            playTone('click');
+            if (key === 'BACK') {
+                typedAnswer = typedAnswer.slice(0, -1);
+            } else if (typedAnswer.length < 3) {
+                typedAnswer += key;
+            }
+            renderEquationDisplay(typedAnswer || '?');
+        }
+
+        function submitKeypadAnswer() {
+            if (isAnswered || typedAnswer === '') return;
+            checkAnswer(parseInt(typedAnswer, 10));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('view-play').classList.contains('hidden')) return;
+            if (isAnswered) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    nextQuestion();
+                }
+                return;
+            }
+            if (gameMode === 'keypad') {
+                if (e.key >= '0' && e.key <= '9') {
+                    pressKey(e.key);
+                } else if (e.key === 'Backspace') {
+                    pressKey('BACK');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitKeypadAnswer();
+                }
+            }
+        });
+
+        function checkAnswer(userValue) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const q = currentQuestion;
+            const isCorrect = userValue === q.correctAnswer;
+            const banner = document.getElementById('feedbackBanner');
+            const title = document.getElementById('feedbackTitle');
+            const sub = document.getElementById('feedbackSub');
+            const nextBtn = document.getElementById('nextQuestionBtn');
+
+            banner.classList.remove('hidden');
+
+            if (gameMode === 'quiz') {
+                q.options.forEach(opt => {
+                    const btn = document.getElementById(`opt-btn-${opt}`);
+                    if (!btn) return;
+                    btn.disabled = true;
+                    if (opt === q.correctAnswer) {
+                        btn.className = 'py-4 sm:py-5 px-6 rounded-2xl bg-emerald-500 border-2 border-emerald-600 font-black text-2xl sm:text-4xl text-white shadow-md scale-105';
+                    } else if (opt === userValue) {
+                        btn.className = 'py-4 sm:py-5 px-6 rounded-2xl bg-rose-500 border-2 border-rose-600 font-black text-2xl sm:text-4xl text-white shadow-sm';
+                    } else {
+                        btn.className = 'py-4 sm:py-5 px-6 rounded-2xl bg-slate-50 border-2 border-slate-200 font-black text-2xl sm:text-4xl text-slate-400 opacity-50';
+                    }
+                });
+            }
+
+            if (isCorrect) {
+                playTone('correct');
+                streak++;
+                correctInRound++;
+                awardStars(streak >= 5 ? 2 : 1);
+                document.getElementById('streakDisplay').textContent = streak;
+                renderEquationDisplay(q.correctAnswer, 'correct');
+
+                banner.className = 'mb-6 p-4 rounded-2xl text-center animate-pop bg-emerald-50 border-2 border-emerald-300 text-emerald-950';
+                const praises = ['Szuper vagy! 🌟', 'Telitalálat! 🎉', 'Villámgyors fejszámoló! 🚀', 'Pontosan így van! 👏'];
+                title.textContent = praises[randInt(0, praises.length - 1)];
+                sub.textContent = buildShortSummaryFormula(q);
+                nextBtn.classList.add('hidden');
+
+                if (streak % 5 === 0 && typeof confetti === 'function') {
+                    confetti({ particleCount: 55, spread: 60, origin: { y: 0.7 } });
+                }
+
+                setTimeout(() => {
+                    if (isAnswered) nextQuestion();
+                }, 1350);
+            } else {
+                playTone('wrong');
+                streak = 0;
+                document.getElementById('streakDisplay').textContent = 0;
+                renderEquationDisplay(userValue, 'wrong');
+
+                // Betesszük a javítólistába
+                retryQueue.push({ ...q, isRetry: true });
+
+                banner.className = 'mb-6 p-4 rounded-2xl text-center animate-pop bg-rose-50 border-2 border-rose-300 text-rose-950';
+                title.textContent = `Majdnem! A helyes válasz: ${q.correctAnswer}`;
+                sub.textContent = buildShortSummaryFormula(q);
+                nextBtn.classList.remove('hidden');
+
+                // Automatikusan megnyitjuk a lépésről-lépésre magyarázatot, hogy tanulhasson belőle
+                renderStepByStepHelper(q.a, q.op, q.b, 'hintStepsText', 'hintPlaceValueBox', 'hintBlocksArea', q.missingSlot);
+                document.getElementById('visualHintBox').classList.remove('hidden');
+            }
+        }
+
+        function buildShortSummaryFormula(q) {
+            const bTens = Math.floor(q.b / 10) * 10;
+            const bOnes = q.b % 10;
+            if (q.missingSlot === 'b') {
+                if (q.op === '+') {
+                    return `${q.a} + ${q.b} = ${q.result} (mert ${q.result} − ${q.a} = ${q.b})`;
+                } else {
+                    return `${q.a} − ${q.b} = ${q.result} (mert ${q.a} − ${q.result} = ${q.b})`;
+                }
+            }
+            if (q.op === '+') {
+                const mid = q.a + bTens;
+                return bOnes > 0
+                    ? `Lépésekben: ${q.a} + ${bTens} = ${mid}, majd ${mid} + ${bOnes} = ${q.result}`
+                    : `Kerek tízesekkel: ${q.a} + ${bTens} = ${q.result}`;
+            } else {
+                const mid = q.a - bTens;
+                return bOnes > 0
+                    ? `Lépésekben: ${q.a} − ${bTens} = ${mid}, majd ${mid} − ${bOnes} = ${q.result}`
+                    : `Kerek tízesekkel: ${q.a} − ${bTens} = ${q.result}`;
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (questionCount > 0 && currentQuestionIndex >= questionCount) {
+                showRoundSummary();
+            } else {
+                generateAndRenderQuestion();
+            }
+        }
+
+        function showRoundSummary() {
+            document.getElementById('view-play').classList.add('hidden');
+            document.getElementById('view-summary').classList.remove('hidden');
+
+            const pct = Math.round((correctInRound / questionCount) * 100);
+            document.getElementById('sumCorrect').textContent = `${correctInRound} / ${questionCount}`;
+            document.getElementById('sumStars').textContent = `+${starsEarnedInRound} ⭐`;
+            document.getElementById('sumPercent').textContent = `${pct}%`;
+
+            if (pct >= 80 && typeof confetti === 'function') {
+                confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+            }
+        }
+
+        /* =========================================================================
+           VIZUÁLIS SEGÍTSÉG ÉS TANULÓSAROK VARÁZSLÓ
+           ========================================================================= */
+        function toggleStepByStepHint() {
+            playTone('click');
+            const box = document.getElementById('visualHintBox');
+            if (box.classList.contains('hidden')) {
+                const q = currentQuestion;
+                renderStepByStepHelper(q.a, q.op, q.b, 'hintStepsText', 'hintPlaceValueBox', 'hintBlocksArea', q.missingSlot);
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function renderStepByStepHelper(a, op, b, stepsTargetId, pvTargetId, blocksTargetId, missingSlot = 'result') {
+            const res = op === '+' ? a + b : a - b;
+            const tA = Math.floor(a / 10);
+            const uA = a % 10;
+            const tB = Math.floor(b / 10);
+            const uB = b % 10;
+            const tRes = Math.floor(res / 10);
+            const uRes = res % 10;
+
+            const bTens = tB * 10;
+            const mid = op === '+' ? a + bTens : a - bTens;
+
+            let stepsHtml = '';
+            if (missingSlot === 'b') {
+                if (op === '+') {
+                    stepsHtml = `
+                        <div class="font-black text-amber-950 text-sm sm:text-base">🧩 Hogyan találjuk meg a hiányzó tagot? (${a} + ? = ${res})</div>
+                        <p class="text-xs sm:text-sm font-bold text-slate-700">1. Kivonással megkapjuk, mennyit kell a <strong>${a}</strong>-hoz adni, hogy <strong>${res}</strong> legyen: <strong>${res} − ${a}</strong>.</p>
+                        <p class="text-xs sm:text-sm font-bold text-purple-800">2. Először lépjünk a tízesekkel: ${a} + <strong>${bTens}</strong> = ${mid}.</p>
+                        <p class="text-xs sm:text-sm font-bold text-sky-800">3. Majd adjuk hozzá az egyeseket: ${mid} + <strong>${uB}</strong> = ${res}. Tehát a hiányzó szám: <strong>${b}</strong>!</p>
+                    `;
+                } else {
+                    stepsHtml = `
+                        <div class="font-black text-amber-950 text-sm sm:text-base">🧩 Hogyan találjuk meg, mennyit vontunk ki? (${a} − ? = ${res})</div>
+                        <p class="text-xs sm:text-sm font-bold text-slate-700">1. Megnézzük a különbséget <strong>${a}</strong> és <strong>${res}</strong> között: <strong>${a} − ${res}</strong>.</p>
+                        <p class="text-xs sm:text-sm font-bold text-purple-800">2. Először vegyünk el <strong>${bTens}</strong>-et: ${a} − ${bTens} = ${mid}.</p>
+                        <p class="text-xs sm:text-sm font-bold text-sky-800">3. Majd vegyünk el még <strong>${uB}</strong>-t: ${mid} − ${uB} = ${res}. Tehát a hiányzó szám: <strong>${b}</strong>!</p>
+                    `;
+                }
+            } else if (op === '+') {
+                const isCarry = (uA + uB) >= 10;
+                const toNextTen = 10 - uA;
+                const restOnes = uB - toNextTen;
+                stepsHtml = `
+                    <div class="font-black text-amber-950 text-sm sm:text-base">➕ Szóbeli összeadás lépésről lépésre:</div>
+                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 text-xs sm:text-sm font-bold space-y-1">
+                        <div>1️⃣ Bontsuk fel a második számot: <strong>${b} = <span class="text-purple-700">${bTens}</span> + <span class="text-sky-600">${uB}</span></strong></div>
+                        <div>2️⃣ Először adjuk hozzá a <strong>tízeseket</strong>: ${a} + <span class="text-purple-700 font-black">${bTens}</span> = <strong>${mid}</strong></div>
+                        <div>3️⃣ Most adjuk hozzá az <strong>egyeseket</strong>: ${mid} + <span class="text-sky-600 font-black">${uB}</span> = <strong class="text-emerald-700 text-base">${res}</strong></div>
+                        ${isCarry && uA > 0 ? `<div class="text-xs text-amber-800 pt-1 border-t border-amber-100">💡 <strong>Tízesátlépés trükk:</strong> ${mid} + ${toNextTen} = <strong>${mid + toNextTen}</strong> (kerek tízes!), majd + ${restOnes} = <strong>${res}</strong>.</div>` : ''}
+                    </div>
+                `;
+            } else {
+                const isBorrow = uA < uB;
+                const toPrevTen = uA;
+                const restOnes = uB - toPrevTen;
+                stepsHtml = `
+                    <div class="font-black text-amber-950 text-sm sm:text-base">➖ Szóbeli kivonás lépésről lépésre:</div>
+                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 text-xs sm:text-sm font-bold space-y-1">
+                        <div>1️⃣ Bontsuk fel a kivonandót: <strong>${b} = <span class="text-purple-700">${bTens}</span> + <span class="text-sky-600">${uB}</span></strong></div>
+                        <div>2️⃣ Először vegyük el a <strong>tízeseket</strong>: ${a} − <span class="text-purple-700 font-black">${bTens}</span> = <strong>${mid}</strong></div>
+                        <div>3️⃣ Most vegyük el az <strong>egyeseket</strong>: ${mid} − <span class="text-sky-600 font-black">${uB}</span> = <strong class="text-emerald-700 text-base">${res}</strong></div>
+                        ${isBorrow && uA > 0 ? `<div class="text-xs text-amber-800 pt-1 border-t border-amber-100">💡 <strong>Tízesátlépés trükk:</strong> ${mid} − ${toPrevTen} = <strong>${mid - toPrevTen}</strong> (kerek tízes!), majd − ${restOnes} = <strong>${res}</strong>.</div>` : ''}
+                    </div>
+                `;
+            }
+
+            document.getElementById(stepsTargetId).innerHTML = stepsHtml;
+
+            // Helyiérték-táblázat (T | E)
+            const carryBadge = (op === '+' && uA + uB >= 10)
+                ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-black">+1 tízes átmegy!</span>'
+                : (op === '-' && uA < uB ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-black">1 tízest váltunk (10 E)!</span>' : '');
+
+            document.getElementById(pvTargetId).innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-black uppercase text-slate-500">📊 Helyiérték-táblázat</span>
+                    ${carryBadge}
+                </div>
+                <table class="w-full text-center font-black text-base border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-xs">
+                            <th class="py-1 px-2 rounded-tl-lg text-slate-400"></th>
+                            <th class="py-1 px-2 text-purple-700">T (10)</th>
+                            <th class="py-1 px-2 rounded-tr-lg text-sky-600">E (1)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-100">
+                            <td class="py-1 text-slate-400"></td>
+                            <td class="py-1 text-purple-700">${tA}</td>
+                            <td class="py-1 text-sky-600">${uA}</td>
+                        </tr>
+                        <tr class="border-b-2 border-slate-400">
+                            <td class="py-1 text-pink-600">${op === '+' ? '+' : '−'}</td>
+                            <td class="py-1 text-purple-700">${tB}</td>
+                            <td class="py-1 text-sky-600">${uB}</td>
+                        </tr>
+                        <tr class="bg-emerald-50 text-emerald-800">
+                            <td class="py-1.5 font-bold">=</td>
+                            <td class="py-1.5">${tRes}</td>
+                            <td class="py-1.5">${uRes}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            // Vizuális Tízes rudak és Egyes kockák
+            const renderRods = (tensCount, onesCount) => {
+                const rods = Array(tensCount).fill('<span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-purple-600 text-white font-black text-[10px] shadow-2xs" title="1 tízes rúd (10)">10</span>').join(' ');
+                const cubes = Array(onesCount).fill('<span class="inline-flex items-center justify-center w-4 h-4 rounded bg-sky-400 text-white font-black text-[9px]" title="1 egyes kocka (1)">1</span>').join(' ');
+                return `<div class="inline-flex flex-wrap items-center gap-1">${rods} ${cubes || '<span class="text-slate-400 text-[10px]">(0 egyes)</span>'}</div>`;
+            };
+
+            if (blocksTargetId && document.getElementById(blocksTargetId)) {
+                document.getElementById(blocksTargetId).innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div><strong class="text-purple-800">${a}:</strong> ${renderRods(tA, uA)}</div>
+                        <div><strong class="text-indigo-800">${b}:</strong> ${renderRods(tB, uB)}</div>
+                        <div><strong class="text-emerald-800">Eredmény (${res}):</strong> ${renderRods(tRes, uRes)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        /* =========================================================================
+           TANULÓSAROK INTERAKTÍV VARÁZSLÓ
+           ========================================================================= */
+        function setWizardExample(a, op, b) {
+            playTone('click');
+            document.getElementById('wizNumA').value = a;
+            document.getElementById('wizOp').value = op;
+            document.getElementById('wizNumB').value = b;
+            updateWizard();
+        }
+
+        function updateWizard() {
+            let a = parseInt(document.getElementById('wizNumA').value, 10) || 20;
+            let b = parseInt(document.getElementById('wizNumB').value, 10) || 10;
+            const op = document.getElementById('wizOp').value;
+
+            a = Math.max(1, Math.min(99, a));
+            b = Math.max(1, Math.min(99, b));
+            if (op === '-' && b > a) {
+                const tmp = a;
+                a = b;
+                b = tmp;
+            }
+
+            const res = op === '+' ? a + b : a - b;
+            document.getElementById('wizResultBadge').textContent = res;
+
+            const container = document.getElementById('wizardOutput');
+            container.innerHTML = `
+                <div id="wizSteps" class="md:col-span-7 bg-amber-50/70 rounded-2xl p-4 border-2 border-amber-200 flex flex-col justify-center"></div>
+                <div id="wizPV" class="md:col-span-5 bg-slate-50 rounded-2xl p-4 border-2 border-slate-200"></div>
+                <div id="wizBlocks" class="md:col-span-12 bg-purple-50/50 rounded-2xl p-4 border border-purple-200 text-xs"></div>
+            `;
+            renderStepByStepHelper(a, op, b, 'wizSteps', 'wizPV', 'wizBlocks', 'result');
+        }
+
+        /* =========================================================================
+           INICIALIZÁLÁS INDULÁSKOR
+           ========================================================================= */
+        window.onload = function() {
+            renderLevelSelector();
+            updateWizard();
+        };
+    </script>
+</body>
+</html>
