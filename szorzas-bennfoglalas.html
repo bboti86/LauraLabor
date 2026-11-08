@@ -85,13 +85,18 @@
     <!-- Felső Fejléc & Pontszámok -->
     <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-purple-100">
         <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
-            <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchMainTab('setup')">
-                <span class="text-3xl sm:text-4xl animate-float">🦄</span>
-                <div>
-                    <h1 class="text-lg sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 bg-clip-text text-transparent leading-tight">
-                        Szorzótábla & Bennfoglaló
-                    </h1>
-                    <p class="text-xs font-bold text-slate-400 hidden sm:block">Játékos szorzás és maradék nélküli osztás gyakorló ✨</p>
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0" title="Vissza a főoldalra">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchMainTab('setup')">
+                    <span class="text-3xl sm:text-4xl animate-float">🦄</span>
+                    <div>
+                        <h1 class="text-lg sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 bg-clip-text text-transparent leading-tight">
+                            Szorzótábla & Bennfoglaló
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">Játékos szorzás és maradék nélküli osztás gyakorló ✨</p>
+                    </div>
                 </div>
             </div>
 
