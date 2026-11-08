@@ -914,20 +914,23 @@
         /* =========================================================================
            JÁTÉK INDÍTÁSA ÉS MEGJELENÍTÉSE
            ========================================================================= */
-        function startNewGame() {
+        function startNewGame(fromTabSwitch = false) {
             if (selectedLevels.size === 0) {
                 document.getElementById('noLevelAlert').classList.remove('hidden');
                 return;
             }
+            if (!fromTabSwitch) playTone('click');
             currentQuestionIndex = 0;
             correctInRound = 0;
             starsEarnedInRound = 0;
             retryQueue = [];
 
-            switchMainTab('play');
             renderActivePills();
             updateInGameButtons();
             generateAndRenderQuestion();
+            if (!fromTabSwitch) {
+                switchMainTab('play', true);
+            }
         }
 
         function renderActivePills() {
