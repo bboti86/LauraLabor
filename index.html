@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <!-- PWA beállítások -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="theme-color" content="#ff6b6b">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laura Tanulósarka 🌟</title>
     <style>
@@ -34,7 +38,30 @@
         .subtitle {
             color: #555;
             font-size: 1.1rem;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+        .install-banner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .install-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.45);
         }
         .category {
             background: white;
@@ -106,6 +133,12 @@
         <h1>Laura Tanulósarka 🚀</h1>
         <p class="subtitle">Válaszd ki, mit szeretnél ma gyakorolni!</p>
 
+        <!-- PWA telepítő gomb (automatikusan megjelenik Androidon, ha telepíthető) -->
+        <button id="installAppBtn" class="install-banner">
+            <span>📲</span>
+            <span>Telepítés alkalmazásként a telefonra</span>
+        </button>
+
         <!-- Matematika -->
         <div class="category matematika">
             <h2>🦄 Matematika</h2>
@@ -151,5 +184,41 @@
     <footer>
         Jó tanulást és jó szórakozást kíván apa! ❤️
     </footer>
+
+    <script>
+        // Service Worker regisztrálása (kötelező az Android PWA telepítéshez)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                    console.warn('Service Worker regisztrációs hiba:', err);
+                });
+            });
+        }
+
+        // Android Chrome "Telepítés alkalmazásként" gomb kezelése
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('installAppBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'flex';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt = null;
+        });
+    </script>
 </body>
 </html>
