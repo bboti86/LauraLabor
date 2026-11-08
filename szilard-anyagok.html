@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧱 Szilárd anyagok – Kísérletek és Munkafüzet (3. osztály)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #fef3c7 100%);
+            min-height: 100vh;
+            color: #1e293b;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bouncy-btn {
+            transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+
+        @keyframes vibrateSolid {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-1.5px, 1px); }
+            50% { transform: translate(1.5px, -1px); }
+            75% { transform: translate(-1px, -1.5px); }
+        }
+        .animate-vibrate {
+            animation: vibrateSolid 0.22s infinite;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.92); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popIn 0.28s ease-out forwards;
+        }
+
+        /* Munkafüzet 1. feladat stílusok */
+        .word-chip-framed {
+            border: 3px solid #0284c7 !important;
+            background-color: #e0f2fe !important;
+            color: #0369a1 !important;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2);
+        }
+
+        .word-chip-underlined {
+            text-decoration: underline;
+            text-decoration-color: #059669;
+            text-decoration-thickness: 4px;
+            text-underline-offset: 6px;
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46 !important;
+        }
+
+        /* Kamra polc megjelenés */
+        .pantry-shelf {
+            background: linear-gradient(180deg, #e7d5c9 0%, #dfc7b8 85%, #b8957f 85%, #9c7a65 100%);
+            border-left: 10px solid #a8846f;
+            border-right: 10px solid #a8846f;
+        }
+
+        /* Spirálfüzet recept kártya */
+        .recipe-note {
+            background: #fef9c3;
+            background-image: radial-gradient(#eab308 1px, transparent 1px);
+            background-size: 20px 20px;
+            box-shadow: 4px 8px 18px rgba(0, 0, 0, 0.1);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- Felső Navigációs Fejléc -->
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 border-b border-emerald-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs" title="Vissza a főoldalra">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchMainTab('tananyag')">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl shadow-md animate-float">
+                        🧱
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-xl font-black text-slate-800 leading-tight">
+                            8. Szilárd anyagok
+                        </h1>
+                        <p class="text-xs font-bold text-emerald-600">
+                            Környezetismeret 3. osztály • Tankönyv & Munkafüzet (24–26. o.)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobb oldali számlálók -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSound()" id="soundBtn" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-lg transition" title="Hangok be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-300 px-3.5 py-1.5 rounded-2xl shadow-xs">
+                    <span class="text-lg">⭐</span>
+                    <span id="starCounter" class="font-black text-amber-800 text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő Fülválasztó -->
+    <nav class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-emerald-100 grid grid-cols-2 md:grid-cols-4 gap-1.5">
+            <button onclick="switchMainTab('tananyag')" id="main-tab-tananyag" class="bouncy-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow">
+                <span>🔬</span> 1. Tananyag & Labor
+            </button>
+            <button onclick="switchMainTab('munkafuzet')" id="main-tab-munkafuzet" class="bouncy-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 text-slate-700 hover:bg-emerald-50">
+                <span>📘</span> 2. Munkafüzet (1–6.)
+            </button>
+            <button onclick="switchMainTab('meres')" id="main-tab-meres" class="bouncy-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 text-slate-700 hover:bg-emerald-50">
+                <span>📏</span> 3. Mérés & Tömeg (7–8.)
+            </button>
+            <button onclick="switchMainTab('kviz')" id="main-tab-kviz" class="bouncy-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 text-slate-700 hover:bg-emerald-50">
+                <span>🏆</span> 4. Tudáspróba Kvíz
+            </button>
+        </div>
+    </nav>
+
+    <!-- Fő Tartalom -->
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- =========================================================================
+             1. FÜL: TANANYAG ÉS INTERAKTÍV KÍSÉRLETEZŐ LABOR
+             ========================================================================= -->
+        <section id="section-tananyag" class="space-y-6 animate-pop">
+
+            <!-- Bevezető összefoglaló banner -->
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-2 max-w-2xl">
+                    <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-xs font-extrabold uppercase tracking-wider">
+                        I. Az élettelen környezet kölcsönhatásai
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-black">Mit tudunk a szilárd anyagokról?</h2>
+                    <p class="text-sm sm:text-base text-emerald-50 leading-relaxed font-medium">
+                        Körülöttünk a legtöbb használati tárgy <strong>szilárd halmazállapotú anyagból</strong> (fából, vasból, üvegből, műanyagból, bőrből, kőből) készül. Fedezd fel a tulajdonságaikat!
+                    </p>
+                </div>
+                <div class="flex gap-3 text-4xl sm:text-5xl bg-white/15 p-4 rounded-3xl backdrop-blur-sm shrink-0">
+                    <span title="Fa">🪵</span>
+                    <span title="Vas">🔩</span>
+                    <span title="Kavics">🪨</span>
+                    <span title="Kristálycukor">🧂</span>
+                </div>
+            </div>
+
+            <!-- Interaktív Kísérlet: Szilárd vs. Folyékony + Szemcsés anyagok nagyítója -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Bal: 4 legfontosabb tulajdonság kártyái -->
+                <div class="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 shadow-md border border-emerald-100 space-y-4">
+                    <h3 class="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+                        <span>🌟</span> A szilárd anyagok 4 fő tulajdonsága
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 space-y-1.5">
+                            <div class="text-2xl">🧊</div>
+                            <h4 class="font-black text-emerald-950 text-base">1. Alakjuk állandó</h4>
+                            <p class="text-xs text-emerald-900 leading-relaxed font-semibold">
+                                Saját alakjuk van! Ha átteszed egy tálba a kavicsot vagy a radírt, <strong>nem veszi fel az edény alakját</strong> (ellentétben a folyadékokkal).
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-sky-50 border-2 border-sky-200 space-y-1.5">
+                            <div class="text-2xl">🧱</div>
+                            <h4 class="font-black text-sky-950 text-base">2. Összenyomhatatlanok</h4>
+                            <p class="text-xs text-sky-900 leading-relaxed font-semibold">
+                                Nem töltik ki teljesen a rendelkezésre álló teret, és <strong>nem lehet őket összenyomni</strong> (ez közös tulajdonságuk a folyadékokkal!).
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-200 space-y-1.5">
+                            <div class="text-2xl">✂️</div>
+                            <h4 class="font-black text-amber-950 text-base">3. Feldarabolhatók</h4>
+                            <p class="text-xs text-amber-900 leading-relaxed font-semibold">
+                                Külső erő hatására (vágás, törés, fűrészelés, darálás) <strong>alakjuk változhat és feldarabolhatók</strong>. A kisebb darabok is szilárdak maradnak!
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-purple-50 border-2 border-purple-200 space-y-1.5">
+                            <div class="text-2xl">🔍</div>
+                            <h4 class="font-black text-purple-950 text-base">4. Szemcsés szilárd anyagok</h4>
+                            <p class="text-xs text-purple-900 leading-relaxed font-semibold">
+                                A <strong>só, cukor, búzaliszt, darált mák, kávéőrlemény és homok</strong> is <strong>SZILÁRD</strong>! Sok apró szilárd szemcséből állnak, ezért önthetőek.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Anyag vs. Tárgy magyarázó doboz -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                        <h4 class="font-black text-slate-800 text-sm sm:text-base flex items-center gap-2 mb-2">
+                            <span>💡</span> Vigyázz! Mi a különbség az ANYAG és a TÁRGY között?
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                <div class="font-black text-sky-700 uppercase mb-1">🪨 ANYAG (amiből készül):</div>
+                                <p class="text-slate-700 font-semibold">
+                                    Pl. <strong>fa, vas, üveg, só, bőr, kavics, műanyag</strong>.
+                                </p>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                <div class="font-black text-emerald-700 uppercase mb-1">🧸 TÁRGY (ami készült belőle):</div>
+                                <p class="text-slate-700 font-semibold">
+                                    Pl. <strong>tégla, csigaház, vasgolyó, hűtőmágnes, műanyag tálca</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jobb: Interaktív Laborvizsgáló (Próbáld ki a tárgyakon!) -->
+                <div class="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 shadow-md border border-emerald-100 flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
+                                <span>🧪</span> Interaktív Anyagvizsgáló
+                            </h3>
+                            <span class="text-xs font-extrabold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full">Kísérlet</span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold mb-3">
+                            Válassz egy mintát, majd próbáld meg összenyomni, feldarabolni vagy nagyítóval megnézni!
+                        </p>
+
+                        <!-- Mintaválasztó gombok -->
+                        <div class="grid grid-cols-2 gap-2 mb-4" id="lab-sample-buttons">
+                            <button onclick="selectLabSample('wood')" id="sample-btn-wood" class="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 font-extrabold text-xs flex items-center gap-2">
+                                <span class="text-lg">🪵</span> Fakocka (Szilárd)
+                            </button>
+                            <button onclick="selectLabSample('sugar')" id="sample-btn-sugar" class="p-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-extrabold text-xs flex items-center gap-2">
+                                <span class="text-lg">🧂</span> Kristálycukor (Szemcsés)
+                            </button>
+                            <button onclick="selectLabSample('clay')" id="sample-btn-clay" class="p-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-extrabold text-xs flex items-center gap-2">
+                                <span class="text-lg">🎨</span> Gyurma (Alakítható)
+                            </button>
+                            <button onclick="selectLabSample('honey')" id="sample-btn-honey" class="p-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-extrabold text-xs flex items-center gap-2">
+                                <span class="text-lg">🍯</span> Méz (Folyékony!)
+                            </button>
+                        </div>
+
+                        <!-- Vizsgáló színpad -->
+                        <div class="bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 p-4 min-h-[170px] flex flex-col items-center justify-center text-center relative">
+                            <div id="lab-stage-visual" class="text-6xl mb-2 transition-all duration-300">🪵</div>
+                            <div id="lab-stage-title" class="font-black text-slate-800 text-sm">Fakocka – Szilárd halmazállapot</div>
+                            <p id="lab-stage-desc" class="text-xs text-slate-600 font-semibold mt-1 max-w-xs">
+                                Saját, állandó alakja van. Nem veszi fel a pohár alakját!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Műveleti gombok a mintán -->
+                    <div class="space-y-2">
+                        <div class="text-[11px] font-extrabold uppercase text-slate-400 text-center">Mit csináljunk vele?</div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="performLabAction('press')" class="bouncy-btn py-2.5 px-2 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-extrabold text-xs flex flex-col items-center gap-1">
+                                <span>🔨</span> Összenyomás
+                            </button>
+                            <button onclick="performLabAction('cut')" class="bouncy-btn py-2.5 px-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-extrabold text-xs flex flex-col items-center gap-1">
+                                <span>🪚</span> Feldarabolás
+                            </button>
+                            <button onclick="performLabAction('magnify')" class="bouncy-btn py-2.5 px-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-extrabold text-xs flex flex-col items-center gap-1">
+                                <span>🔍</span> Nagyító
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fagyasztás és olvadás a konyhában (4. feladathoz kapcsolódó elmélet) -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-md border border-cyan-100">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div class="md:col-span-2 space-y-2">
+                        <h3 class="text-lg font-black text-cyan-950 flex items-center gap-2">
+                            <span>❄️</span> Ételek tartósítása: Fagyasztás és olvadás a konyhában
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed">
+                            Ha a családban több étel készül, mint amennyit egyszerre megeszünk, a maradékot a <strong>mélyhűtőben (fagyasztóban)</strong> lefagyasztva tartósíthatjuk:
+                        </p>
+                        <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 font-semibold pt-1">
+                            <li class="flex items-start gap-2"><span class="text-cyan-600 font-black">🥶 Fagyasztás:</span> Az <strong>alacsony hőmérséklet</strong> biztosítja. Nemcsak folyadékot (levest), hanem szilárd ételeket (zöldséget, húst, kenyeret) is lehet fagyasztani. <strong>Minden lefagyasztott élelmiszer szilárd halmazállapotú lesz!</strong></li>
+                            <li class="flex items-start gap-2"><span class="text-amber-600 font-black">🍲 Olvadás:</span> Amikor kivesszük az ételt a fagyasztóból a melegebb szobába, a <strong>hőmérséklet emelkedése (melegítés)</strong> hatására felolvad.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gradient-to-br from-cyan-50 to-sky-100 border-2 border-cyan-200 rounded-2xl p-4 text-center space-y-2">
+                        <div class="text-4xl">🍲  ➡️ 🧊 ➡️ 🍲</div>
+                        <div class="text-xs font-black text-cyan-900">Hűtés (-18 °C): Megfagy (Szilárd)</div>
+                        <div class="text-xs font-black text-amber-800">Melegítés (+20 °C): Felolvad</div>
+                        <button onclick="switchMainTab('munkafuzet')" class="mt-2 w-full py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow transition">
+                            Irány a munkafüzet gyakorlása! ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =========================================================================
+             2. FÜL: MUNKAFÜZET FELADATOK (1–6. FELADAT, 24–25. OLDAL)
+             ========================================================================= -->
+        <section id="section-munkafuzet" class="hidden space-y-6 animate-pop">
+
+            <!-- Feladat választó sáv (1 - 6) -->
+            <div class="bg-white rounded-3xl p-3 shadow-sm border border-emerald-100 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap gap-1.5" id="wb-nav-pills">
+                    <button onclick="switchWbTask(1)" id="wb-btn-1" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-sky-600 text-white shadow">
+                        1. Anyagok és tárgyak
+                    </button>
+                    <button onclick="switchWbTask(2)" id="wb-btn-2" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-slate-100 text-slate-700 hover:bg-sky-50">
+                        2. Tomi kamrája
+                    </button>
+                    <button onclick="switchWbTask(3)" id="wb-btn-3" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-slate-100 text-slate-700 hover:bg-sky-50">
+                        3. Palacsinta recept
+                    </button>
+                    <button onclick="switchWbTask(4)" id="wb-btn-4" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-slate-100 text-slate-700 hover:bg-sky-50">
+                        4. Fagyasztás (i/h)
+                    </button>
+                    <button onclick="switchWbTask(5)" id="wb-btn-5" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-slate-100 text-slate-700 hover:bg-sky-50">
+                        5. Halmazábra
+                    </button>
+                    <button onclick="switchWbTask(6)" id="wb-btn-6" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-slate-100 text-slate-700 hover:bg-sky-50">
+                        6. Kakukktojás
+                    </button>
+                </div>
+                <span class="text-xs font-bold text-slate-400 px-2">Munkafüzet 24–25. oldal</span>
+            </div>
+
+            <!-- .................... 1. FELADAT .................... -->
+            <div id="wb-task-1" class="bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-sky-100 space-y-6">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        1.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Szilárd vagy nem szilárd?</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-semibold">
+                            Koppints a szavakra a kijelöléshez, pont úgy, ahogy a munkafüzetben (24. oldal 1. feladat)!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 1. a) -->
+                <div class="p-5 rounded-2xl bg-sky-50/60 border border-sky-200 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h4 class="font-extrabold text-sm sm:text-base text-slate-800">
+                            <span class="italic text-sky-700 font-black">a)</span> Keretezd be a <strong>szilárd halmazállapotú anyagokat</strong>! <span class="text-xs text-slate-500">(6 db)</span>
+                        </h4>
+                        <span id="task1a-status" class="text-xs font-extrabold text-sky-700 bg-white px-3 py-1 rounded-full border border-sky-200">
+                            0 / 6 kiválasztva
+                        </span>
+                    </div>
+                    <div id="task1a-words" class="flex flex-wrap gap-3 justify-center py-2">
+                        <!-- JS tölti fel -->
+                    </div>
+                </div>
+
+                <!-- 1. b) -->
+                <div class="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h4 class="font-extrabold text-sm sm:text-base text-slate-800">
+                            <span class="italic text-emerald-700 font-black">b)</span> Húzd alá a <strong>szilárd halmazállapotú tárgyakat</strong>! <span class="text-xs text-slate-500">(5 db)</span>
+                        </h4>
+                        <span id="task1b-status" class="text-xs font-extrabold text-emerald-700 bg-white px-3 py-1 rounded-full border border-emerald-200">
+                            0 / 5 kiválasztva
+                        </span>
+                    </div>
+                    <div id="task1b-words" class="flex flex-wrap gap-3 justify-center py-2">
+                        <!-- JS tölti fel -->
+                    </div>
+                </div>
+
+                <div id="task1-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask1()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Újrakezdés
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="checkTask1()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchWbTask(2)" class="px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs sm:text-sm transition">
+                            2. feladat ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .................... 2. FELADAT .................... -->
+            <div id="wb-task-2" class="hidden bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-sky-100 space-y-5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        2.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Tomi rendet rak a kamrában</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+                            Tomit megkérte az anyukája, hogy rakja az egyik polcra a <strong>folyékony</strong> élelmiszereket, a másikra a <strong>szilárd</strong> ételeket. <br>
+                            <span class="text-sky-700 font-extrabold">Jól oldotta meg Tomi a feladatot? Koppints arra a 2 élelmiszerre, ami ROSSZ HELYRE került (karikázd be)!</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Kamra polcrendszer -->
+                <div class="space-y-4 max-w-3xl mx-auto">
+                    <!-- Felső polc: folyékony -->
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <div class="w-32 py-2.5 px-4 rounded-xl bg-sky-200 text-sky-950 font-black text-center text-sm shadow-xs shrink-0">
+                            folyékony
+                        </div>
+                        <div id="shelf-liquid" class="pantry-shelf flex-1 w-full rounded-t-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-2.5 items-end min-h-[135px]">
+                            <!-- JS tölti fel -->
+                        </div>
+                    </div>
+
+                    <!-- Alsó polc: szilárd -->
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <div class="w-32 py-2.5 px-4 rounded-xl bg-sky-200 text-sky-950 font-black text-center text-sm shadow-xs shrink-0">
+                            szilárd
+                        </div>
+                        <div id="shelf-solid" class="pantry-shelf flex-1 w-full rounded-b-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-2.5 items-end min-h-[135px]">
+                            <!-- JS tölti fel -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="task2-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask2()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Polcok alaphelyzetbe
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="swapWrongPantryItems()" id="btn-swap-pantry" class="hidden bouncy-btn px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs sm:text-sm shadow">
+                            🔄 Cseréljük meg őket a jó polcra!
+                        </button>
+                        <button onclick="checkTask2()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchWbTask(3)" class="px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs sm:text-sm transition">
+                            3. feladat ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .................... 3. FELADAT .................... -->
+            <div id="wb-task-3" class="hidden bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-sky-100 space-y-6">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        3.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Nagymama palacsintát süt az unokáinak</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold">
+                            <span class="italic font-black text-sky-700">a)</span> Csillagozd meg <span class="text-rose-600 font-black">pirossal (★) a folyékony</span>, <span class="text-blue-600 font-black">kékkel (★) a szilárd</span> halmazállapotú hozzávalókat!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Recept jegyzettömb -->
+                <div class="recipe-note max-w-xl mx-auto rounded-2xl p-5 sm:p-6 border-2 border-amber-300 space-y-4">
+                    <div class="flex justify-around border-b-2 border-dashed border-amber-300 pb-3">
+                        <span class="w-4 h-4 rounded-full bg-white border border-amber-300"></span>
+                        <span class="w-4 h-4 rounded-full bg-white border border-amber-300"></span>
+                        <span class="w-4 h-4 rounded-full bg-white border border-amber-300"></span>
+                        <span class="w-4 h-4 rounded-full bg-white border border-amber-300"></span>
+                        <span class="w-4 h-4 rounded-full bg-white border border-amber-300"></span>
+                        <span class="w-4 h-4 rounded-full bg-white border border-amber-300"></span>
+                    </div>
+
+                    <h4 class="font-black text-amber-950 text-base italic">🥞 A tésztához és a sütéshez:</h4>
+                    <div id="recipe-items-list" class="space-y-2.5">
+                        <!-- JS tölti fel -->
+                    </div>
+                </div>
+
+                <!-- 3/b: Töltelék választó -->
+                <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-3">
+                    <h4 class="font-extrabold text-sm sm:text-base text-slate-800">
+                        <span class="italic text-sky-700 font-black">b)</span> Mivel tölthette meg nagyi a finomságot? Válassz példát, és jelöld a halmazállapotát (<span class="text-rose-600 font-black">folyékony – F</span>, <span class="text-blue-600 font-black">szilárd – SZ</span>)!
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="fillings-list">
+                        <!-- JS tölti fel -->
+                    </div>
+                </div>
+
+                <div id="task3-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask3()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Újrakezdés
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="checkTask3()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchWbTask(4)" class="px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs sm:text-sm transition">
+                            4. feladat ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .................... 4. FELADAT .................... -->
+            <div id="wb-task-4" class="hidden bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-sky-100 space-y-5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        4.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Fagyasztás és olvadás – Igaz vagy hamis?</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+                            A maradék étel későbbi felhasználására megoldást adhat a mélyhűtő. Az ételt lefagyasztva tartósíthatjuk.<br>
+                            <span class="text-sky-700 font-extrabold">Gondolkodj! Igaz (i) vagy hamis (h) az állítás? Válaszodat jelöld színezéssel!</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="task4-list" class="space-y-2.5">
+                    <!-- JS tölti fel -->
+                </div>
+
+                <div id="task4-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask4()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Újrakezdés
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="checkTask4()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchWbTask(5)" class="px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs sm:text-sm transition">
+                            5. feladat ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .................... 5. FELADAT .................... -->
+            <div id="wb-task-5" class="hidden bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-sky-100 space-y-5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        5.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Írd a tulajdonságok számát a megfelelő halmazba!</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold">
+                            Válaszd ki mind a 8 tulajdonságnál, hogy a <strong>folyékony</strong>, a <strong>szilárd</strong>, vagy <strong>mindkét (közös metszet)</strong> halmazállapotra igaz-e!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Vizuális halmazábra (mint a munkafüzet 25. oldalán) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 rounded-3xl bg-slate-50 border-2 border-slate-200">
+                    <div class="p-4 rounded-2xl bg-sky-50 border-2 border-sky-400 flex flex-col justify-between min-h-[120px]">
+                        <div class="inline-block px-3 py-1 rounded-lg bg-sky-200 text-sky-950 font-black text-xs self-start">
+                            💧 folyékony halmazállapot
+                        </div>
+                        <div id="venn-box-liquid" class="flex flex-wrap gap-2 my-3 min-h-[36px] items-center"></div>
+                        <div class="text-[11px] text-sky-800 font-bold">Csak a folyadékokra jellemző</div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-teal-50 border-2 border-dashed border-teal-500 flex flex-col justify-between min-h-[120px]">
+                        <div class="inline-block px-3 py-1 rounded-lg bg-teal-200 text-teal-950 font-black text-xs self-center">
+                            🤝 Közös rész (Metszet)
+                        </div>
+                        <div id="venn-box-both" class="flex flex-wrap gap-2 my-3 min-h-[36px] items-center justify-center"></div>
+                        <div class="text-[11px] text-teal-900 font-bold text-center">Mindkettőre igaz!</div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-400 flex flex-col justify-between min-h-[120px]">
+                        <div class="inline-block px-3 py-1 rounded-lg bg-emerald-200 text-emerald-950 font-black text-xs self-end">
+                            🧱 szilárd halmazállapot
+                        </div>
+                        <div id="venn-box-solid" class="flex flex-wrap gap-2 my-3 min-h-[36px] items-center"></div>
+                        <div class="text-[11px] text-emerald-800 font-bold text-right">Csak a szilárd anyagokra jellemző</div>
+                    </div>
+                </div>
+
+                <!-- A 8 tulajdonság besorolása -->
+                <div id="task5-props-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- JS tölti fel -->
+                </div>
+
+                <div id="task5-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask5()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Újrakezdés
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="checkTask5()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchWbTask(6)" class="px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs sm:text-sm transition">
+                            6. feladat ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .................... 6. FELADAT .................... -->
+            <div id="wb-task-6" class="hidden bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-sky-100 space-y-6">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        6.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Kakukktojás – Találós kérdések</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold">
+                            <span class="italic font-black text-sky-700">a)</span> Fejtsd meg a találós kérdéseket!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4 találós kérdés kártya -->
+                <div id="task6-riddles" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- JS tölti fel -->
+                </div>
+
+                <!-- 6/b és 6/c -->
+                <div class="p-5 rounded-2xl bg-amber-50/70 border-2 border-amber-200 space-y-4">
+                    <div>
+                        <h4 class="font-extrabold text-sm sm:text-base text-slate-800 mb-2">
+                            <span class="italic text-sky-700 font-black">b)</span> Melyik megfejtés <strong>nem illik</strong> a szilárd halmazállapotú tárgyak közé? Karikázd be!
+                        </h4>
+                        <div class="flex flex-wrap gap-2.5" id="task6b-options">
+                            <button onclick="selectOddOneOut('cipo')" id="odd-btn-cipo" class="px-4 py-2 rounded-full border-2 border-slate-300 bg-white font-extrabold text-xs sm:text-sm text-slate-700 transition">
+                                👞 cipő
+                            </button>
+                            <button onclick="selectOddOneOut('ora')" id="odd-btn-ora" class="px-4 py-2 rounded-full border-2 border-slate-300 bg-white font-extrabold text-xs sm:text-sm text-slate-700 transition">
+                                ⏰ óra
+                            </button>
+                            <button onclick="selectOddOneOut('eso')" id="odd-btn-eso" class="px-4 py-2 rounded-full border-2 border-slate-300 bg-white font-extrabold text-xs sm:text-sm text-slate-700 transition">
+                                🌧️ eső (esőcsepp)
+                            </button>
+                            <button onclick="selectOddOneOut('szanko')" id="odd-btn-szanko" class="px-4 py-2 rounded-full border-2 border-slate-300 bg-white font-extrabold text-xs sm:text-sm text-slate-700 transition">
+                                🛷 szánkó
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-extrabold text-sm sm:text-base text-slate-800 mb-2">
+                            <span class="italic text-sky-700 font-black">c)</span> Miért nem illik a felsorolásba? Írd / válaszd ki a vonalra!
+                        </h4>
+                        <select id="task6c-select" class="w-full p-3 rounded-xl border-2 border-amber-300 bg-white font-bold text-xs sm:text-sm text-slate-800">
+                            <option value="">-- Válaszd ki a helyes indoklást! --</option>
+                            <option value="folyekony">Mert az eső folyékony halmazállapotú (nem szilárd tárgy).</option>
+                            <option value="legnemu">Mert az eső légnemű halmazállapotú.</option>
+                            <option value="nehez">Mert nehezebb a többi tárgynál.</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="task6-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask6()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Újrakezdés
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="checkTask6()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchMainTab('meres')" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow transition">
+                            Tovább a 7–8. feladatra (Mérés) ➡️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =========================================================================
+             3. FÜL: MÉRÉS ÉS TÖMEG (7–8. FELADAT, 26. OLDAL)
+             ========================================================================= -->
+        <section id="section-meres" class="hidden space-y-6 animate-pop">
+
+            <!-- 7. FELADAT: TÁRGYAK MÉRÉSE (ARASZ ÉS VONALZÓ) -->
+            <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-emerald-100 space-y-6">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        7.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Gyakorold a tárgyak mérését! (Munkafüzet 26. o.)</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold">
+                            A szilárd tárgyaknak pontosan megmérhetjük a <strong>hosszúságát</strong>, <strong>szélességét</strong> és a <strong>tömegét</strong>. Mindig előbb <strong>becsülj</strong>, utána <strong>mérj</strong>!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 7/a: Mérés kezeddel (Kisarasszal) -->
+                <div class="p-5 rounded-2xl bg-sky-50/70 border border-sky-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h4 class="font-black text-sm sm:text-base text-slate-800">
+                                <span class="italic text-sky-700">a)</span> Mérés a kezeddel: Hány <span class="text-rose-600 underline">kisarasz</span> a padod, a táskád és a füzeted <span class="text-sky-600">hossza</span> és <span class="text-rose-600">szélessége</span>?
+                            </h4>
+                            <p class="text-xs text-slate-600 font-semibold mt-0.5">
+                                🖐️ <strong>Kisarasz:</strong> a kinyújtott hüvelykujjad és a mutatóujjad vége közötti távolság (egy 3. osztályos diáknál kb. 12–14 cm).
+                            </p>
+                        </div>
+                        <button onclick="fillSampleSpanValues()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs shrink-0 shadow-xs">
+                            ✨ Reális mintaadatok betöltése
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Pad -->
+                        <div class="bg-white p-4 rounded-2xl border border-sky-200 space-y-3">
+                            <div class="flex items-center gap-2 font-black text-slate-800 text-sm">
+                                <span class="text-2xl">🪑</span> Iskolapad
+                            </div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="font-extrabold text-sky-600">Hossza:</div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">becslés:</span>
+                                    <input type="text" id="span-desk-l-est" placeholder="pl. 6" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">arasz:</span>
+                                    <input type="text" id="span-desk-l-meas" placeholder="pl. 6" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="font-extrabold text-rose-600 pt-1">Szélessége:</div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">becslés:</span>
+                                    <input type="text" id="span-desk-w-est" placeholder="pl. 4" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">arasz:</span>
+                                    <input type="text" id="span-desk-w-meas" placeholder="pl. 4" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Táska -->
+                        <div class="bg-white p-4 rounded-2xl border border-sky-200 space-y-3">
+                            <div class="flex items-center gap-2 font-black text-slate-800 text-sm">
+                                <span class="text-2xl">🎒</span> Iskolatáska
+                            </div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="font-extrabold text-sky-600">Hossza (magassága):</div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">becslés:</span>
+                                    <input type="text" id="span-bag-l-est" placeholder="pl. 3" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">arasz:</span>
+                                    <input type="text" id="span-bag-l-meas" placeholder="pl. 3" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="font-extrabold text-rose-600 pt-1">Szélessége:</div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">becslés:</span>
+                                    <input type="text" id="span-bag-w-est" placeholder="pl. 2" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">arasz:</span>
+                                    <input type="text" id="span-bag-w-meas" placeholder="pl. 2,5" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Füzet -->
+                        <div class="bg-white p-4 rounded-2xl border border-sky-200 space-y-3">
+                            <div class="flex items-center gap-2 font-black text-slate-800 text-sm">
+                                <span class="text-2xl">📗</span> Füzet (A5)
+                            </div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="font-extrabold text-sky-600">Hossza:</div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">becslés:</span>
+                                    <input type="text" id="span-nb-l-est" placeholder="pl. 2" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">arasz:</span>
+                                    <input type="text" id="span-nb-l-meas" placeholder="pl. 1,5" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="font-extrabold text-rose-600 pt-1">Szélessége:</div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">becslés:</span>
+                                    <input type="text" id="span-nb-w-est" placeholder="pl. 1" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-600 font-bold">arasz:</span>
+                                    <input type="text" id="span-nb-w-meas" placeholder="pl. 1" class="w-20 px-2 py-1 border rounded-lg text-center font-bold">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gondolkodtató kérdés a munkafüzetből -->
+                    <div class="bg-amber-50 border border-amber-300 rounded-xl p-3.5 text-xs text-amber-950 font-semibold">
+                        💬 <strong>Miért lehetnek eltérések a társaid és a te arasszal mért adataid között?</strong><br>
+                        Azért, mert az emberek keze (arasza) nem egyforma méretű! akinek nagyobb a tenyere, annak kevesebb arasz lesz ugyanaz a pad. Ezért használunk pontos mérőeszközöket (<strong>vonalzót, mérőszalagot</strong>)!
+                    </div>
+                </div>
+
+                <!-- 7/b: Mérés mérőeszközzel (cm) -->
+                <div class="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h4 class="font-black text-sm sm:text-base text-slate-800">
+                                <span class="italic text-emerald-700">b)</span> Mérés mérőeszközzel (vonalzóval vagy mérőszalaggal, cm-ben)
+                            </h4>
+                            <p class="text-xs text-slate-600 font-semibold">
+                                Kattints a <strong>„📏 Megmérem vonalzóval!”</strong> gombra az egyes tárgyaknál, vagy írd be a saját mérésedet!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Ceruza -->
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-200 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-4xl">✏️</span>
+                                <div>
+                                    <div class="font-black text-slate-800 text-sm">Ceruza hossza</div>
+                                    <div class="text-xs text-slate-500 font-bold mt-1">Becslés: <input type="text" id="cm-pencil-est" placeholder="15" class="w-14 px-1.5 py-0.5 border rounded text-center font-bold text-slate-800"> cm</div>
+                                    <div class="text-xs text-emerald-700 font-black mt-1">Mért eredmény: <span id="cm-pencil-val" class="underline">?</span> cm</div>
+                                </div>
+                            </div>
+                            <button onclick="measureWithRuler('pencil', 17)" class="bouncy-btn px-3 py-2 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs">
+                                📏 Mérés
+                            </button>
+                        </div>
+
+                        <!-- Füzet -->
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-200 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-4xl">📗</span>
+                                <div>
+                                    <div class="font-black text-slate-800 text-sm">Füzet hossza (A5)</div>
+                                    <div class="text-xs text-slate-500 font-bold mt-1">Becslés: <input type="text" id="cm-nb-est" placeholder="20" class="w-14 px-1.5 py-0.5 border rounded text-center font-bold text-slate-800"> cm</div>
+                                    <div class="text-xs text-emerald-700 font-black mt-1">Mért eredmény: <span id="cm-nb-val" class="underline">?</span> cm</div>
+                                </div>
+                            </div>
+                            <button onclick="measureWithRuler('nb', 21)" class="bouncy-btn px-3 py-2 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs">
+                                📏 Mérés
+                            </button>
+                        </div>
+
+                        <!-- Iskolatáska -->
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-200 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-4xl">🎒</span>
+                                <div>
+                                    <div class="font-black text-slate-800 text-sm">Iskolatáska magassága</div>
+                                    <div class="text-xs text-slate-500 font-bold mt-1">Becslés: <input type="text" id="cm-bag-est" placeholder="40" class="w-14 px-1.5 py-0.5 border rounded text-center font-bold text-slate-800"> cm</div>
+                                    <div class="text-xs text-emerald-700 font-black mt-1">Mért eredmény: <span id="cm-bag-val" class="underline">?</span> cm</div>
+                                </div>
+                            </div>
+                            <button onclick="measureWithRuler('bag', 38)" class="bouncy-btn px-3 py-2 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs">
+                                📏 Mérés
+                            </button>
+                        </div>
+
+                        <!-- Pad -->
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-200 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-4xl">🪑</span>
+                                <div>
+                                    <div class="font-black text-slate-800 text-sm">Iskolapad / Íróasztal hossza</div>
+                                    <div class="text-xs text-slate-500 font-bold mt-1">Becslés: <input type="text" id="cm-desk-est" placeholder="80" class="w-14 px-1.5 py-0.5 border rounded text-center font-bold text-slate-800"> cm</div>
+                                    <div class="text-xs text-emerald-700 font-black mt-1">Mért eredmény: <span id="cm-desk-val" class="underline">?</span> cm</div>
+                                </div>
+                            </div>
+                            <button onclick="measureWithRuler('desk', 75)" class="bouncy-btn px-3 py-2 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs">
+                                📏 Mérés
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. FELADAT: MELYIK A NEHEZEBB? RELÁCIÓS JELEK -->
+            <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-md border-2 border-emerald-100 space-y-5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 border-2 border-sky-400 text-sky-900 font-black flex items-center justify-center text-lg shrink-0">
+                        8.
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-black text-slate-800">Mit feltételezel? Melyik a nehezebb? Jelöld relációs jellel!</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold">
+                            A relációs jel nyitott szája (<strong>&gt;</strong> vagy <strong>&lt;</strong>) mindig a <strong>nehezebb (nagyobb tömegű)</strong> tárgy felé néz!
+                        </p>
+                    </div>
+                </div>
+
+                <div id="task8-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- JS tölti fel -->
+                </div>
+
+                <div id="task8-feedback" class="hidden p-4 rounded-2xl text-sm font-bold"></div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="resetTask8()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition">
+                        🔄 Újrakezdés
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="checkTask8()" class="bouncy-btn px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm shadow">
+                            ✅ Ellenőrzés
+                        </button>
+                        <button onclick="switchMainTab('kviz')" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow transition">
+                            Irány a Nagy Kvíz! 🏆
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =========================================================================
+             4. FÜL: TUDÁSPRÓBA KVÍZ (10 KÉRDÉS)
+             ========================================================================= -->
+        <section id="section-kviz" class="hidden animate-pop">
+            <div class="max-w-2xl mx-auto bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-emerald-100">
+                <div id="quiz-box">
+                    <!-- JS tölti fel -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /* =========================================================================
+           ÁLLAPOT ÉS HANGKEZELÉS
+           ========================================================================= */
+        let stars = 0;
+        let soundEnabled = true;
+
+        function addStars(amount) {
+            stars += amount;
+            document.getElementById('starCounter').textContent = stars;
+            playTone('win');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 55, spread: 60, origin: { y: 0.7 } });
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(520, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'win') {
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.09);
+                    osc.frequency.setValueAtTime(783.99, now + 0.18);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(170, now + 0.12);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                }
+            } catch (e) {}
+        }
+
+        /* =========================================================================
+           NAVIGÁCIÓ
+           ========================================================================= */
+        function switchMainTab(tabId) {
+            playTone('click');
+            ['tananyag', 'munkafuzet', 'meres', 'kviz'].forEach(id => {
+                document.getElementById(`section-${id}`).classList.toggle('hidden', id !== tabId);
+                const btn = document.getElementById(`main-tab-${id}`);
+                if (id === tabId) {
+                    btn.className = 'bouncy-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow';
+                } else {
+                    btn.className = 'bouncy-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 text-slate-700 hover:bg-emerald-50';
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchWbTask(num) {
+            playTone('click');
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`wb-task-${i}`).classList.toggle('hidden', i !== num);
+                const btn = document.getElementById(`wb-btn-${i}`);
+                if (i === num) {
+                    btn.className = 'px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-sky-600 text-white shadow';
+                } else {
+                    btn.className = 'px-3.5 py-2 rounded-2xl font-extrabold text-xs transition bg-slate-100 text-slate-700 hover:bg-sky-50';
+                }
+            }
+        }
+
+        /* =========================================================================
+           1. FÜL: INTERAKTÍV LABORVIZSGÁLÓ
+           ========================================================================= */
+        const LAB_SAMPLES = {
+            wood: {
+                name: 'Fakocka – Szilárd halmazállapot',
+                emoji: '🪵',
+                baseDesc: 'Saját, állandó alakja van. Nem veszi fel a tárolóedény alakját!',
+                pressEmoji: '🪵',
+                pressText: '🔨 Megnyomtuk: Nem lehet összenyomni! A fakocka megtartja az alakját és térfogatát.',
+                cutEmoji: '🪵🪚🪵',
+                cutText: '🪚 Kettéfűrészeltük: Feldarabolható! A kisebb fadarabok is szilárdak és megtartják saját alakjukat.',
+                magnifyEmoji: '🔬🧱',
+                magnifyText: '🔍 Nagyító alatt: A részecskék szorosan egymás mellett, szabályos rendben kapaszkodnak.'
+            },
+            sugar: {
+                name: 'Kristálycukor – Szemcsés szilárd anyag!',
+                emoji: '🧂',
+                baseDesc: 'Önthetőnek tűnik a zacskóból, de vigyázz: SZILÁRD halmazállapotú!',
+                pressEmoji: '🧂',
+                pressText: '🔨 A cukorszemcsék kemények és összenyomhatatlanok.',
+                cutEmoji: '🍚',
+                cutText: '🪚 Ha még apróbbra daráljuk a kristálycukrot, porcukor lesz belőle – ami szintén szilárd!',
+                magnifyEmoji: '🔍💎💎💎',
+                magnifyText: '🔍 Nagyító alatt: Jól látszik, hogy sok-sok apró, kemény, önálló alakú cukorkristályból (szilárd szemcséből) áll!'
+            },
+            clay: {
+                name: 'Gyurma – Alakítható szilárd anyag',
+                emoji: '🎨',
+                baseDesc: 'Szilárd anyag, amelynek külső erő hatására könnyen megváltoztatható az alakja.',
+                pressEmoji: '🥞',
+                pressText: '🔨 Megnyomtuk: Az alakja megváltozott (kilapult), de a térfogata nem lett kisebb – összenyomhatatlan!',
+                cutEmoji: '🟢🟢🟢',
+                cutText: '🪚 Feldaraboltuk: Könnyen több kisebb szilárd darabra választható szét.',
+                magnifyEmoji: '🔬🎨',
+                magnifyText: '🔍 Nagyító alatt: Szilárd anyag, amely elengedi a formáját, ha gyúrjuk, majd megtartja az új alakját.'
+            },
+            honey: {
+                name: 'Méz – Sűrűn folyó FOLYÉKONY anyag!',
+                emoji: '🍯',
+                baseDesc: 'Kakukktojás! Bár nagyon lassan csurog, a méz NEM szilárd, hanem folyékony!',
+                pressEmoji: '🫗',
+                pressText: '🔨 Nem összenyomható, de szétfolyik és mindig felveszi a macis flakon vagy az üveg alakját!',
+                cutEmoji: '🍯',
+                cutText: '🪚 A folyadékot nem lehet késsel feldarabolni – azonnal újra összefolyik!',
+                magnifyEmoji: '🔬💧',
+                magnifyText: '🔍 Nagyító alatt: A részecskéi elgördülnek egymás mellett, ezért folyékony halmazállapotú.'
+            }
+        };
+
+        let currentLabSample = 'wood';
+
+        function selectLabSample(id) {
+            playTone('click');
+            currentLabSample = id;
+            ['wood', 'sugar', 'clay', 'honey'].forEach(k => {
+                const btn = document.getElementById(`sample-btn-${k}`);
+                if (k === id) {
+                    btn.className = 'p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 font-extrabold text-xs flex items-center gap-2 shadow-xs';
+                } else {
+                    btn.className = 'p-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-extrabold text-xs flex items-center gap-2 hover:bg-white';
+                }
+            });
+            const s = LAB_SAMPLES[id];
+            document.getElementById('lab-stage-visual').textContent = s.emoji;
+            document.getElementById('lab-stage-title').textContent = s.name;
+            document.getElementById('lab-stage-desc').textContent = s.baseDesc;
+        }
+
+        function performLabAction(action) {
+            playTone('click');
+            const s = LAB_SAMPLES[currentLabSample];
+            const vis = document.getElementById('lab-stage-visual');
+            const desc = document.getElementById('lab-stage-desc');
+            vis.classList.remove('animate-vibrate');
+            void vis.offsetWidth;
+            vis.classList.add('animate-vibrate');
+            setTimeout(() => vis.classList.remove('animate-vibrate'), 500);
+
+            if (action === 'press') {
+                vis.textContent = s.pressEmoji;
+                desc.textContent = s.pressText;
+            } else if (action === 'cut') {
+                vis.textContent = s.cutEmoji;
+                desc.textContent = s.cutText;
+            } else if (action === 'magnify') {
+                vis.textContent = s.magnifyEmoji;
+                desc.textContent = s.magnifyText;
+            }
+        }
+
+        /* =========================================================================
+           2. FÜL – 1. FELADAT: SZILÁRD VAGY NEM SZILÁRD?
+           ========================================================================= */
+        const TASK1A_ITEMS = [
+            { id: 'fa', word: 'fa', isSolid: true, note: 'szilárd anyag' },
+            { id: 'viz', word: 'víz', isSolid: false, note: 'folyékony' },
+            { id: 'levego', word: 'levegő', isSolid: false, note: 'légnemű' },
+            { id: 'vas', word: 'vas', isSolid: true, note: 'szilárd anyag' },
+            { id: 'uveg', word: 'üveg', isSolid: true, note: 'szilárd anyag' },
+            { id: 'so', word: 'só', isSolid: true, note: 'szemcsés szilárd anyag!' },
+            { id: 'olaj', word: 'olaj', isSolid: false, note: 'folyékony' },
+            { id: 'bor', word: 'bőr', isSolid: true, note: 'szilárd anyag' },
+            { id: 'kavics', word: 'kavics', isSolid: true, note: 'szilárd anyag' }
+        ];
+
+        const TASK1B_ITEMS = [
+            { id: 'tinta', word: 'tinta', isSolid: false, note: 'folyékony' },
+            { id: 'tegla', word: 'tégla', isSolid: true, note: 'szilárd tárgy' },
+            { id: 'csigahaz', word: 'csigaház', isSolid: true, note: 'szilárd tárgy' },
+            { id: 'vasgolyo', word: 'vasgolyó', isSolid: true, note: 'szilárd tárgy' },
+            { id: 'malnaszorp', word: 'málnaszörp', isSolid: false, note: 'folyékony' },
+            { id: 'hutomagnes', word: 'hűtőmágnes', isSolid: true, note: 'szilárd tárgy' },
+            { id: 'gyumolcsle', word: 'gyümölcslé', isSolid: false, note: 'folyékony' },
+            { id: 'muanyag_talca', word: 'műanyag tálca', isSolid: true, note: 'szilárd tárgy' }
+        ];
+
+        let selected1A = new Set();
+        let selected1B = new Set();
+        let task1Solved = false;
+
+        function renderTask1() {
+            document.getElementById('task1a-words').innerHTML = TASK1A_ITEMS.map(item => {
+                const active = selected1A.has(item.id);
+                return `<button onclick="toggleTask1A('${item.id}')" class="bouncy-btn px-4 py-2 rounded-xl border-2 border-slate-200 bg-white font-extrabold text-sm sm:text-base text-slate-700 transition ${active ? 'word-chip-framed' : 'hover:border-sky-300'}">${item.word}</button>`;
+            }).join('');
+            document.getElementById('task1a-status').textContent = `${selected1A.size} / 6 kiválasztva`;
+
+            document.getElementById('task1b-words').innerHTML = TASK1B_ITEMS.map(item => {
+                const active = selected1B.has(item.id);
+                return `<button onclick="toggleTask1B('${item.id}')" class="bouncy-btn px-4 py-2 rounded-xl border-2 border-slate-200 bg-white font-extrabold text-sm sm:text-base text-slate-700 transition ${active ? 'word-chip-underlined' : 'hover:border-emerald-300'}">${item.word}</button>`;
+            }).join('');
+            document.getElementById('task1b-status').textContent = `${selected1B.size} / 5 kiválasztva`;
+        }
+
+        function toggleTask1A(id) {
+            playTone('click');
+            if (selected1A.has(id)) selected1A.delete(id);
+            else selected1A.add(id);
+            renderTask1();
+        }
+
+        function toggleTask1B(id) {
+            playTone('click');
+            if (selected1B.has(id)) selected1B.delete(id);
+            else selected1B.add(id);
+            renderTask1();
+        }
+
+        function checkTask1() {
+            const correct1A = TASK1A_ITEMS.every(i => i.isSolid === selected1A.has(i.id));
+            const correct1B = TASK1B_ITEMS.every(i => i.isSolid === selected1B.has(i.id));
+            const fb = document.getElementById('task1-feedback');
+            fb.classList.remove('hidden');
+
+            if (correct1A && correct1B) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '🎉 <strong>Hibátlan megoldás!</strong><br>• Bekeretezett szilárd anyagok: <strong>fa, vas, üveg, só, bőr, kavics</strong>.<br>• Aláhúzott szilárd tárgyak: <strong>tégla, csigaház, vasgolyó, hűtőmágnes, műanyag tálca</strong>.';
+                if (!task1Solved) {
+                    task1Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400';
+                let msg = '💡 <strong>Nézd át még egyszer!</strong><br>';
+                if (!correct1A) msg += '• Az <em>a)</em> részben a <strong>só</strong> is szilárd anyag (apró szemcsékből áll!), míg a víz és olaj folyékony, a levegő pedig légnemű.<br>';
+                if (!correct1B) msg += '• A <em>b)</em> részben a tinta, a málnaszörp és a gyümölcslé folyékony, a többi 5 viszont szilárd tárgy!';
+                fb.innerHTML = msg;
+            }
+        }
+
+        function resetTask1() {
+            selected1A.clear();
+            selected1B.clear();
+            document.getElementById('task1-feedback').classList.add('hidden');
+            renderTask1();
+        }
+
+        /* =========================================================================
+           2. FÜL – 2. FELADAT: TOMI KAMRÁJA
+           ========================================================================= */
+        const PANTRY_INITIAL = {
+            liquidShelf: [
+                { id: 'ecet', name: 'Ételecet', emoji: '🍾', sub: 'folyékony', isWrongHere: false },
+                { id: 'tejszin', name: 'Főzőtejszín', emoji: '🧃', sub: 'folyékony', isWrongHere: false },
+                { id: 'viz', name: 'Ásványvíz', emoji: '🧴', sub: 'folyékony', isWrongHere: false },
+                { id: 'mak', name: 'Darált mák', emoji: '🫘', sub: 'szemcsés SZILÁRD!', isWrongHere: true },
+                { id: 'narancsle', name: 'Narancslé', emoji: '🍊', sub: 'folyékony', isWrongHere: false }
+            ],
+            solidShelf: [
+                { id: 'mez', name: 'Méz (macis)', emoji: '🍯', sub: 'sűrű FOLYÉKONY!', isWrongHere: true },
+                { id: 'cukor', name: 'Kristálycukor', emoji: '🧂', sub: 'szilárd (1 kg)', isWrongHere: false },
+                { id: 'keksz', name: 'Keksz', emoji: '🍪', sub: 'szilárd', isWrongHere: false },
+                { id: 'kave', name: 'Kávéőrlemény', emoji: '☕', sub: 'szemcsés szilárd', isWrongHere: false },
+                { id: 'alma', name: 'Alma', emoji: '🍎', sub: 'szilárd', isWrongHere: false }
+            ]
+        };
+
+        let selectedPantryIds = new Set();
+        let pantrySwapped = false;
+        let task2Solved = false;
+
+        function renderTask2() {
+            const topItems = pantrySwapped
+                ? PANTRY_INITIAL.liquidShelf.map(x => x.id === 'mak' ? PANTRY_INITIAL.solidShelf[0] : x)
+                : PANTRY_INITIAL.liquidShelf;
+            const bottomItems = pantrySwapped
+                ? PANTRY_INITIAL.solidShelf.map(x => x.id === 'mez' ? PANTRY_INITIAL.liquidShelf[3] : x)
+                : PANTRY_INITIAL.solidShelf;
+
+            const renderShelfItem = (item) => {
+                const circled = selectedPantryIds.has(item.id);
+                return `
+                    <button onclick="togglePantryItem('${item.id}')" class="bouncy-btn p-2.5 rounded-2xl bg-white/95 border-2 transition flex flex-col items-center text-center shadow-sm ${circled ? 'border-rose-500 ring-4 ring-rose-300 bg-rose-50' : 'border-amber-900/20 hover:border-sky-400'}">
+                        <span class="text-3xl sm:text-4xl mb-1">${item.emoji}</span>
+                        <span class="font-black text-xs text-slate-800 leading-tight">${item.name}</span>
+                        ${pantrySwapped ? `<span class="text-[10px] font-extrabold text-emerald-700 mt-0.5">✓ Jó polcon!</span>` : (circled ? `<span class="text-[10px] font-extrabold text-rose-600 mt-0.5">⭕ Bekarikázva</span>` : '')}
+                    </button>
+                `;
+            };
+
+            document.getElementById('shelf-liquid').innerHTML = topItems.map(renderShelfItem).join('');
+            document.getElementById('shelf-solid').innerHTML = bottomItems.map(renderShelfItem).join('');
+        }
+
+        function togglePantryItem(id) {
+            if (pantrySwapped) return;
+            playTone('click');
+            if (selectedPantryIds.has(id)) selectedPantryIds.delete(id);
+            else selectedPantryIds.add(id);
+            renderTask2();
+        }
+
+        function checkTask2() {
+            const fb = document.getElementById('task2-feedback');
+            fb.classList.remove('hidden');
+
+            const hasMak = selectedPantryIds.has('mak');
+            const hasMez = selectedPantryIds.has('mez');
+            const onlyThoseTwo = selectedPantryIds.size === 2 && hasMak && hasMez;
+
+            if (onlyThoseTwo || pantrySwapped) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '🎉 <strong>Tökéletes megfigyelés!</strong><br>• A <strong>darált mák</strong> (🫘) apró szilárd szemcsékből áll, ezért a <strong>szilárd</strong> polcon a helye!<br>• A <strong>méz</strong> (🍯) sűrűn folyó <strong>folyadék</strong>, ezért a <strong>folyékony</strong> polcra való!';
+                document.getElementById('btn-swap-pantry').classList.toggle('hidden', pantrySwapped);
+                if (!task2Solved) {
+                    task2Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400';
+                fb.innerHTML = '🧐 <strong>Tipp:</strong> Pontosan 2 élelmiszer került rossz polcra! Egyik a felső (folyékony) polcon lévő zacskós szemcsés anyag, a másik az alsó (szilárd) polcon lévő macis flakonban található édes, sűrű folyadék!';
+            }
+        }
+
+        function swapWrongPantryItems() {
+            pantrySwapped = true;
+            document.getElementById('btn-swap-pantry').classList.add('hidden');
+            renderTask2();
+            playTone('win');
+        }
+
+        function resetTask2() {
+            selectedPantryIds.clear();
+            pantrySwapped = false;
+            document.getElementById('task2-feedback').classList.add('hidden');
+            document.getElementById('btn-swap-pantry').classList.add('hidden');
+            renderTask2();
+        }
+
+        /* =========================================================================
+           2. FÜL – 3. FELADAT: NAGYMAMA PALACSINTÁJA
+           ========================================================================= */
+        const RECIPE_ITEMS = [
+            { id: 'liszt', text: '25 dkg búzaliszt', expected: 'SZ', hint: 'Szemcsés szilárd anyag (kék csillag)' },
+            { id: 'tojas', text: '3 felvert tojás', expected: 'F', hint: 'A felvert tojás folyékony (piros csillag)' },
+            { id: 'tej', text: '3 dl tej', expected: 'F', hint: 'A tej folyékony (piros csillag)' },
+            { id: 'szoda', text: '1–2 dl szódavíz', expected: 'F', hint: 'A szódavíz folyékony (piros csillag)' },
+            { id: 'so', text: '2 csipet só', expected: 'SZ', hint: 'A só szemcsés szilárd anyag (kék csillag)' },
+            { id: 'olaj', text: 'pár kanál napraforgóolaj (a sütéshez)', expected: 'F', hint: 'Az étolaj folyékony (piros csillag)' }
+        ];
+
+        const FILLING_EXAMPLES = [
+            { id: 'kakaopor', name: '🍫 Kakaópor / Fahéjas cukor', expected: 'SZ' },
+            { id: 'turo', name: '🥣 Édes túró vagy darált dió', expected: 'SZ' },
+            { id: 'csokiontet', name: '🍯 Folyékony csokiöntet / Méz / Szirup', expected: 'F' },
+            { id: 'lekvar', name: '🍓 Folyós baracklekvár / Málnaszörp', expected: 'F' }
+        ];
+
+        let recipeChoices = {};
+        let fillingChoices = {};
+        let task3Solved = false;
+
+        function renderTask3() {
+            document.getElementById('recipe-items-list').innerHTML = RECIPE_ITEMS.map(item => {
+                const val = recipeChoices[item.id] || null;
+                return `
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-white/85 p-3 rounded-xl border border-amber-200">
+                        <span class="font-extrabold text-sm text-slate-800">– ${item.text}</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="setRecipeStar('${item.id}', 'F')" class="px-3 py-1.5 rounded-lg font-extrabold text-xs transition flex items-center gap-1 border ${val === 'F' ? 'bg-rose-600 text-white border-rose-700 shadow-xs' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'}">
+                                ★ Piros (Folyékony)
+                            </button>
+                            <button onclick="setRecipeStar('${item.id}', 'SZ')" class="px-3 py-1.5 rounded-lg font-extrabold text-xs transition flex items-center gap-1 border ${val === 'SZ' ? 'bg-blue-600 text-white border-blue-700 shadow-xs' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'}">
+                                ★ Kék (Szilárd)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('fillings-list').innerHTML = FILLING_EXAMPLES.map(f => {
+                const val = fillingChoices[f.id] || null;
+                return `
+                    <div class="bg-white p-3.5 rounded-xl border border-amber-200 flex items-center justify-between gap-2">
+                        <span class="font-bold text-xs sm:text-sm text-slate-800">${f.name}</span>
+                        <div class="flex gap-1.5 shrink-0">
+                            <button onclick="setFillingState('${f.id}', 'F')" class="w-9 h-9 rounded-lg font-black text-xs transition border ${val === 'F' ? 'bg-rose-600 text-white border-rose-700' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-rose-50'}">F</button>
+                            <button onclick="setFillingState('${f.id}', 'SZ')" class="w-9 h-9 rounded-lg font-black text-xs transition border ${val === 'SZ' ? 'bg-blue-600 text-white border-blue-700' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-blue-50'}">SZ</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setRecipeStar(id, state) {
+            playTone('click');
+            recipeChoices[id] = state;
+            renderTask3();
+        }
+
+        function setFillingState(id, state) {
+            playTone('click');
+            fillingChoices[id] = state;
+            renderTask3();
+        }
+
+        function checkTask3() {
+            const allRecipeOk = RECIPE_ITEMS.every(i => recipeChoices[i.id] === i.expected);
+            const allFillingOk = FILLING_EXAMPLES.every(f => fillingChoices[f.id] === f.expected);
+            const fb = document.getElementById('task3-feedback');
+            fb.classList.remove('hidden');
+
+            if (allRecipeOk && allFillingOk) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '🥞 <strong>Nagyszerű!</strong><br>• <strong>Kék csillag (SZ):</strong> 25 dkg búzaliszt, 2 csipet só.<br>• <strong>Piros csillag (F):</strong> 3 felvert tojás, 3 dl tej, 1–2 dl szódavíz, pár kanál napraforgóolaj.<br>• A töltelékek halmazállapotát is hibátlanul meghatároztad!';
+                if (!task3Solved) {
+                    task3Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400';
+                fb.innerHTML = '💡 <strong>Segítség:</strong> Ne feledd, hogy a <strong>búzaliszt</strong> és a <strong>só</strong> apró szemcsékből álló <strong>szilárd (kék ★)</strong> anyagok, míg a felvert tojás, a tej, a szódavíz és az olaj <strong>folyékonyak (piros ★)</strong>! Jelöld meg mind a 4 töltelékpéldát is (F vagy SZ)!';
+            }
+        }
+
+        function resetTask3() {
+            recipeChoices = {};
+            fillingChoices = {};
+            document.getElementById('task3-feedback').classList.add('hidden');
+            renderTask3();
+        }
+
+        /* =========================================================================
+           2. FÜL – 4. FELADAT: IGAZ VAGY HAMIS (FAGYASZTÁS)
+           ========================================================================= */
+        const TASK4_STATEMENTS = [
+            { id: 1, text: 'Minden lefagyasztott élelmiszer szilárd halmazállapotú lesz.', expected: 'i', exp: 'Igaz! A mélyhűtőben a víz és minden étel keményre, szilárdra fagy.' },
+            { id: 2, text: 'Csak folyadékot lehet fagyasztani.', expected: 'h', exp: 'Hamis! Szilárd ételeket (pl. húst, borsót, gyümölcsöt, kenyeret) is le lehet fagyasztani.' },
+            { id: 3, text: 'A fagyasztást az alacsony hőmérséklet biztosítja.', expected: 'i', exp: 'Igaz! A mélyhűtőben nagy hideg (alacsony hőmérséklet, kb. -18 °C) van.' },
+            { id: 4, text: 'A fagyasztóból kivett élelmiszer felolvad.', expected: 'i', exp: 'Igaz! A melegebb szobahőmérsékleten a fagyott étel felenged (felolvad).' },
+            { id: 5, text: 'Az olvadás feltétele a hőmérséklet csökkentése.', expected: 'h', exp: 'Hamis! Az olvadáshoz melegítésre, vagyis a hőmérséklet emelkedésére van szükség.' },
+            { id: 6, text: 'A fagyasztást a magas hőmérséklet biztosítja.', expected: 'h', exp: 'Hamis! A fagyasztáshoz alacsony hőmérséklet (hűtés) kell.' }
+        ];
+
+        let task4Answers = {};
+        let task4Solved = false;
+
+        function renderTask4() {
+            document.getElementById('task4-list').innerHTML = TASK4_STATEMENTS.map(st => {
+                const ans = task4Answers[st.id] || null;
+                return `
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                        <span class="font-bold text-xs sm:text-sm text-slate-800">${st.text}</span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="setTask4Ans(${st.id}, 'i')" class="w-9 h-9 rounded-full font-black text-sm border-2 transition ${ans === 'i' ? 'bg-sky-600 text-white border-sky-700 shadow' : 'bg-white text-sky-700 border-sky-300 hover:bg-sky-50'}">i</button>
+                            <button onclick="setTask4Ans(${st.id}, 'h')" class="w-9 h-9 rounded-full font-black text-sm border-2 transition ${ans === 'h' ? 'bg-sky-600 text-white border-sky-700 shadow' : 'bg-white text-sky-700 border-sky-300 hover:bg-sky-50'}">h</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setTask4Ans(id, val) {
+            playTone('click');
+            task4Answers[id] = val;
+            renderTask4();
+        }
+
+        function checkTask4() {
+            const allAnswered = TASK4_STATEMENTS.every(s => task4Answers[s.id]);
+            const allCorrect = TASK4_STATEMENTS.every(s => task4Answers[s.id] === s.expected);
+            const fb = document.getElementById('task4-feedback');
+            fb.classList.remove('hidden');
+
+            if (allCorrect) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '❄️ <strong>Mind a 6 válaszod tökéletes!</strong><br>Helyes sorrend föntről lefelé: <strong>i, h, i, i, h, h</strong>.';
+                if (!task4Solved) {
+                    task4Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400 space-y-1';
+                if (!allAnswered) {
+                    fb.innerHTML = '⚠️ Kérlek, mind a 6 állításnál színezd ki az <strong>i</strong> (igaz) vagy a <strong>h</strong> (hamis) betűt!';
+                } else {
+                    const wrongList = TASK4_STATEMENTS.filter(s => task4Answers[s.id] !== s.expected)
+                        .map(s => `• <em>„${s.text}”</em> → <strong>${s.exp}</strong>`).join('<br>');
+                    fb.innerHTML = `💡 <strong>Javítási segítség:</strong><br>${wrongList}`;
+                }
+            }
+        }
+
+        function resetTask4() {
+            task4Answers = {};
+            document.getElementById('task4-feedback').classList.add('hidden');
+            renderTask4();
+        }
+
+        /* =========================================================================
+           2. FÜL – 5. FELADAT: HALMAZÁBRA (FOLYÉKONY – KÖZÖS – SZILÁRD)
+           ========================================================================= */
+        const TASK5_PROPS = [
+            { num: 1, text: 'alakja állandó', validSets: ['solid'], label: 'Szilárd halmazállapot' },
+            { num: 2, text: 'nincs saját alakja', validSets: ['liquid'], label: 'Folyékony halmazállapot' },
+            { num: 3, text: 'nem tölti ki teljesen a teret', validSets: ['both'], label: 'Közös rész (Metszet)' },
+            { num: 4, text: 'összenyomhatatlan', validSets: ['both'], label: 'Közös rész (Metszet)' },
+            { num: 5, text: 'felveszi a tárolóedény alakját', validSets: ['liquid'], label: 'Folyékony halmazállapot' },
+            { num: 6, text: 'feldarabolható', validSets: ['solid'], label: 'Szilárd halmazállapot' },
+            { num: 7, text: 'lehet sűrűbb vagy hígabb', validSets: ['liquid'], label: 'Folyékony halmazállapot' },
+            { num: 8, text: 'alakja változhat', validSets: ['both', 'liquid', 'solid'], label: 'Közös rész (edényben / külső erő hatására)' }
+        ];
+
+        let task5Placements = {};
+        let task5Solved = false;
+
+        function renderTask5() {
+            document.getElementById('task5-props-list').innerHTML = TASK5_PROPS.map(p => {
+                const sel = task5Placements[p.num] || null;
+                return `
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="font-extrabold text-xs sm:text-sm text-slate-800">
+                            <span class="inline-block w-6 h-6 rounded-full bg-sky-100 text-sky-900 text-center leading-6 font-black mr-1">${p.num}.</span>
+                            ${p.text}
+                        </div>
+                        <div class="flex gap-1.5 shrink-0">
+                            <button onclick="setTask5Set(${p.num}, 'liquid')" class="px-2.5 py-1.5 rounded-lg font-extrabold text-[11px] border transition ${sel === 'liquid' ? 'bg-sky-600 text-white border-sky-700' : 'bg-white text-sky-800 border-sky-200 hover:bg-sky-50'}">💧 Folyékony</button>
+                            <button onclick="setTask5Set(${p.num}, 'both')" class="px-2.5 py-1.5 rounded-lg font-extrabold text-[11px] border transition ${sel === 'both' ? 'bg-teal-600 text-white border-teal-700' : 'bg-white text-teal-800 border-teal-200 hover:bg-teal-50'}">🤝 Közös</button>
+                            <button onclick="setTask5Set(${p.num}, 'solid')" class="px-2.5 py-1.5 rounded-lg font-extrabold text-[11px] border transition ${sel === 'solid' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50'}">🧱 Szilárd</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const renderBadge = (n, color) => `<span class="w-8 h-8 rounded-full ${color} font-black text-sm flex items-center justify-center shadow-xs">${n}</span>`;
+            document.getElementById('venn-box-liquid').innerHTML = TASK5_PROPS.filter(p => task5Placements[p.num] === 'liquid').map(p => renderBadge(p.num, 'bg-sky-600 text-white')).join('');
+            document.getElementById('venn-box-both').innerHTML = TASK5_PROPS.filter(p => task5Placements[p.num] === 'both').map(p => renderBadge(p.num, 'bg-teal-600 text-white')).join('');
+            document.getElementById('venn-box-solid').innerHTML = TASK5_PROPS.filter(p => task5Placements[p.num] === 'solid').map(p => renderBadge(p.num, 'bg-emerald-600 text-white')).join('');
+        }
+
+        function setTask5Set(num, setKey) {
+            playTone('click');
+            task5Placements[num] = setKey;
+            renderTask5();
+        }
+
+        function checkTask5() {
+            const allPlaced = TASK5_PROPS.every(p => task5Placements[p.num]);
+            const allValid = TASK5_PROPS.every(p => p.validSets.includes(task5Placements[p.num]));
+            const fb = document.getElementById('task5-feedback');
+            fb.classList.remove('hidden');
+
+            if (allPlaced && allValid) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '🎉 <strong>Kitűnő halmazábra!</strong><br>• <strong>Folyékony halmazállapot:</strong> 2, 5, 7<br>• <strong>Közös metszet (mindkettőre igaz):</strong> 3, 4 (és a 8 is ide írható, mert edényben vagy külső erő hatására változhat)<br>• <strong>Szilárd halmazállapot:</strong> 1, 6 (és 8, ha a megformázhatóságra gondolunk).';
+                if (!task5Solved) {
+                    task5Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400';
+                if (!allPlaced) {
+                    fb.innerHTML = '⚠️ Kérlek, mind a 8 számnál válassz halmazt!';
+                } else {
+                    const wrongNums = TASK5_PROPS.filter(p => !p.validSets.includes(task5Placements[p.num])).map(p => `${p.num}. (${p.text} → ${p.label})`).join('<br>• ');
+                    fb.innerHTML = `💡 <strong>Nézd át ezeket a számokat:</strong><br>• ${wrongNums}`;
+                }
+            }
+        }
+
+        function resetTask5() {
+            task5Placements = {};
+            document.getElementById('task5-feedback').classList.add('hidden');
+            renderTask5();
+        }
+
+        /* =========================================================================
+           2. FÜL – 6. FELADAT: KAKUKKTOJÁS (TALÁLÓS KÉRDÉSEK)
+           ========================================================================= */
+        const RIDDLES = [
+            {
+                id: 'cipo',
+                poem: 'Orra van, de nem szagol,<br>nyelve van, de nem beszél.<br>Mi az?',
+                options: ['cipő', 'kutya', 'kabát'],
+                correct: 'cipő',
+                emoji: '👞'
+            },
+            {
+                id: 'eso',
+                poem: 'Földre esem, de nem fáj,<br>minden növény engem vár.<br>Mi az?',
+                options: ['kavics', 'eső', 'levél'],
+                correct: 'eső',
+                emoji: '🌧️'
+            },
+            {
+                id: 'ora',
+                poem: 'Éjjel-nappal mindig jár,<br>mégis csak egy helyben áll.<br>Mi az?',
+                options: ['óra', 'szék', 'vonat'],
+                correct: 'óra',
+                emoji: '⏰'
+            },
+            {
+                id: 'szanko',
+                poem: 'Télen szalad sebesen,<br>nyáron pihen csendesen.<br>Mi az?',
+                options: ['bicikli', 'szánkó', 'ernyő'],
+                correct: 'szánkó',
+                emoji: '🛷'
+            }
+        ];
+
+        let riddleAnswers = {};
+        let selectedOddOne = null;
+        let task6Solved = false;
+
+        function renderTask6() {
+            document.getElementById('task6-riddles').innerHTML = RIDDLES.map(r => {
+                const val = riddleAnswers[r.id] || '';
+                return `
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 flex flex-col justify-between">
+                        <p class="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed italic">${r.poem}</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-extrabold text-sky-800">Megfejtés:</span>
+                            <select onchange="setRiddleAns('${r.id}', this.value)" class="flex-1 p-2 rounded-xl border border-slate-300 bg-white font-extrabold text-xs sm:text-sm text-slate-800">
+                                <option value="">-- Válassz! --</option>
+                                ${r.options.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setRiddleAns(id, val) {
+            playTone('click');
+            riddleAnswers[id] = val;
+        }
+
+        function selectOddOneOut(id) {
+            playTone('click');
+            selectedOddOne = id;
+            ['cipo', 'ora', 'eso', 'szanko'].forEach(k => {
+                const btn = document.getElementById(`odd-btn-${k}`);
+                if (k === id) {
+                    btn.className = 'px-4 py-2 rounded-full border-4 border-rose-500 bg-rose-50 font-black text-xs sm:text-sm text-rose-900 shadow-xs';
+                } else {
+                    btn.className = 'px-4 py-2 rounded-full border-2 border-slate-300 bg-white font-extrabold text-xs sm:text-sm text-slate-700 transition';
+                }
+            });
+        }
+
+        function checkTask6() {
+            const riddlesOk = RIDDLES.every(r => riddleAnswers[r.id] === r.correct);
+            const oddOk = selectedOddOne === 'eso';
+            const reasonOk = document.getElementById('task6c-select').value === 'folyekony';
+
+            const fb = document.getElementById('task6-feedback');
+            fb.classList.remove('hidden');
+
+            if (riddlesOk && oddOk && reasonOk) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '🎉 <strong>Tökéletes megoldás!</strong><br>• Megfejtések: <strong>cipő, eső, óra, szánkó</strong>.<br>• Kakukktojás: <strong>eső</strong>, mert <strong>folyékony halmazállapotú</strong> (míg a cipő, az óra és a szánkó szilárd halmazállapotú tárgyak)!';
+                if (!task6Solved) {
+                    task6Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400';
+                let msg = '💡 <strong>Nézd át a válaszokat:</strong><br>';
+                if (!riddlesOk) msg += '• Ellenőrizd a 4 találós kérdés megfejtését!<br>';
+                if (!oddOk) msg += '• Melyik nem szilárd tárgy a 4 megfejtés közül? (Ami a felhőből hullik!)<br>';
+                if (!reasonOk) msg += '• Válaszd ki a c) pontnál, miért nem illik a többi közé!';
+                fb.innerHTML = msg;
+            }
+        }
+
+        function resetTask6() {
+            riddleAnswers = {};
+            selectedOddOne = null;
+            document.getElementById('task6c-select').value = '';
+            document.getElementById('task6-feedback').classList.add('hidden');
+            selectOddOneOut(null);
+            renderTask6();
+        }
+
+        /* =========================================================================
+           3. FÜL – 7. ÉS 8. FELADAT: MÉRÉS ÉS RELÁCIÓS JELEK
+           ========================================================================= */
+        function fillSampleSpanValues() {
+            playTone('click');
+            document.getElementById('span-desk-l-est').value = '6';
+            document.getElementById('span-desk-l-meas').value = '6';
+            document.getElementById('span-desk-w-est').value = '4';
+            document.getElementById('span-desk-w-meas').value = '4';
+
+            document.getElementById('span-bag-l-est').value = '3';
+            document.getElementById('span-bag-l-meas').value = '3';
+            document.getElementById('span-bag-w-est').value = '2';
+            document.getElementById('span-bag-w-meas').value = '2,5';
+
+            document.getElementById('span-nb-l-est').value = '2';
+            document.getElementById('span-nb-l-meas').value = '1,5';
+            document.getElementById('span-nb-w-est').value = '1';
+            document.getElementById('span-nb-w-meas').value = '1';
+        }
+
+        function measureWithRuler(itemKey, exactCm) {
+            playTone('win');
+            const estInput = document.getElementById(`cm-${itemKey}-est`);
+            if (!estInput.value) {
+                estInput.value = exactCm - 2;
+            }
+            document.getElementById(`cm-${itemKey}-val`).textContent = exactCm;
+        }
+
+        const TASK8_PAIRS = [
+            { id: 'p1', left: '🗄️ szekrény', right: '🪑 szék', expected: '>', hint: 'A szekrény jóval nehezebb a széknél.' },
+            { id: 'p2', left: '✏️ ceruza', right: '👝 tolltartó', expected: '<', hint: 'A megtöltött tolltartó nehezebb egyetlen ceruzánál.' },
+            { id: 'p3', left: '🔩 szög', right: '🔨 kalapács', expected: '<', hint: 'A kalapács sokkal nehezebb egy szögnél.' },
+            { id: 'p4', left: '🍽️ porcelántányér', right: '🥣 műanyag tányér', expected: '>', hint: 'A porcelántányér nehezebb, mint a könnyű műanyag tányér.' }
+        ];
+
+        let task8Choices = {};
+        let task8Solved = false;
+
+        function renderTask8() {
+            document.getElementById('task8-list').innerHTML = TASK8_PAIRS.map(pair => {
+                const val = task8Choices[pair.id] || '';
+                return `
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                        <span class="font-extrabold text-xs sm:text-sm text-slate-800 flex-1 text-right">${pair.left}</span>
+                        <div class="flex gap-1.5 mx-2">
+                            <button onclick="setTask8Rel('${pair.id}', '>')" class="w-10 h-10 rounded-xl font-black text-base border-2 transition ${val === '>' ? 'bg-sky-600 text-white border-sky-700 shadow' : 'bg-white text-sky-800 border-sky-200 hover:bg-sky-50'}">&gt;</button>
+                            <button onclick="setTask8Rel('${pair.id}', '<')" class="w-10 h-10 rounded-xl font-black text-base border-2 transition ${val === '<' ? 'bg-sky-600 text-white border-sky-700 shadow' : 'bg-white text-sky-800 border-sky-200 hover:bg-sky-50'}">&lt;</button>
+                        </div>
+                        <span class="font-extrabold text-xs sm:text-sm text-slate-800 flex-1 text-left">${pair.right}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setTask8Rel(id, symbol) {
+            playTone('click');
+            task8Choices[id] = symbol;
+            renderTask8();
+        }
+
+        function checkTask8() {
+            const allOk = TASK8_PAIRS.every(p => task8Choices[p.id] === p.expected);
+            const fb = document.getElementById('task8-feedback');
+            fb.classList.remove('hidden');
+
+            if (allOk) {
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = '⚖️ <strong>Hibátlan relációs jelek!</strong><br>• szekrény <strong>&gt;</strong> szék &nbsp;|&nbsp; ceruza <strong>&lt;</strong> tolltartó<br>• szög <strong>&lt;</strong> kalapács &nbsp;|&nbsp; porcelántányér <strong>&gt;</strong> műanyag tányér';
+                if (!task8Solved) {
+                    task8Solved = true;
+                    addStars(2);
+                } else {
+                    playTone('win');
+                }
+            } else {
+                playTone('error');
+                fb.className = 'p-4 rounded-2xl text-sm font-bold bg-amber-100 text-amber-950 border-2 border-amber-400';
+                fb.innerHTML = '💡 <strong>Emlékeztető:</strong> A relációs jel „krokodilszája” mindig a <strong>nehezebb</strong> tárgy felé legyen nyitva! (Pl. szekrény &gt; szék, szög &lt; kalapács).';
+            }
+        }
+
+        function resetTask8() {
+            task8Choices = {};
+            document.getElementById('task8-feedback').classList.add('hidden');
+            renderTask8();
+        }
+
+        /* =========================================================================
+           4. FÜL: 10 KÉRDÉSES ÖSSZEFOGLALÓ KVÍZ
+           ========================================================================= */
+        const QUIZ_DATA = [
+            {
+                q: 'Melyik állítás IGAZ a szilárd halmazállapotú anyagokra?',
+                options: [
+                    'Nincs saját alakjuk, felveszik az edény alakját',
+                    'Saját, állandó alakjuk van és összenyomhatatlanok',
+                    'Könnyen összenyomhatók és kitöltik a teret'
+                ],
+                correct: 1,
+                exp: 'A szilárd anyagoknak saját, állandó alakjuk van, nem töltik ki teljesen a teret és összenyomhatatlanok!'
+            },
+            {
+                q: 'Milyen halmazállapotú a kristálycukor, a só, a búzaliszt és a darált mák?',
+                options: [
+                    'Folyékony, mert ki lehet önteni a zacskóból',
+                    'Szilárd, mert apró szilárd szemcsékből állnak',
+                    'Légnemű'
+                ],
+                correct: 1,
+                exp: 'A szemcsés anyagok (só, cukor, liszt, darált mák, kávéőrlemény, homok) mind SZILÁRD halmazállapotúak!'
+            },
+            {
+                q: 'Mi került rossz polcra Tomi kamrájában (2. feladat)?',
+                options: [
+                    'Az ásványvíz és a keksz',
+                    'A darált mák (a folyékony polcon) és a méz (a szilárd polcon)',
+                    'Az alma és a narancslé'
+                ],
+                correct: 1,
+                exp: 'A darált mák szilárd (szemcsés), a méz pedig sűrűn folyó folyékony anyag!'
+            },
+            {
+                q: 'Melyik sorban szerepelnek KIZÁRÓLAG szilárd halmazállapotú ANYAGOK?',
+                options: [
+                    'fa, vas, üveg, só, bőr, kavics',
+                    'fa, víz, levegő, olaj',
+                    'tinta, málnaszörp, gyümölcslé'
+                ],
+                correct: 0,
+                exp: 'A fa, vas, üveg, só, bőr és kavics mind szilárd anyagok!'
+            },
+            {
+                q: 'Melyik tulajdonság KÖZÖS a folyékony és a szilárd halmazállapotú anyagokban?',
+                options: [
+                    'Mindkettő felveszi a tárolóedény alakját',
+                    'Mindkettő összenyomhatatlan és nem tölti ki teljesen a teret',
+                    'Mindkettőnek állandó a saját alakja'
+                ],
+                correct: 1,
+                exp: 'A halmazábra közös részébe (metszetébe) kerül: nem tölti ki teljesen a teret (3) és összenyomhatatlan (4).'
+            },
+            {
+                q: 'Mi biztosítja az élelmiszerek fagyasztását a mélyhűtőben?',
+                options: [
+                    'A magas hőmérséklet',
+                    'Az alacsony hőmérséklet (hűtés)',
+                    'A világítás'
+                ],
+                correct: 1,
+                exp: 'A fagyasztást az alacsony hőmérséklet biztosítja, és minden lefagyasztott élelmiszer szilárd lesz.'
+            },
+            {
+                q: 'Mi történik a fagyasztóból kivett élelmiszerrel a meleg konyhában?',
+                options: [
+                    'A hőmérséklet emelkedése miatt felolvad',
+                    'Még keményebbre fagy',
+                    'Semmi sem történik vele'
+                ],
+                correct: 0,
+                exp: 'A fagyasztóból kivett étel a magasabb szobahőmérsékleten felolvad.'
+            },
+            {
+                q: 'Melyik a kakukktojás a találós kérdések megfejtései közül: cipő, óra, eső, szánkó?',
+                options: [
+                    'A szánkó, mert csak télen használjuk',
+                    'Az eső, mert folyékony halmazállapotú (nem szilárd tárgy)',
+                    'Az óra, mert ketyeg'
+                ],
+                correct: 1,
+                exp: 'A cipő, az óra és a szánkó szilárd tárgyak, míg az eső folyékony halmazállapotú!'
+            },
+            {
+                q: 'Miért kapnak különböző eredményt a gyerekek, ha kisarasszal mérik meg ugyanazt a padot?',
+                options: [
+                    'Mert a pad közben összemegy',
+                    'Mert a gyerekek keze (arasza) nem egyforma méretű',
+                    'Mert a pad folyékony'
+                ],
+                correct: 1,
+                exp: 'Az arasz alkalmi mérőeszköz: mindenkinek más méretű a keze. Pontos méréshez vonalzót vagy mérőszalagot használunk!'
+            },
+            {
+                q: 'Melyik reláció IGAZ a tárgyak tömegére?',
+                options: [
+                    'porcelántányér > műanyag tányér  és  szög < kalapács',
+                    'szekrény < szék',
+                    'ceruza > tolltartó'
+                ],
+                correct: 0,
+                exp: 'A porcelántányér nehezebb a műanyag tányérnál (>), a kalapács pedig nehezebb a szögnél (szög < kalapács).'
+            }
+        ];
+
+        let qIdx = 0;
+        let qScore = 0;
+        let qSelected = null;
+
+        function renderQuiz() {
+            const box = document.getElementById('quiz-box');
+            if (qIdx >= QUIZ_DATA.length) {
+                box.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="text-6xl">🏆</div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800">Gratulálok! Végigértél a kvízen!</h3>
+                        <p class="text-base sm:text-lg font-bold text-slate-600">
+                            Eredményed: <span class="text-emerald-600 font-black">${qScore} / ${QUIZ_DATA.length}</span> pont
+                        </p>
+                        <div class="pt-2 flex justify-center gap-3">
+                            <button onclick="restartQuiz()" class="bouncy-btn px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow">
+                                🔄 Újra próbálom
+                            </button>
+                            <a href="./index.html" class="px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm transition">
+                                🏠 Főoldal
+                            </a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const item = QUIZ_DATA[qIdx];
+            box.innerHTML = `
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-xs">
+                        Kérdés: ${qIdx + 1} / ${QUIZ_DATA.length}
+                    </span>
+                    <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-800 font-extrabold text-xs">
+                        ⭐ Pontszám: ${qScore}
+                    </span>
+                </div>
+                <h3 class="text-lg sm:text-xl font-black text-slate-800 mb-5 leading-snug">${item.q}</h3>
+                <div class="space-y-3">
+                    ${item.options.map((opt, idx) => {
+                        let cls = 'bg-slate-50 border-slate-200 hover:border-emerald-400 text-slate-800';
+                        let badge = String.fromCharCode(65 + idx);
+                        if (qSelected !== null) {
+                            if (idx === item.correct) {
+                                cls = 'bg-emerald-100 border-emerald-500 text-emerald-950 font-black';
+                                badge = '✓';
+                            } else if (idx === qSelected) {
+                                cls = 'bg-rose-100 border-rose-400 text-rose-900';
+                                badge = '✗';
+                            } else {
+                                cls = 'bg-slate-50 border-slate-200 opacity-50';
+                            }
+                        }
+                        return `
+                            <button onclick="answerQuiz(${idx})" class="w-full p-4 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition flex items-center gap-3 ${cls}">
+                                <span class="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs shrink-0">${badge}</span>
+                                <span>${opt}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                ${qSelected !== null ? `
+                    <div class="mt-5 p-4 rounded-2xl bg-sky-50 border border-sky-200 space-y-3">
+                        <p class="text-xs sm:text-sm font-bold text-sky-950">💡 <strong>Magyarázat:</strong> ${item.exp}</p>
+                        <button onclick="nextQuiz()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow transition">
+                            ${qIdx + 1 < QUIZ_DATA.length ? 'Következő kérdés ➡️' : 'Eredmény megtekintése 🏆'}
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function answerQuiz(idx) {
+            if (qSelected !== null) return;
+            qSelected = idx;
+            if (idx === QUIZ_DATA[qIdx].correct) {
+                qScore++;
+                addStars(1);
+            } else {
+                playTone('error');
+            }
+            renderQuiz();
+        }
+
+        function nextQuiz() {
+            qIdx++;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            qIdx = 0;
+            qScore = 0;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        /* =========================================================================
+           INICIALIZÁLÁS INDULÁSKOR
+           ========================================================================= */
+        window.onload = function() {
+            renderTask1();
+            renderTask2();
+            renderTask3();
+            renderTask4();
+            renderTask5();
+            renderTask6();
+            renderTask8();
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>
