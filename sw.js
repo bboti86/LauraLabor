@@ -1,4 +1,4 @@
-const CACHE_NAME = 'laura-tanulosarka-v8';
+const CACHE_NAME = 'laura-tanulosarka-v9';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -16,7 +16,13 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        ASSETS_TO_CACHE.map((url) =>
+          fetch(url, { cache: 'no-cache' }).then((res) => cache.put(url, res))
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
@@ -32,12 +38,12 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first stratégia cache tartalékkal, hogy a frissítések azonnal megjelenjenek, de offline is működjön
+// Network-first stratégia cache: 'no-cache' fejléccel, hogy a böngésző 10 perces HTTP gyorsítótára se ragadjon be
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-cache' })
       .then((networkResponse) => {
         const responseClone = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {

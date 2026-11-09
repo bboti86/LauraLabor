@@ -194,10 +194,23 @@
     </footer>
 
     <script>
-        // Service Worker regisztrálása (kötelező az Android PWA telepítéshez)
+        // Service Worker regisztrálása és automatikus frissítés új verzió esetén
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
+
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => {
+                    reg.update();
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') reg.update();
+                    });
+                }).catch((err) => {
                     console.warn('Service Worker regisztrációs hiba:', err);
                 });
             });
