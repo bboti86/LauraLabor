@@ -1,4 +1,4 @@
-const CACHE_NAME = 'laura-tanulosarka-v7';
+const CACHE_NAME = 'laura-tanulosarka-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const ASSETS_TO_CACHE = [
   './icon-192.png',
   './icon-512.png',
   './szilard-anyagok.html',
+  './legnemu-anyagok.html',
   './folyadekok.html',
   './suruseg.html',
   './pcreszek.html',
