@@ -1,4 +1,4 @@
-const CACHE_NAME = 'laura-tanulosarka-v12';
+const CACHE_NAME = 'laura-tanulosarka-v13';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

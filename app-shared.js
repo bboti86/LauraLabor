@@ -28,13 +28,26 @@
         'suruseg'
     ];
 
+    function generateRandomCloudCode() {
+        const words = ['csillag', 'varazs', 'ustokos', 'unikornis', 'raketa', 'galaxis', 'kristaly'];
+        const w = words[Math.floor(Math.random() * words.length)];
+        const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+        let p1 = '';
+        let p2 = '';
+        for (let i = 0; i < 4; i++) {
+            p1 += chars[Math.floor(Math.random() * chars.length)];
+            p2 += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return `${w}-${p1}-${p2}`;
+    }
+
     function getDefaultState() {
         return {
             childName: 'Laura',
             theme: 'girly', // 'girly' | 'boyish' | 'neutral'
             onboardingDone: false,
             cookieConsent: false,
-            cloudCode: '',
+            cloudCode: generateRandomCloudCode(),
             stars: {
                 szorzas: 0,
                 felmero: 0,
@@ -201,6 +214,10 @@
             state = def;
         }
 
+        if (!state.cloudCode || state.cloudCode.length < 3) {
+            state.cloudCode = generateRandomCloudCode();
+        }
+
         // Szinkronizáció a korábbi szorzótábla csillagokkal és a 200-as felmérővel
         try {
             const legacySzorzo = parseInt(localStorage.getItem(SZORZO_STARS_KEY) || '0', 10);
@@ -326,6 +343,7 @@
         const payload = {
             n: state.childName,
             t: state.theme,
+            c: state.cloudCode || '',
             s: state.stars,
             f: fStats.compact || ''
         };
@@ -354,6 +372,9 @@
         }
         if (payload.t && ['girly', 'boyish', 'neutral'].includes(payload.t)) {
             state.theme = payload.t;
+        }
+        if (payload.c && typeof payload.c === 'string' && payload.c.length >= 3) {
+            state.cloudCode = normalizeCloudKey(payload.c);
         }
         if (payload.s && typeof payload.s === 'object') {
             LESSON_KEYS.forEach(k => {
@@ -571,6 +592,7 @@
         getTotalStars,
         getFelmeroStats,
         getMagicSyncUrl,
+        generateCloudCode: generateRandomCloudCode,
         syncWithCloud,
         showToast,
         onUpdate,

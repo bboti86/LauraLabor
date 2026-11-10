@@ -209,12 +209,17 @@
                 </div>
             </div>
 
-            <!-- Opcionális: Felhőkód megadása rögtön első belépéskor -->
+            <!-- Opcionális: Felhőkód megadása rögtön első belépéskor (automatikusan generált hosszú kóddal, ami szabadon átírható) -->
             <div style="margin-bottom:16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 12px;">
                 <label style="display:block;font-size:0.8rem;font-weight:800;color:#475569;margin-bottom:4px;">
-                    ☁️ Családi Varázskód (opcionális – ha több eszközön játszotok):
+                    ☁️ Családi Varázskód (automatikusan generált, de szabadon átírhatod):
                 </label>
-                <input type="text" id="onboardCloudInput" class="laura-input" style="padding:8px 12px;font-size:0.9rem;" placeholder="Pl. laura2026 (üresen is hagyhatod)">
+                <div style="display:flex;gap:6px;">
+                    <input type="text" id="onboardCloudInput" class="laura-input" style="padding:8px 12px;font-size:0.9rem;" placeholder="Pl. varazs-k8m4-p2x9">
+                    <button type="button" onclick="regenerateCloudCodeInput('onboardCloudInput')" class="laura-secondary-btn" style="white-space:nowrap;padding:8px 10px;" title="Új véletlenszerű kód generálása">
+                        🎲 Új
+                    </button>
+                </div>
             </div>
 
             <!-- Süti (Cookie) és helyi tárhely tájékoztató -->
@@ -276,11 +281,14 @@
                     ☁️ 1. Automatikus Felhő-szinkron (Családi Varázskód)
                 </div>
                 <p style="margin:0 0 10px 0;font-size:0.78rem;color:#64748b;font-weight:600;">
-                    Adj meg egy saját titkos szót (pl. <code>laura2026</code>). Ha egy másik telefonon vagy gépen is ugyanezt írod be, a csillagok automatikusan összeszinkronizálódnak!
+                    Automatikusan generáltunk egy biztonságos hosszú kódot, amit szabadon átírhatsz! Ha másik eszközön is ugyanezt a kódot használod (vagy beolvasod lent a QR-kódot), a csillagok automatikusan szinkronizálódnak.
                 </p>
-                <div style="display:flex;gap:8px;">
-                    <input type="text" id="settingsCloudInput" class="laura-input" style="padding:9px 12px;font-size:0.92rem;" placeholder="Pl. laura2026">
-                    <button onclick="triggerManualCloudSync()" class="laura-secondary-btn" style="white-space:nowrap;background:var(--primary-soft);border-color:var(--primary-border);color:var(--primary-strong);">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <input type="text" id="settingsCloudInput" class="laura-input" style="flex:1;min-width:160px;padding:9px 12px;font-size:0.92rem;" placeholder="Pl. varazs-k8m4-p2x9">
+                    <button type="button" onclick="regenerateCloudCodeInput('settingsCloudInput')" class="laura-secondary-btn" style="white-space:nowrap;" title="Új véletlenszerű kód generálása">
+                        🎲 Új kód
+                    </button>
+                    <button type="button" onclick="triggerManualCloudSync()" class="laura-secondary-btn" style="white-space:nowrap;background:var(--primary-soft);border-color:var(--primary-border);color:var(--primary-strong);">
                         🔄 Szinkron
                     </button>
                 </div>
@@ -522,6 +530,13 @@
             }
         }
 
+        function regenerateCloudCodeInput(inputId) {
+            if (!window.LauraApp) return;
+            const newCode = LauraApp.generateCloudCode();
+            const el = document.getElementById(inputId);
+            if (el) el.value = newCode;
+        }
+
         function acceptCookieBar() {
             LauraApp.acceptCookies();
             document.getElementById('cookieConsentBar').classList.add('hidden');
@@ -536,6 +551,7 @@
 
             if (!profile.onboardingDone) {
                 document.getElementById('onboardNameInput').value = profile.childName || 'Laura';
+                document.getElementById('onboardCloudInput').value = profile.cloudCode || LauraApp.generateCloudCode();
                 document.getElementById('onboardingModal').classList.remove('hidden');
             } else if (!profile.cookieConsent) {
                 document.getElementById('cookieConsentBar').classList.remove('hidden');
