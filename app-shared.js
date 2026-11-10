@@ -11,8 +11,11 @@
     const FELMERO_KEY = 'laura_szorzo_felmero_v1';
     const FELMERO_COOKIE = 'laura_felmero_compact';
 
-    // Alapértelmezett KV felhő bucket (publikus kulcs-érték tároló családi varázskódhoz)
-    const DEFAULT_KV_BUCKET = 'https://kvdb.io/6Wa9sN8xK2pL4mQv7rT1yB';
+    // Firebase Realtime Database végpontok (EU és US régió automatikus felismeréssel)
+    const FIREBASE_DB_URLS = [
+        'https://lauralabor-1f53a-default-rtdb.europe-west1.firebasedatabase.app',
+        'https://lauralabor-1f53a-default-rtdb.firebaseio.com'
+    ];
 
     const LESSON_KEYS = [
         'szorzas',
@@ -411,21 +414,41 @@
         }, 1200);
     }
 
+    async function fetchFirebaseWithFallback(path, options) {
+        let lastErr = null;
+        for (const baseUrl of FIREBASE_DB_URLS) {
+            try {
+                const res = await fetch(`${baseUrl}${path}`, options);
+                // Ha a régió nem egyezik, a Firebase 404-et vagy átirányítási hibát ad; 200 és 401/403 esetén jó régióban vagyunk
+                if (res.ok || res.status === 401 || res.status === 403) {
+                    return res;
+                }
+            } catch (e) {
+                lastErr = e;
+            }
+        }
+        if (lastErr) throw lastErr;
+        return null;
+    }
+
     async function syncWithCloud(mode = 'both') {
         const cleanKey = normalizeCloudKey(state.cloudCode);
         if (!cleanKey || cleanKey.length < 3) {
             return { ok: false, message: 'Adj meg legalább 3 karakteres Családi Varázskódot!' };
         }
 
-        const endpoint = `${DEFAULT_KV_BUCKET}/laura_sync_${cleanKey}`;
+        const syncPath = `/profiles/laura_sync_${cleanKey}.json`;
 
         try {
             if (mode === 'pull' || mode === 'both') {
-                const res = await fetch(endpoint, { method: 'GET', cache: 'no-store' });
-                if (res.ok) {
-                    const text = await res.text();
-                    if (text) {
-                        const remotePayload = decodeSyncPayload(text.trim());
+                const res = await fetchFirebaseWithFallback(syncPath, { method: 'GET', cache: 'no-store' });
+                if (res && (res.status === 401 || res.status === 403)) {
+                    return { ok: false, message: '🔒 A Firebase Rules még nem engedélyezi a hozzáférést. Állítsd be a Rules JSON-t a Firebase-ben!' };
+                }
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data === 'string') {
+                        const remotePayload = decodeSyncPayload(data.trim());
                         if (remotePayload) {
                             mergeIncomingPayload(remotePayload);
                         }
@@ -435,23 +458,30 @@
 
             if (mode === 'push' || mode === 'both') {
                 const encoded = encodeSyncPayload();
-                const pushRes = await fetch(endpoint, {
+                const pushRes = await fetchFirebaseWithFallback(syncPath, {
                     method: 'PUT',
-                    body: encoded
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(encoded)
                 });
+                if (!pushRes) {
+                    return { ok: false, message: 'A Firebase adatbázis nem érhető el. Ellenőrizd az internetkapcsolatot!' };
+                }
+                if (pushRes.status === 401 || pushRes.status === 403) {
+                    return { ok: false, message: '🔒 A Firebase Rules még zárolva van. Illeszd be a megadott Rules JSON-t a Firebase-ben!' };
+                }
                 if (!pushRes.ok) {
-                    return { ok: false, message: 'A felhő-kiszolgáló jelenleg nem érhető el, használd a Varázs-linket!' };
+                    return { ok: false, message: 'Hiba történt a felhőbe mentéskor.' };
                 }
             }
 
             return {
                 ok: true,
-                message: `☁️ Sikeres felhő-szinkron! (Kód: ${cleanKey} • ⭐ ${getTotalStars()} csillag)`
+                message: `☁️ Sikeres Firebase szinkron! (Kód: ${cleanKey} • ⭐ ${getTotalStars()} csillag)`
             };
         } catch (err) {
             return {
                 ok: false,
-                message: 'Nincs internetkapcsolat vagy a felhő nem érhető el. A helyi mentés és a Varázs-link működik!'
+                message: 'Nincs internetkapcsolat vagy a Firebase jelenleg nem érhető el.'
             };
         }
     }
