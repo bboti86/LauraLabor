@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -600,8 +602,12 @@
 
         // Mentett csillagok betöltése
         try {
-            const savedStars = localStorage.getItem('varazs_szorzo_stars');
-            if (savedStars) state.totalStars = parseInt(savedStars, 10) || 0;
+            if (window.LauraApp) {
+                state.totalStars = LauraApp.getStars('szorzas');
+            } else {
+                const savedStars = localStorage.getItem('varazs_szorzo_stars');
+                if (savedStars) state.totalStars = parseInt(savedStars, 10) || 0;
+            }
         } catch (e) {}
 
         // ==========================================
@@ -1290,6 +1296,7 @@
             document.getElementById('streakDisplay').textContent = state.streak;
             try {
                 localStorage.setItem('varazs_szorzo_stars', state.totalStars.toString());
+                if (window.LauraApp) LauraApp.setStars('szorzas', state.totalStars);
             } catch (e) {}
         }
 

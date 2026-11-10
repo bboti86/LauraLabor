@@ -6,6 +6,8 @@
     <title>Folyadékok Sűrűsége - Inline Labor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -719,6 +721,7 @@
 
             if (selectedIdx === item.correct) {
                 quizScore++;
+                if (window.LauraApp) LauraApp.addStars('suruseg', 1);
                 document.getElementById('quiz-score').textContent = `${quizScore} / ${QUIZ_QUESTIONS.length}`;
                 feedback.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300';
                 feedback.innerHTML = `✅ Helyes! ${item.explanation}`;

@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -654,6 +656,7 @@
             totalStars += n;
             starsEarnedInRound += n;
             document.getElementById('totalStarsDisplay').textContent = totalStars;
+            if (window.LauraApp) LauraApp.setStars('ketjegyu', totalStars);
         }
 
         /* =========================================================================
@@ -1358,6 +1361,10 @@
            INICIALIZÁLÁS INDULÁSKOR
            ========================================================================= */
         window.onload = function() {
+            if (window.LauraApp) {
+                totalStars = LauraApp.getStars('ketjegyu');
+                document.getElementById('totalStarsDisplay').textContent = totalStars;
+            }
             renderLevelSelector();
             updateWizard();
         };

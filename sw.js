@@ -1,7 +1,9 @@
-const CACHE_NAME = 'laura-tanulosarka-v10';
+const CACHE_NAME = 'laura-tanulosarka-v11';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './styles.css',
+  './app-shared.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',

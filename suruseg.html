@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🧪 Víz Varázslabor (3. osztály)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app-shared.js"></script>
   <style>
     @keyframes shiver {
       0%, 100% { transform: translate(0, 0); }
@@ -406,7 +408,10 @@
     function answerQuiz(idx) {
       if (selectedAnswer !== null) return;
       selectedAnswer = idx;
-      if (idx === questions[quizIndex].correct) score++;
+      if (idx === questions[quizIndex].correct) {
+        score++;
+        if (window.LauraApp) LauraApp.addStars('vizlabor', 1);
+      }
       renderQuiz();
     }
 

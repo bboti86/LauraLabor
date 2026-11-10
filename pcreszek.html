@@ -6,6 +6,8 @@
     <title>Informatika Gyakorló - 3. osztály</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -603,6 +605,7 @@
             stars += amount;
             const starEl = document.getElementById('starCount');
             starEl.textContent = stars;
+            if (window.LauraApp) LauraApp.setStars('pcreszek', stars);
             starEl.parentElement.classList.add('scale-125');
             setTimeout(() => starEl.parentElement.classList.remove('scale-125'), 250);
         }
@@ -1248,6 +1251,11 @@
 
         // Oldal betöltésekor indul a Tanulómód
         window.onload = function() {
+            if (window.LauraApp) {
+                stars = LauraApp.getStars('pcreszek');
+                const starEl = document.getElementById('starCount');
+                if (starEl) starEl.textContent = stars;
+            }
             initStudyMode();
             initRulesGame();
         };
