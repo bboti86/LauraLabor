@@ -6,132 +6,30 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
     <link rel="apple-touch-icon" href="./icon-192.png">
-    <meta name="theme-color" content="#ff6b6b">
+    <meta name="theme-color" content="#9333ea">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laura Tanulósarka 🌟</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            margin: 0;
-            padding: 20px;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-        }
-        h1 {
-            color: #ff6b6b;
-            font-size: 2rem;
-            margin-bottom: 5px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        .subtitle {
-            color: #555;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-        .install-banner {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            padding: 14px 20px;
-            margin-bottom: 25px;
-            font-size: 1.05rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .install-banner:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.45);
-        }
-        .category {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            text-align: left;
-            border-top: 6px solid #4d96ff;
-        }
-        .category.kornyezet {
-            border-top-color: #6bcb77;
-        }
-        .category.matematika {
-            border-top-color: #a855f7;
-        }
-        .category h2 {
-            margin-top: 0;
-            font-size: 1.3rem;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .links-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 15px;
-        }
-        .app-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            padding: 15px 20px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #2b2d42;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: all 0.2s ease;
-        }
-        .app-btn:hover {
-            background: #eef2f7;
-            transform: translateY(-2px);
-            border-color: #4d96ff;
-        }
-        .category.kornyezet .app-btn:hover {
-            border-color: #6bcb77;
-        }
-        .category.matematika .app-btn:hover {
-            border-color: #a855f7;
-        }
-        .app-btn span.icon {
-            font-size: 1.5rem;
-        }
-        footer {
-            margin-top: auto;
-            color: #555;
-            font-size: 0.9rem;
-            padding: 20px;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Laura Tanulósarka 🚀</h1>
-        <p class="subtitle">Válaszd ki, mit szeretnél ma gyakorolni!</p>
+<body class="home-page">
+    <div class="home-container">
+
+        <!-- Felső fejléc: Név + Beállítások gomb -->
+        <div class="home-topbar">
+            <div class="home-title-wrap">
+                <h1 class="home-title"><span data-child-name>Laura</span> Tanulósarka 🚀</h1>
+                <p class="home-subtitle">Válaszd ki, mit szeretnél ma gyakorolni!</p>
+            </div>
+            <button onclick="openSettingsModal()" class="settings-open-btn" title="Név, Színvilág és Felhő-szinkron">
+                <span>⚙️</span>
+                <span>Beállítások</span>
+            </button>
+        </div>
 
         <!-- PWA telepítő gomb (automatikusan megjelenik Androidon, ha telepíthető) -->
         <button id="installAppBtn" class="install-banner">
@@ -139,65 +37,520 @@
             <span>Telepítés alkalmazásként a telefonra</span>
         </button>
 
+        <!-- 🏆 CSILLAG- ÉS HALADÁS-ÖSSZESÍTŐ SÁV -->
+        <div class="summary-banner">
+            <div class="summary-header">
+                <div class="summary-title">
+                    <span>🏆</span>
+                    <span><span data-child-name>Laura</span> Eredményei</span>
+                </div>
+                <button onclick="openSettingsModal('cloud')" class="cloud-pill" id="summaryCloudPill" title="Felhő-szinkron és QR-kódos átküldés">
+                    ☁️ Felhő & Eszközszinkron
+                </button>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-stat-card gold">
+                    <span class="summary-stat-icon">⭐</span>
+                    <div>
+                        <div class="summary-stat-value" id="summaryTotalStars">0</div>
+                        <div class="summary-stat-label">Összes csillag</div>
+                    </div>
+                </div>
+
+                <div class="summary-stat-card emerald">
+                    <span class="summary-stat-icon">🟢</span>
+                    <div>
+                        <div class="summary-stat-value" id="summaryFelmeroCount">0 / 200</div>
+                        <div class="summary-stat-label">200-as Felmérő</div>
+                    </div>
+                </div>
+
+                <div class="summary-stat-card theme-tint wide-mobile">
+                    <span class="summary-stat-icon">🎯</span>
+                    <div>
+                        <div class="summary-stat-value" id="summaryActiveModules">0 / 8</div>
+                        <div class="summary-stat-label">Kipróbált modul</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Matematika -->
         <div class="category matematika">
-            <h2>🦄 Matematika</h2>
+            <h2>
+                <span>🦄 Matematika</span>
+                <span class="category-stars-pill" id="cat-stars-math">⭐ 0</span>
+            </h2>
             <div class="links-grid">
                 <a href="./szorzas-bennfoglalas.html" class="app-btn">
                     <span>Varázslatos Szorzótábla és Bennfoglaló</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-szorzas">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
                 <a href="./szorzo-felmero.html" class="app-btn">
                     <span>⏱️ Szorzótábla és Bennfoglalás Felmérő (200-as Tudástérkép)</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge green" id="badge-felmero">🟢 0/200</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
                 <a href="./ketjegyu-osszeadas-kivonas.html" class="app-btn">
                     <span>Kétjegyű számok összeadása és kivonása</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-ketjegyu">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
             </div>
         </div>
 
         <!-- Digitális kultúra -->
         <div class="category">
-            <h2>💻 Digitális kultúra</h2>
+            <h2>
+                <span>💻 Digitális kultúra</span>
+                <span class="category-stars-pill" id="cat-stars-digital">⭐ 0</span>
+            </h2>
             <div class="links-grid">
                 <a href="./pcreszek.html" class="app-btn">
                     <span>A számítógép részei és teremrend</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-pcreszek">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
             </div>
         </div>
 
         <!-- Környezetismeret -->
         <div class="category kornyezet">
-            <h2>🌱 Környezetismeret</h2>
+            <h2>
+                <span>🌱 Környezetismeret</span>
+                <span class="category-stars-pill" id="cat-stars-nature">⭐ 0</span>
+            </h2>
             <div class="links-grid">
                 <a href="./szilard-anyagok.html" class="app-btn">
                     <span>Szilárd anyagok világa</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-szilard">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
                 <a href="./suruseg.html" class="app-btn">
                     <span>Folyadékok világa</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-vizlabor">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
                 <a href="./legnemu-anyagok.html" class="app-btn">
                     <span>Légnemű anyagok világa</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-legnemu">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
                 <a href="./folyadekok.html" class="app-btn">
                     <span>Sűrűség és kísérletek</span>
-                    <span class="icon">👉</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-suruseg">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
                 </a>
             </div>
         </div>
     </div>
 
-    <footer>
+    <footer style="margin-top:auto;color:#475569;font-size:0.9rem;font-weight:700;padding:20px;">
         Jó tanulást és jó szórakozást kíván apa! ❤️
     </footer>
 
+    <!-- ================================================================== -->
+    <!-- 1. ELSŐ MEGNYITÁSOS ONBOARDING ÉS SÜTI-JÓVÁHAGYÓ ABLAK             -->
+    <!-- ================================================================== -->
+    <div id="onboardingModal" class="laura-modal-backdrop hidden">
+        <div class="laura-modal-card">
+            <div style="text-align:center;margin-bottom:14px;">
+                <div style="font-size:2.8rem;line-height:1;">🌟</div>
+                <h2 style="margin:8px 0 4px 0;font-size:1.45rem;font-weight:900;color:#0f172a;">
+                    Üdvözöllek a Tanulósarokban!
+                </h2>
+                <p style="margin:0;font-size:0.9rem;color:#475569;font-weight:600;">
+                    Állítsuk be gyorsan a nevedet és a kedvenc színvilágodat!
+                </p>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:0.85rem;font-weight:900;color:#334155;margin-bottom:6px;">
+                    👤 Hogy hívják a gyerkőcöt, aki játszik?
+                </label>
+                <input type="text" id="onboardNameInput" class="laura-input" placeholder="Pl. Laura" value="Laura" maxlength="25">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:0.85rem;font-weight:900;color:#334155;margin-bottom:6px;">
+                    🎨 Milyen színvilágot szeretnél?
+                </label>
+                <div class="theme-selector-grid">
+                    <div class="theme-choice-card active" data-theme-choice="girly" onclick="previewThemeChoice('girly')">
+                        <div class="theme-swatch girly"></div>
+                        <div>🌸 Lányos</div>
+                    </div>
+                    <div class="theme-choice-card" data-theme-choice="boyish" onclick="previewThemeChoice('boyish')">
+                        <div class="theme-swatch boyish"></div>
+                        <div>🚀 Fiús</div>
+                    </div>
+                    <div class="theme-choice-card" data-theme-choice="neutral" onclick="previewThemeChoice('neutral')">
+                        <div class="theme-swatch neutral"></div>
+                        <div>🌿 Semleges</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opcionális: Felhőkód megadása rögtön első belépéskor -->
+            <div style="margin-bottom:16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 12px;">
+                <label style="display:block;font-size:0.8rem;font-weight:800;color:#475569;margin-bottom:4px;">
+                    ☁️ Családi Varázskód (opcionális – ha több eszközön játszotok):
+                </label>
+                <input type="text" id="onboardCloudInput" class="laura-input" style="padding:8px 12px;font-size:0.9rem;" placeholder="Pl. laura2026 (üresen is hagyhatod)">
+            </div>
+
+            <!-- Süti (Cookie) és helyi tárhely tájékoztató -->
+            <div style="margin-bottom:18px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:10px 12px;font-size:0.78rem;color:#78350f;font-weight:700;line-height:1.4;">
+                🍪 <strong>Süti (Cookie) és mentés tájékoztató:</strong> Az alkalmazás sütiket és helyi tárhelyet (localStorage) használ, hogy megjegyezze a nevedet, a választott színvilágot és az összegyűjtött csillagokat a következő belépésig. Reklám- vagy követősütiket nem használunk.
+            </div>
+
+            <button onclick="completeOnboarding()" class="laura-primary-btn">
+                🌟 Elfogadom és indulhat a játék!
+            </button>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- 2. BEÁLLÍTÁSOK ÉS FELHŐ-SZINKRON MODÁLIS ABLAK                     -->
+    <!-- ================================================================== -->
+    <div id="settingsModal" class="laura-modal-backdrop hidden" onclick="if(event.target===this) closeSettingsModal()">
+        <div class="laura-modal-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <h2 style="margin:0;font-size:1.3rem;font-weight:900;color:#0f172a;display:flex;align-items:center;gap:8px;">
+                    <span>⚙️</span>
+                    <span>Beállítások & Felhő-mentés</span>
+                </h2>
+                <button onclick="closeSettingsModal()" class="laura-secondary-btn" style="padding:6px 12px;">✕</button>
+            </div>
+
+            <!-- 1. Gyerek neve -->
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:0.85rem;font-weight:900;color:#334155;margin-bottom:6px;">
+                    👤 Játékos neve:
+                </label>
+                <input type="text" id="settingsNameInput" class="laura-input" placeholder="Pl. Laura" maxlength="25">
+            </div>
+
+            <!-- 2. Színvilág -->
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-size:0.85rem;font-weight:900;color:#334155;margin-bottom:6px;">
+                    🎨 Színvilág kiválasztása:
+                </label>
+                <div class="theme-selector-grid">
+                    <div class="theme-choice-card" data-theme-choice="girly" onclick="previewThemeChoice('girly')">
+                        <div class="theme-swatch girly"></div>
+                        <div>🌸 Lányos</div>
+                    </div>
+                    <div class="theme-choice-card" data-theme-choice="boyish" onclick="previewThemeChoice('boyish')">
+                        <div class="theme-swatch boyish"></div>
+                        <div>🚀 Fiús</div>
+                    </div>
+                    <div class="theme-choice-card" data-theme-choice="neutral" onclick="previewThemeChoice('neutral')">
+                        <div class="theme-swatch neutral"></div>
+                        <div>🌿 Semleges</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Felhő-szinkron Családi Varázskóddal -->
+            <div style="margin-bottom:18px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:18px;padding:14px;">
+                <div style="font-size:0.9rem;font-weight:900;color:#1e293b;margin-bottom:4px;">
+                    ☁️ 1. Automatikus Felhő-szinkron (Családi Varázskód)
+                </div>
+                <p style="margin:0 0 10px 0;font-size:0.78rem;color:#64748b;font-weight:600;">
+                    Adj meg egy saját titkos szót (pl. <code>laura2026</code>). Ha egy másik telefonon vagy gépen is ugyanezt írod be, a csillagok automatikusan összeszinkronizálódnak!
+                </p>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="settingsCloudInput" class="laura-input" style="padding:9px 12px;font-size:0.92rem;" placeholder="Pl. laura2026">
+                    <button onclick="triggerManualCloudSync()" class="laura-secondary-btn" style="white-space:nowrap;background:var(--primary-soft);border-color:var(--primary-border);color:var(--primary-strong);">
+                        🔄 Szinkron
+                    </button>
+                </div>
+                <div id="cloudSyncStatusMsg" style="margin-top:6px;font-size:0.78rem;font-weight:800;color:#059669;display:none;"></div>
+            </div>
+
+            <!-- 4. 1-kattintásos Varázs-link és QR-kód -->
+            <div style="margin-bottom:18px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:18px;padding:14px;">
+                <div style="font-size:0.9rem;font-weight:900;color:#1e293b;margin-bottom:4px;">
+                    📲 2. Azonnali átküldés Varázs-linkkel vagy QR-kóddal
+                </div>
+                <p style="margin:0 0 10px 0;font-size:0.78rem;color:#64748b;font-weight:600;">
+                    Küldd át a linket vagy olvasd be a QR-kódot a másik telefon kamerájával, és minden csillag + a 200-as felmérő azonnal átmásolódik!
+                </p>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <button onclick="copyOrShareMagicLink()" class="laura-secondary-btn" style="flex:1;">
+                        🔗 Varázs-link másolása / küldése
+                    </button>
+                    <button onclick="toggleQrCodePreview()" class="laura-secondary-btn" style="flex:1;">
+                        📷 QR-kód mutatása
+                    </button>
+                </div>
+                <div id="qrCodePreviewBox" style="display:none;text-align:center;margin-top:12px;padding:12px;background:white;border-radius:14px;border:1px solid #e2e8f0;">
+                    <img id="qrCodeImg" alt="Szinkron QR-kód" style="width:180px;height:180px;margin:0 auto;display:block;border-radius:8px;">
+                    <div style="font-size:0.74rem;font-weight:700;color:#64748b;margin-top:6px;">
+                        Olvasd be a másik telefon kamerájával!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mentés és Nullázás gombok -->
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button onclick="saveSettingsFromModal()" class="laura-primary-btn">
+                    💾 Beállítások mentése
+                </button>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;">
+                    <span id="cookieConsentStatusText" style="font-size:0.75rem;color:#64748b;font-weight:700;">
+                        🍪 Sütik engedélyezve
+                    </span>
+                    <button onclick="confirmResetAllStars()" style="background:none;border:none;color:#e11d48;font-size:0.78rem;font-weight:800;cursor:pointer;text-decoration:underline;">
+                        🗑️ Összes csillag nullázása
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- 3. SÜTI (COOKIE) JÓVÁHAGYÓ SÁV (ha még nem fogadta el)             -->
+    <!-- ================================================================== -->
+    <div id="cookieConsentBar" class="cookie-consent-bar hidden">
+        <div style="font-size:0.84rem;font-weight:700;line-height:1.35;">
+            🍪 Ez az oldal sütiket és helyi memóriát használ, hogy megőrizze a nevedet, a színvilágot és az összegyűjtött csillagokat.
+        </div>
+        <button onclick="acceptCookieBar()" style="background:#10b981;color:white;border:none;padding:9px 18px;border-radius:12px;font-weight:900;font-size:0.86rem;cursor:pointer;white-space:nowrap;">
+            Elfogadom ✔️
+        </button>
+    </div>
+
     <script>
+        let selectedThemeDraft = 'girly';
+
+        function updateHomeSummaryUI() {
+            if (!window.LauraApp) return;
+            const profile = LauraApp.getProfile();
+            const totalStars = LauraApp.getTotalStars();
+            const felmeroStats = LauraApp.getFelmeroStats();
+
+            document.getElementById('summaryTotalStars').textContent = totalStars;
+            document.getElementById('summaryFelmeroCount').textContent = `${felmeroStats.mastered} / 200`;
+
+            const pill = document.getElementById('summaryCloudPill');
+            if (profile.cloudCode) {
+                pill.textContent = `☁️ Kód: ${profile.cloudCode}`;
+            } else {
+                pill.textContent = `☁️ Felhő & Eszközszinkron`;
+            }
+
+            // Lecke-jelvények frissítése
+            const lessonIds = ['szorzas', 'ketjegyu', 'pcreszek', 'szilard', 'vizlabor', 'legnemu', 'suruseg'];
+            let activeModules = felmeroStats.tested > 0 ? 1 : 0;
+
+            lessonIds.forEach(id => {
+                const s = LauraApp.getStars(id);
+                if (s > 0) activeModules++;
+                const el = document.getElementById(`badge-${id}`);
+                if (el) {
+                    el.textContent = `⭐ ${s}`;
+                    el.className = s > 0 ? 'lesson-star-badge' : 'lesson-star-badge empty';
+                }
+            });
+
+            const felmeroBadge = document.getElementById('badge-felmero');
+            if (felmeroBadge) {
+                felmeroBadge.textContent = `🟢 ${felmeroStats.mastered}/200`;
+                felmeroBadge.className = felmeroStats.mastered > 0 ? 'lesson-star-badge green' : 'lesson-star-badge empty';
+            }
+
+            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 8`;
+
+            // Kategória összesítők
+            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('ketjegyu');
+            const digiStars = LauraApp.getStars('pcreszek');
+            const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg');
+
+            document.getElementById('cat-stars-math').textContent = `⭐ ${mathStars}`;
+            document.getElementById('cat-stars-digital').textContent = `⭐ ${digiStars}`;
+            document.getElementById('cat-stars-nature').textContent = `⭐ ${natureStars}`;
+        }
+
+        function previewThemeChoice(theme) {
+            selectedThemeDraft = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            document.querySelectorAll('[data-theme-choice]').forEach(card => {
+                if (card.getAttribute('data-theme-choice') === theme) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+
+        function completeOnboarding() {
+            const nameVal = document.getElementById('onboardNameInput').value.trim() || 'Laura';
+            const cloudVal = document.getElementById('onboardCloudInput').value.trim();
+
+            LauraApp.updateProfile({
+                childName: nameVal,
+                theme: selectedThemeDraft,
+                cloudCode: cloudVal,
+                onboardingDone: true,
+                cookieConsent: true
+            });
+
+            document.getElementById('onboardingModal').classList.add('hidden');
+            document.getElementById('cookieConsentBar').classList.add('hidden');
+
+            if (cloudVal) {
+                LauraApp.syncWithCloud('both').then(res => {
+                    updateHomeSummaryUI();
+                    if (res.ok) LauraApp.showToast(res.message);
+                });
+            } else {
+                updateHomeSummaryUI();
+                LauraApp.showToast(`Üdv itt, ${nameVal}! Jó játékot! 🌟`);
+            }
+        }
+
+        function openSettingsModal() {
+            const profile = LauraApp.getProfile();
+            selectedThemeDraft = profile.theme || 'girly';
+            document.getElementById('settingsNameInput').value = profile.childName || 'Laura';
+            document.getElementById('settingsCloudInput').value = profile.cloudCode || '';
+            document.getElementById('qrCodePreviewBox').style.display = 'none';
+            document.getElementById('cloudSyncStatusMsg').style.display = 'none';
+            previewThemeChoice(selectedThemeDraft);
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            // Ha nem mentett, visszaállítjuk az eredeti témát
+            const profile = LauraApp.getProfile();
+            document.documentElement.setAttribute('data-theme', profile.theme || 'girly');
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function saveSettingsFromModal() {
+            const nameVal = document.getElementById('settingsNameInput').value.trim() || 'Laura';
+            const cloudVal = document.getElementById('settingsCloudInput').value.trim();
+
+            LauraApp.updateProfile({
+                childName: nameVal,
+                theme: selectedThemeDraft,
+                cloudCode: cloudVal,
+                onboardingDone: true,
+                cookieConsent: true
+            });
+
+            document.getElementById('settingsModal').classList.add('hidden');
+            updateHomeSummaryUI();
+            LauraApp.showToast('💾 Beállítások elmentve!');
+        }
+
+        async function triggerManualCloudSync() {
+            const cloudVal = document.getElementById('settingsCloudInput').value.trim();
+            const statusEl = document.getElementById('cloudSyncStatusMsg');
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#475569';
+            statusEl.textContent = '⏳ Szinkronizálás a felhővel...';
+
+            LauraApp.updateProfile({
+                cloudCode: cloudVal,
+                cookieConsent: true
+            });
+
+            const res = await LauraApp.syncWithCloud('both');
+            statusEl.style.color = res.ok ? '#059669' : '#d97706';
+            statusEl.textContent = res.message;
+            updateHomeSummaryUI();
+        }
+
+        async function copyOrShareMagicLink() {
+            const url = LauraApp.getMagicSyncUrl();
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `${LauraApp.getProfile().childName} Tanulósarka – Csillag szinkron`,
+                        text: 'Nyisd meg ezt a Varázs-linket a csillagok és a 200-as felmérő áttöltéséhez!',
+                        url: url
+                    });
+                    return;
+                } catch (e) {}
+            }
+            try {
+                await navigator.clipboard.writeText(url);
+                LauraApp.showToast('🔗 Varázs-link a vágólapra másolva! Küldd át a másik eszközre!');
+            } catch (e) {
+                prompt('Másold ki ezt a Varázs-linket:', url);
+            }
+        }
+
+        function toggleQrCodePreview() {
+            const box = document.getElementById('qrCodePreviewBox');
+            const img = document.getElementById('qrCodeImg');
+            if (box.style.display === 'none') {
+                const magicUrl = LauraApp.getMagicSyncUrl();
+                img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(magicUrl)}`;
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function confirmResetAllStars() {
+            if (confirm('Biztosan szeretnéd nullázni az összes eddig összegyűjtött csillagot és a 200-as felmérőt?')) {
+                LauraApp.resetAllStars();
+                updateHomeSummaryUI();
+                LauraApp.showToast('🗑️ Minden csillag nullázva lett.');
+            }
+        }
+
+        function acceptCookieBar() {
+            LauraApp.acceptCookies();
+            document.getElementById('cookieConsentBar').classList.add('hidden');
+            LauraApp.showToast('🍪 Sütik és helyi mentés engedélyezve!');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const profile = LauraApp.getProfile();
+            selectedThemeDraft = profile.theme || 'girly';
+            previewThemeChoice(selectedThemeDraft);
+            updateHomeSummaryUI();
+
+            if (!profile.onboardingDone) {
+                document.getElementById('onboardNameInput').value = profile.childName || 'Laura';
+                document.getElementById('onboardingModal').classList.remove('hidden');
+            } else if (!profile.cookieConsent) {
+                document.getElementById('cookieConsentBar').classList.remove('hidden');
+            }
+
+            LauraApp.onUpdate(() => {
+                updateHomeSummaryUI();
+            });
+        });
+
+        // Oldalra való visszalépéskor (bfcache) is frissítjük a csillagokat
+        window.addEventListener('pageshow', () => {
+            updateHomeSummaryUI();
+        });
+
         // Service Worker regisztrálása és automatikus frissítés új verzió esetén
         if ('serviceWorker' in navigator) {
             let refreshing = false;
