@@ -222,13 +222,19 @@
                 </div>
             </div>
 
-            <!-- Süti (Cookie) és helyi tárhely tájékoztató -->
-            <div style="margin-bottom:18px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:10px 12px;font-size:0.78rem;color:#78350f;font-weight:700;line-height:1.4;">
-                🍪 <strong>Süti (Cookie) és mentés tájékoztató:</strong> Az alkalmazás sütiket és helyi tárhelyet (localStorage) használ, hogy megjegyezze a nevedet, a választott színvilágot és az összegyűjtött csillagokat a következő belépésig. Reklám- vagy követősütiket nem használunk.
+            <!-- Kötelezően kipipálandó Süti (Cookie) és Adatkezelési Tájékoztató -->
+            <label id="onboardCookieBoxLabel" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:14px;background:#fffbeb;border:2px solid #f59e0b;border-radius:14px;padding:12px;">
+                <input type="checkbox" id="onboardCookieCheckbox" style="width:20px;height:20px;margin-top:2px;accent-color:#d97706;flex-shrink:0;" onchange="document.getElementById('onboardCookieError').style.display='none'">
+                <span style="font-size:0.79rem;color:#78350f;font-weight:700;line-height:1.4;">
+                    🍪 <strong>Elfogadom a süti (cookie) és adatkezelési tájékoztatót:</strong> Hozzájárulok, hogy az alkalmazás sütiket, helyi memóriát (localStorage) és Firebase felhő-szinkront használjon a név, a választott színvilág és az összegyűjtött csillagok megőrzéséhez. (Reklám- vagy követősütiket nem használunk.)
+                </span>
+            </label>
+            <div id="onboardCookieError" style="display:none;margin-bottom:12px;padding:8px 12px;border-radius:10px;background:#ffe4e6;border:1.5px solid #f43f5e;color:#be123c;font-size:0.8rem;font-weight:800;text-align:center;">
+                ⚠️ Kérlek pipáld be a süti és adatkezelési tájékoztató elfogadását a továbblépéshez!
             </div>
 
             <button onclick="completeOnboarding()" class="laura-primary-btn">
-                🌟 Elfogadom és indulhat a játék!
+                🌟 Indulhat a játék!
             </button>
         </div>
     </div>
@@ -412,6 +418,13 @@
         }
 
         function completeOnboarding() {
+            const cookieChecked = document.getElementById('onboardCookieCheckbox').checked;
+            if (!cookieChecked) {
+                const errEl = document.getElementById('onboardCookieError');
+                errEl.style.display = 'block';
+                return;
+            }
+
             const nameVal = document.getElementById('onboardNameInput').value.trim() || 'Laura';
             const cloudVal = document.getElementById('onboardCloudInput').value.trim();
 
@@ -444,6 +457,12 @@
             document.getElementById('settingsCloudInput').value = profile.cloudCode || '';
             document.getElementById('qrCodePreviewBox').style.display = 'none';
             document.getElementById('cloudSyncStatusMsg').style.display = 'none';
+            const statusText = document.getElementById('cookieConsentStatusText');
+            if (statusText) {
+                statusText.textContent = profile.cookieConsent
+                    ? '🍪 Sütik és adatkezelés: Elfogadva ✔️'
+                    : '🍪 Sütik: Még nincs elfogadva (kattints lent az Elfogadom gombra)';
+            }
             previewThemeChoice(selectedThemeDraft);
             document.getElementById('settingsModal').classList.remove('hidden');
         }
@@ -463,8 +482,7 @@
                 childName: nameVal,
                 theme: selectedThemeDraft,
                 cloudCode: cloudVal,
-                onboardingDone: true,
-                cookieConsent: true
+                onboardingDone: true
             });
 
             document.getElementById('settingsModal').classList.add('hidden');
@@ -480,8 +498,7 @@
             statusEl.textContent = '⏳ Szinkronizálás a felhővel...';
 
             LauraApp.updateProfile({
-                cloudCode: cloudVal,
-                cookieConsent: true
+                cloudCode: cloudVal
             });
 
             const res = await LauraApp.syncWithCloud('both');

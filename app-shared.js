@@ -46,7 +46,7 @@
             childName: 'Laura',
             theme: 'girly', // 'girly' | 'boyish' | 'neutral'
             onboardingDone: false,
-            cookieConsent: false,
+            cookieConsentExplicit: false,
             cloudCode: generateRandomCloudCode(),
             stars: {
                 szorzas: 0,
@@ -77,7 +77,7 @@
     }
 
     function writeCookie(name, val) {
-        if (!state.cookieConsent) return;
+        if (!state.cookieConsentExplicit) return;
         try {
             document.cookie = `${name}=${encodeURIComponent(val)}; max-age=31536000; path=/; SameSite=Lax`;
         } catch (e) {}
@@ -185,7 +185,7 @@
             }
 
             localStorage.setItem(FELMERO_KEY, JSON.stringify(parsed));
-            if (state.cookieConsent) {
+            if (state.cookieConsentExplicit) {
                 writeCookie(FELMERO_COOKIE, compactStr);
             }
         } catch (e) {}
@@ -243,12 +243,12 @@
             localStorage.setItem(SZORZO_STARS_KEY, String(state.stars.szorzas || 0));
         } catch (e) {}
 
-        if (state.cookieConsent) {
+        if (state.cookieConsentExplicit) {
             writeCookie(COOKIE_KEY, JSON.stringify({
                 childName: state.childName,
                 theme: state.theme,
                 onboardingDone: state.onboardingDone,
-                cookieConsent: state.cookieConsent,
+                cookieConsentExplicit: state.cookieConsentExplicit,
                 cloudCode: state.cloudCode,
                 stars: state.stars
             }));
@@ -541,9 +541,40 @@
     // Automatikus inicializálás
     loadState();
 
+    function ensureGlobalCookieBanner() {
+        if (state.cookieConsentExplicit) return;
+        // Ha az index.html-en az onboarding modal nyitva van, ott a beépített pipával fogadja el
+        const onboardEl = document.getElementById('onboardingModal');
+        if (onboardEl && !onboardEl.classList.contains('hidden')) return;
+
+        let bar = document.getElementById('cookieConsentBar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'cookieConsentBar';
+            bar.className = 'cookie-consent-bar';
+            bar.innerHTML = `
+                <div style="font-size:0.84rem;font-weight:700;line-height:1.35;">
+                    🍪 <strong>Adatkezelési és Süti (Cookie) tájékoztató:</strong> Az alkalmazás sütiket, helyi memóriát és (varázskód esetén) Firebase felhő-adatbázist használ a neved, a színvilág és a csillagok megőrzéséhez.
+                </div>
+                <button id="globalAcceptCookieBtn" style="background:#10b981;color:white;border:none;padding:9px 18px;border-radius:12px;font-weight:900;font-size:0.86rem;cursor:pointer;white-space:nowrap;">
+                    Elfogadom ✔️
+                </button>
+            `;
+            document.body.appendChild(bar);
+            document.getElementById('globalAcceptCookieBtn').addEventListener('click', () => {
+                window.LauraApp.acceptCookies();
+                bar.classList.add('hidden');
+                showToast('🍪 Adatkezelési tájékoztató és sütik elfogadva!');
+            });
+        } else {
+            bar.classList.remove('hidden');
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         checkUrlSyncParam();
         applyProfileToDOM();
+        setTimeout(ensureGlobalCookieBanner, 150);
         if (state.cloudCode) {
             syncWithCloud('both').then(() => notifyListeners());
         }
@@ -556,7 +587,7 @@
             childName: state.childName,
             theme: state.theme,
             onboardingDone: state.onboardingDone,
-            cookieConsent: state.cookieConsent,
+            cookieConsent: !!state.cookieConsentExplicit,
             cloudCode: state.cloudCode
         }),
         updateProfile: (updates) => {
@@ -570,7 +601,7 @@
                 state.onboardingDone = updates.onboardingDone;
             }
             if (typeof updates.cookieConsent === 'boolean') {
-                state.cookieConsent = updates.cookieConsent;
+                state.cookieConsentExplicit = updates.cookieConsent;
             }
             if (typeof updates.cloudCode === 'string') {
                 state.cloudCode = normalizeCloudKey(updates.cloudCode);
@@ -579,10 +610,12 @@
             applyProfileToDOM();
             notifyListeners();
         },
-        hasCookieConsent: () => !!state.cookieConsent,
+        hasCookieConsent: () => !!state.cookieConsentExplicit,
         acceptCookies: () => {
-            state.cookieConsent = true;
+            state.cookieConsentExplicit = true;
             saveState();
+            const bar = document.getElementById('cookieConsentBar');
+            if (bar) bar.classList.add('hidden');
             notifyListeners();
         },
         getStars,
