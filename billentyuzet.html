@@ -288,7 +288,7 @@
 
                 <!-- SZÍNES MAGYAR QWERTZ BILLENTYŰZET (Pontosan a füzet elrendezésével és színeivel) -->
                 <div class="overflow-x-auto pb-2">
-                    <div id="studyKeyboardMount" class="min-w-[740px]"></div>
+                    <div id="studyKeyboardMount" class="min-w-[870px]"></div>
                 </div>
                 <p class="text-[11px] font-bold text-slate-400 text-center mt-1 sm:hidden">
                     📱 Telefonon húzd oldalra a billentyűzetet, ha a jobb oldali számokat is látni szeretnéd!
@@ -340,7 +340,7 @@
 
                 <!-- Játék billentyűzet -->
                 <div class="overflow-x-auto pb-2">
-                    <div id="findKeyboardMount" class="min-w-[740px]"></div>
+                    <div id="findKeyboardMount" class="min-w-[870px]"></div>
                 </div>
             </div>
         </section>
@@ -665,10 +665,10 @@
 
             return `
                 <div class="kb-board">
-                    <div class="flex gap-3 items-stretch">
+                    <div class="flex gap-3.5 items-stretch">
 
                         <!-- BAL FŐ BLOKK (Esc, F1-F12, Írógép, Shift, CapsLock, Backspace, Enter, Space) -->
-                        <div class="flex-1 space-y-1.5">
+                        <div class="w-[530px] shrink-0 space-y-1.5">
                             <!-- 1. Sor: Esc + F1..F12 -->
                             <div class="flex items-center justify-between gap-2 mb-2">
                                 <div ${clickAttr('esc', 'Esc')} class="kb-key kb-esc w-11">Esc</div>
@@ -680,7 +680,7 @@
                             <!-- 2. Sor: 0..Ó + BackSpace -->
                             <div class="flex gap-1">
                                 ${numRowKeys}
-                                <div ${clickAttr('backspace', 'BackSpace')} class="kb-key kb-special-blue flex-1 min-w-[54px]" title="BackSpace / törlés balra">
+                                <div ${clickAttr('backspace', 'BackSpace')} class="kb-key kb-special-blue flex-1 min-w-[62px]" title="BackSpace / törlés balra">
                                     <span>←</span>
                                     <span class="text-[9px] font-bold">BackSpace</span>
                                 </div>
@@ -728,40 +728,40 @@
                         </div>
 
                         <!-- KÖZÉPSŐ BLOKK (Navigáció + Zöld Kurzor billentyűk) -->
-                        <div class="w-28 flex flex-col justify-between">
+                        <div class="w-[126px] shrink-0 flex flex-col justify-between">
                             <div class="space-y-1.5">
                                 <div class="grid grid-cols-3 gap-1 mb-2">
-                                    <div class="kb-key kb-nav">PrtSc</div>
-                                    <div class="kb-key kb-nav">ScrLk</div>
-                                    <div class="kb-key kb-nav">Pause</div>
+                                    <div class="kb-key kb-nav w-full leading-none">Print<br>Scrn</div>
+                                    <div class="kb-key kb-nav w-full leading-none">Scroll<br>Lock</div>
+                                    <div class="kb-key kb-nav w-full leading-none">Pause<br>Break</div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-1">
-                                    <div class="kb-key kb-nav">Ins</div>
-                                    <div class="kb-key kb-nav">Home</div>
-                                    <div class="kb-key kb-nav">PgUp</div>
-                                    <div class="kb-key kb-nav">Del</div>
-                                    <div class="kb-key kb-nav">End</div>
-                                    <div class="kb-key kb-nav">PgDn</div>
+                                    <div class="kb-key kb-nav w-full">Insert</div>
+                                    <div class="kb-key kb-nav w-full">Home</div>
+                                    <div class="kb-key kb-nav w-full leading-none">Page<br>Up</div>
+                                    <div class="kb-key kb-nav w-full">Delete</div>
+                                    <div class="kb-key kb-nav w-full">End</div>
+                                    <div class="kb-key kb-nav w-full leading-none">Page<br>Down</div>
                                 </div>
                             </div>
 
                             <!-- Zöld Kurzor nyilak alul -->
-                            <div class="space-y-1 pt-2">
+                            <div class="space-y-1.5 pt-2">
                                 <div class="grid grid-cols-3 gap-1">
                                     <div></div>
-                                    <div ${clickAttr('cursor', 'Kurzor Fel ↑')} class="kb-key kb-cursor text-xs">▲</div>
+                                    <div ${clickAttr('cursor', 'Kurzor Fel ↑')} class="kb-key kb-cursor w-full text-xs">▲</div>
                                     <div></div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-1">
-                                    <div ${clickAttr('cursor', 'Kurzor Balra ←')} class="kb-key kb-cursor text-xs">◀</div>
-                                    <div ${clickAttr('cursor', 'Kurzor Le ↓')} class="kb-key kb-cursor text-xs">▼</div>
-                                    <div ${clickAttr('cursor', 'Kurzor Jobbra →')} class="kb-key kb-cursor text-xs">▶</div>
+                                    <div ${clickAttr('cursor', 'Kurzor Balra ←')} class="kb-key kb-cursor w-full text-xs">◀</div>
+                                    <div ${clickAttr('cursor', 'Kurzor Le ↓')} class="kb-key kb-cursor w-full text-xs">▼</div>
+                                    <div ${clickAttr('cursor', 'Kurzor Jobbra →')} class="kb-key kb-cursor w-full text-xs">▶</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- JOBB BLOKK: LILA SZÁMOK (NUMERIKUS BILLENTYŰZET) -->
-                        <div class="w-36 flex flex-col justify-between">
+                        <div class="w-[152px] shrink-0 flex flex-col justify-between">
                             <!-- 3 visszajelző LED lámpa -->
                             <div class="flex justify-around items-center h-9 bg-slate-300/70 rounded-lg px-2 mb-2 text-[9px] font-black text-slate-600">
                                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>Num</span>
@@ -771,27 +771,27 @@
 
                             <!-- Számológép gombok -->
                             <div class="grid grid-cols-4 gap-1 flex-1">
-                                <div ${clickAttr('numpad', 'Num Lock')} class="kb-key kb-numpad text-[9px]">Num</div>
-                                <div ${clickAttr('numpad', '/')} class="kb-key kb-numpad">/</div>
-                                <div ${clickAttr('numpad', '*')} class="kb-key kb-numpad">*</div>
-                                <div ${clickAttr('numpad', '-')} class="kb-key kb-numpad">-</div>
+                                <div ${clickAttr('numpad', 'Num Lock')} class="kb-key kb-numpad w-full text-[9px] leading-none">Num<br>Lock</div>
+                                <div ${clickAttr('numpad', '/')} class="kb-key kb-numpad w-full">/</div>
+                                <div ${clickAttr('numpad', '*')} class="kb-key kb-numpad w-full">*</div>
+                                <div ${clickAttr('numpad', '-')} class="kb-key kb-numpad w-full">-</div>
 
-                                <div ${clickAttr('numpad', '7')} class="kb-key kb-numpad">7</div>
-                                <div ${clickAttr('numpad', '8')} class="kb-key kb-numpad">8</div>
-                                <div ${clickAttr('numpad', '9')} class="kb-key kb-numpad">9</div>
-                                <div ${clickAttr('numpad', '+')} class="kb-key kb-numpad row-span-2">+</div>
+                                <div ${clickAttr('numpad', '7')} class="kb-key kb-numpad w-full">7</div>
+                                <div ${clickAttr('numpad', '8')} class="kb-key kb-numpad w-full">8</div>
+                                <div ${clickAttr('numpad', '9')} class="kb-key kb-numpad w-full">9</div>
+                                <div ${clickAttr('numpad', '+')} class="kb-key kb-numpad w-full row-span-2">+</div>
 
-                                <div ${clickAttr('numpad', '4')} class="kb-key kb-numpad">4</div>
-                                <div ${clickAttr('numpad', '5')} class="kb-key kb-numpad">5</div>
-                                <div ${clickAttr('numpad', '6')} class="kb-key kb-numpad">6</div>
+                                <div ${clickAttr('numpad', '4')} class="kb-key kb-numpad w-full">4</div>
+                                <div ${clickAttr('numpad', '5')} class="kb-key kb-numpad w-full">5</div>
+                                <div ${clickAttr('numpad', '6')} class="kb-key kb-numpad w-full">6</div>
 
-                                <div ${clickAttr('numpad', '1')} class="kb-key kb-numpad">1</div>
-                                <div ${clickAttr('numpad', '2')} class="kb-key kb-numpad">2</div>
-                                <div ${clickAttr('numpad', '3')} class="kb-key kb-numpad">3</div>
-                                <div ${clickAttr('enter', 'Enter')} class="kb-key kb-enter row-span-2 text-[10px]">Enter</div>
+                                <div ${clickAttr('numpad', '1')} class="kb-key kb-numpad w-full">1</div>
+                                <div ${clickAttr('numpad', '2')} class="kb-key kb-numpad w-full">2</div>
+                                <div ${clickAttr('numpad', '3')} class="kb-key kb-numpad w-full">3</div>
+                                <div ${clickAttr('enter', 'Enter')} class="kb-key kb-enter w-full row-span-2 text-[10px]">Enter</div>
 
-                                <div ${clickAttr('numpad', '0')} class="kb-key kb-numpad col-span-2">0</div>
-                                <div ${clickAttr('numpad', ',')} class="kb-key kb-numpad">,</div>
+                                <div ${clickAttr('numpad', '0')} class="kb-key kb-numpad w-full col-span-2">0</div>
+                                <div ${clickAttr('numpad', ',')} class="kb-key kb-numpad w-full">,</div>
                             </div>
                         </div>
 
