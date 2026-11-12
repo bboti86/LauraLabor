@@ -399,11 +399,11 @@
                     <!-- 1. sor: Esc, Számok, BackSpace -->
                     <div class="flex flex-wrap gap-1.5 justify-center">
                         <button onclick="simKey('ESC')" class="kb-key kb-esc px-3 py-2 text-xs sm:text-sm font-black">Esc (Kilépés)</button>
-                        <button onclick="simChar('1', '\'')" class="kb-key kb-typewriter px-2.5 py-2">1</button>
-                        <button onclick="simChar('2', '&quot;')" class="kb-key kb-typewriter px-2.5 py-2">2</button>
-                        <button onclick="simChar('3', '+')" class="kb-key kb-typewriter px-2.5 py-2">3</button>
-                        <button onclick="simChar('4', '!')" class="kb-key kb-typewriter px-2.5 py-2">4</button>
-                        <button onclick="simChar('5', '%')" class="kb-key kb-typewriter px-2.5 py-2">5</button>
+                        <button onclick="simChar('1', '\'')" class="kb-key kb-numpad px-2.5 py-2">1</button>
+                        <button onclick="simChar('2', '&quot;')" class="kb-key kb-numpad px-2.5 py-2">2</button>
+                        <button onclick="simChar('3', '+')" class="kb-key kb-numpad px-2.5 py-2">3</button>
+                        <button onclick="simChar('4', '!')" class="kb-key kb-numpad px-2.5 py-2">4</button>
+                        <button onclick="simChar('5', '%')" class="kb-key kb-numpad px-2.5 py-2">5</button>
                         <button onclick="simKey('BACKSPACE')" class="kb-key kb-special-blue px-3.5 py-2 text-xs sm:text-sm">← BackSpace (Törlés balra)</button>
                     </div>
 
@@ -588,10 +588,10 @@
             {
                 id: 'typewriter',
                 label: 'írógép billentyűk',
-                shortName: 'Betűk, számok, írásjelek',
+                shortName: 'Betűk és írásjelek',
                 icon: '🔤',
                 colorName: 'Középső nagy kék mező',
-                desc: 'Az **írógép billentyűk** adják a billentyűzet legnagyobb, középső részét. Itt találhatók a **betűk (A–Z)**, a **magyar ékezetes betűk (Ö, Ü, Ó, Ő, Ú, É, Á, Ű, Í)**, a felső **számsor (0–9)** és az **írásjelek (`.`, `,`, `-`)**.',
+                desc: 'Az **írógép billentyűk** adják a billentyűzet legnagyobb, középső részét. Itt találhatók a **betűk (A–Z)**, a **magyar ékezetes betűk (Ö, Ü, Ó, Ő, Ú, É, Á, Ű, Í)** és az **írásjelek (`.`, `,`, `-`)**.',
                 tip: '💡 A régi írógépekről kapta a nevét, mert ezekkel írjuk magát a szöveget.'
             },
             {
@@ -624,11 +624,11 @@
             {
                 id: 'numpad',
                 label: 'számok',
-                shortName: 'Numerikus (0–9)',
+                shortName: 'Számok (0–9)',
                 icon: '🔢',
-                colorName: 'Jobb oldali lila számológép-rész',
-                desc: 'A billentyűzet jobb szélén külön csoportban találhatók a **számok (numerikus billentyűzet)** – pont úgy elrendezve, mint egy számológépen! Itt gyorsan beírhatjuk a számokat (`0–9`) és a matematikai műveleteket (`+`, `-`, `*`, `/`). A **Num Lock** gombbal kapcsolható be.',
-                tip: '💡 A füzet ábráján lila színűek a jobb oldalon, mellettük pedig külön kis sárga Enter gomb is van!'
+                colorName: 'Lila számgombok: a betűk feletti sorban és a jobb oldali számológép-részen',
+                desc: 'A **számok (`0–9`)** két helyen is megtalálhatók a billentyűzeten: egyrészt **a betűk fölött és a funkcióbillentyűk alatt húzódó számsorban**, másrészt a **jobb szélen lévő számológép-elrendezésű (numerikus) blokkban**, ahol a műveleti jelek (`+`, `-`, `*`, `/`) és a **Num Lock** gomb is helyet kapott.',
+                tip: '💡 Mind a felső számsor (0–9), mind a jobb oldali számológép-rész lila színnel van jelölve!'
             }
         ];
 
@@ -647,9 +647,14 @@
             const fKeys2 = ['F5', 'F6', 'F7', 'F8'].map(k => `<div ${clickAttr('func', k)} class="kb-key kb-func w-8">${k}</div>`).join('');
             const fKeys3 = ['F9', 'F10', 'F11', 'F12'].map(k => `<div ${clickAttr('func', k)} class="kb-key kb-func w-8">${k}</div>`).join('');
 
-            // Számsor (magyar QWERTZ)
+            // Számsor (0-9 számok + Ö, Ü, Ó ékezetes betűk)
             const numRowKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Ö', 'Ü', 'Ó']
-                .map(k => `<div ${clickAttr('typewriter', k)} class="kb-key kb-typewriter w-8">${k}</div>`).join('');
+                .map(k => {
+                    const isDigit = /^[0-9]$/.test(k);
+                    const grp = isDigit ? 'numpad' : 'typewriter';
+                    const cls = isDigit ? 'kb-numpad' : 'kb-typewriter';
+                    return `<div ${clickAttr(grp, k)} class="kb-key ${cls} w-8">${k}</div>`;
+                }).join('');
 
             // QWERTZ sor
             const rowQ = ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ő', 'Ú']
@@ -1203,22 +1208,22 @@
             {
                 q: 'Mit tartalmaznak a középső nagy kék területen található „írógép billentyűk”?',
                 options: [
-                    'A betűket (A–Z, ékezetes betűk), a felső számsort és az írásjeleket',
+                    'A betűket (A–Z, ékezetes betűk) és az írásjeleket',
                     'Csak a számítógép bekapcsoló gombját',
                     'Csak a hangerőszabályzót'
                 ],
                 correct: 0,
-                exp: 'Az írógép billentyűkkel írjuk a szöveget: itt vannak a betűk, a felső számsor és az írásjelek.'
+                exp: 'Az írógép billentyűkkel írjuk a szöveget: itt vannak a betűk és az írásjelek.'
             },
             {
-                q: 'Hol található a számológép-elrendezésű „számok” (numerikus) billentyűzet-rész?',
+                q: 'Hol találhatók a „számok” (lila színű gombok) a billentyűzeten?',
                 options: [
-                    'A billentyűzet jobb szélén (a füzet ábráján lila színnel)',
+                    'Két helyen is: a betűk feletti számsorban (0–9) és a jobb szélen lévő számológép-részben',
                     'A bal felső sarokban az Esc helyén',
                     'A szóköz alatt'
                 ],
                 correct: 0,
-                exp: 'A jobb oldalon külön blokkban találhatók a számok (0–9) és a műveleti jelek (+, -, *, /).'
+                exp: 'Számokat (0–9) írhatunk a betűk feletti sorból (a funkcióbillentyűk alatt) és a jobb oldali numerikus blokkból is.'
             },
             {
                 q: 'Hogyan tudsz felkiáltójelet (!) vagy kérdőjelet (?) írni olyan billentyűről, amelynek a felső részén van a jel?',
