@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⌨️ A billentyűzet részei és használata – Digitális kultúra</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 14px 34px -10px rgba(30, 41, 59, 0.12);
+        }
+
+        /* Billentyűzet ház és gombok (a füzet színkódjai alapján!) */
+        .kb-board {
+            background: #e2e8f0;
+            border: 4px solid #cbd5e1;
+            border-bottom-width: 8px;
+            border-radius: 22px;
+            padding: 12px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+        }
+
+        .kb-key {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 3px 5px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 0.72rem;
+            line-height: 1.05;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.12s ease, filter 0.12s ease;
+            border: 1.5px solid rgba(15, 23, 42, 0.18);
+            border-bottom-width: 4px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .kb-key:hover {
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+        }
+
+        .kb-key:active, .kb-key.pressed {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+        }
+
+        /* Színkódok pontosan a füzetbeli ábra szerint */
+        /* 1. Esc / fehér-szürke */
+        .kb-esc {
+            background: #f8fafc;
+            color: #1e293b;
+            border-color: #94a3b8;
+        }
+        /* 2. Funkció billentyűk (narancs) */
+        .kb-func {
+            background: #ea8a47;
+            color: #1e293b;
+            border-color: #b45309;
+        }
+        /* 3-7. Írógép billentyűk, Shift, Caps Lock, Szóköz, Backspace (kékes-türkiz) */
+        .kb-typewriter {
+            background: #5b8fa8;
+            color: #0f172a;
+            border-color: #335c70;
+        }
+        .kb-special-blue {
+            background: #487b94;
+            color: #ffffff;
+            border-color: #294c5e;
+        }
+        /* 8. Enter / parancs (sárga) */
+        .kb-enter {
+            background: #d9cf6c;
+            color: #1e293b;
+            border-color: #a19532;
+        }
+        /* 9. Kurzor billentyűk (zöld) */
+        .kb-cursor {
+            background: #5e8f61;
+            color: #0f172a;
+            border-color: #3a5c3c;
+        }
+        /* 10. Számok / numerikus (lila) */
+        .kb-numpad {
+            background: #6c638b;
+            color: #ffffff;
+            border-color: #463f5e;
+        }
+        /* Egyéb gombok (Windows piros, Menü lila, Navigációs fehér) */
+        .kb-win {
+            background: #c86464;
+            color: #fff;
+            border-color: #8c3b3b;
+        }
+        .kb-menu {
+            background: #7c3aed;
+            color: #fff;
+            border-color: #5b21b6;
+        }
+        .kb-nav {
+            background: #f1f5f9;
+            color: #334155;
+            border-color: #94a3b8;
+            font-size: 0.62rem;
+        }
+
+        /* Kijelölt / keresett csoport villogása */
+        @keyframes pulseHighlight {
+            0%, 100% {
+                box-shadow: 0 0 0 3px #ef4444, 0 0 14px rgba(239, 68, 68, 0.75);
+                transform: scale(1.05);
+            }
+            50% {
+                box-shadow: 0 0 0 5px #f59e0b, 0 0 20px rgba(245, 158, 11, 0.9);
+                transform: scale(1.1);
+            }
+        }
+
+        .kb-highlight {
+            animation: pulseHighlight 1.1s infinite ease-in-out;
+            z-index: 20;
+            position: relative;
+        }
+
+        /* Füzet-stílusú piros keretes címkék */
+        .callout-pill {
+            border: 2.5px solid #dc2626;
+            background: #ffffff;
+            color: #0f172a;
+            border-radius: 14px;
+            padding: 6px 11px;
+            font-weight: 900;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.16s ease;
+            box-shadow: 0 3px 8px rgba(220, 38, 38, 0.12);
+        }
+        .callout-pill:hover {
+            transform: translateY(-2px);
+            background: #fef2f2;
+        }
+        .callout-pill.active {
+            background: #dc2626;
+            color: #ffffff;
+            box-shadow: 0 6px 14px rgba(220, 38, 38, 0.32);
+        }
+
+        @keyframes blinkCursor {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .text-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.25em;
+            background: #dc2626;
+            vertical-align: text-bottom;
+            animation: blinkCursor 0.9s infinite;
+            margin: 0 1px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <!-- FELSŐ FEJLÉC -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="./index.html" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm px-3 py-1.5 rounded-xl transition shadow-xs">
+                    <span>⬅️</span>
+                    <span>Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl sm:text-3xl">⌨️</span>
+                    <div>
+                        <h1 class="text-sm sm:text-xl font-black text-indigo-950 leading-tight">
+                            A billentyűzet részei és használata
+                        </h1>
+                        <p class="text-[11px] font-bold text-slate-500 hidden sm:block">
+                            3. osztályos Digitális kultúra • Interaktív billentyűzet és írógép-labor
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSound()" id="soundToggleBtn" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm" title="Hang be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-300 px-3 py-1 rounded-2xl shadow-xs">
+                    <span class="text-lg">⭐</span>
+                    <span id="starCount" class="font-black text-amber-700 text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FŐ FÜLEK -->
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 mt-4">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-indigo-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button onclick="switchTab('study')" id="tab-btn-study" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow">
+                <span>🔍</span> <span>1. Felfedező</span>
+            </button>
+            <button onclick="switchTab('find')" id="tab-btn-find" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-indigo-50">
+                <span>🎯</span> <span>2. Hol van a gombon?</span>
+            </button>
+            <button onclick="switchTab('typewriter')" id="tab-btn-typewriter" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-indigo-50">
+                <span>✍️</span> <span>3. Varázs-Írógép</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-indigo-50">
+                <span>🏆</span> <span>4. Kvíz (10)</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-3 sm:px-6 mt-5 space-y-6">
+
+        <!-- ===================================================== -->
+        <!-- 1. FÜL: INTERAKTÍV BILLENTYŰZET FELFEDEZŐ (FÜZET ÁBRA)-->
+        <!-- ===================================================== -->
+        <section id="view-study" class="space-y-5">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-rose-100 text-rose-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            📒 Pontosan a füzet ábrája alapján
+                        </span>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                            Kattints a piros címkékre vagy bármelyik billentyűre!
+                        </h2>
+                    </div>
+                    <div class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl" id="exploredProgressBadge">
+                        Felfedezve: 0 / 10 rész ✨
+                    </div>
+                </div>
+
+                <!-- A füzetben szereplő 10 piros keretes buborék -->
+                <div id="calloutButtonsBar" class="flex flex-wrap gap-2 mb-4"></div>
+
+                <!-- Magyarázó kártya a kiválasztott billentyűcsoporthoz -->
+                <div id="studyInfoBox" class="rounded-2xl p-4 border-2 border-indigo-200 bg-indigo-50/80 mb-5 transition-all">
+                    <div class="flex items-start gap-3">
+                        <div id="studyInfoIcon" class="text-3xl sm:text-4xl shrink-0">⌨️</div>
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 id="studyInfoTitle" class="text-base sm:text-lg font-black text-indigo-950">
+                                    Válassz egy billentyűcsoportot!
+                                </h3>
+                                <span id="studyInfoColorTag" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200">
+                                    10 fő rész
+                                </span>
+                            </div>
+                            <p id="studyInfoDesc" class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                                Kattints fent a piros keretes címkékre (vagy lent a színes billentyűzet gombjaira), és nézd meg, melyik mire való! Minden új rész felfedezéséért ⭐ csillag jár!
+                            </p>
+                            <div id="studyInfoTip" class="mt-2 text-xs font-extrabold text-indigo-800 bg-white/80 px-3 py-1.5 rounded-xl inline-block">
+                                💡 Tipp: Figyeld meg a színeket: narancs = funkció, kék = írógép, sárga = Enter, zöld = kurzor, lila = számok!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SZÍNES MAGYAR QWERTZ BILLENTYŰZET (Pontosan a füzet elrendezésével és színeivel) -->
+                <div class="overflow-x-auto pb-2">
+                    <div id="studyKeyboardMount" class="min-w-[740px]"></div>
+                </div>
+                <p class="text-[11px] font-bold text-slate-400 text-center mt-1 sm:hidden">
+                    📱 Telefonon húzd oldalra a billentyűzetet, ha a jobb oldali számokat is látni szeretnéd!
+                </p>
+            </div>
+
+            <!-- Összefoglaló puska táblázat a füzet címkéivel -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <h3 class="text-base sm:text-lg font-black text-slate-800 mb-3 flex items-center gap-2">
+                    <span>📖</span>
+                    <span>Füzet-puska: A 10 legfontosabb billentyű és csoport</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="cheatSheetGrid"></div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- 2. FÜL: HOL TALÁLHATÓ A BILLENTYŰZETEN? (JÁTÉK)       -->
+        <!-- ===================================================== -->
+        <section id="view-find" class="hidden space-y-5">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span class="text-xs font-black uppercase text-purple-700 bg-purple-100 px-3 py-1 rounded-full" id="findProgressText">
+                            1 / 10. feladat
+                        </span>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800 mt-1">
+                            Keresd meg és kattints rá a billentyűzeten!
+                        </h2>
+                    </div>
+                    <button onclick="startFindGame()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                        🔄 Új sorrend
+                    </button>
+                </div>
+
+                <!-- Kérdés doboz -->
+                <div class="bg-gradient-to-r from-rose-50 via-amber-50 to-indigo-50 border-2 border-rose-300 rounded-2xl p-4 text-center mb-4">
+                    <div class="text-xs font-extrabold text-slate-500 uppercase mb-1">Kattints erre a billentyűre vagy csoportra:</div>
+                    <div id="findTargetName" class="text-2xl sm:text-3xl font-black text-rose-700">
+                        Enter / parancs
+                    </div>
+                    <div id="findTargetHint" class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                        (Sárga színű nagy gomb: új sort kezd vagy végrehajtja a parancsot)
+                    </div>
+                </div>
+
+                <!-- Visszajelzés -->
+                <div id="findFeedback" class="hidden mb-4 p-3.5 rounded-2xl text-center font-black text-sm sm:text-base"></div>
+
+                <!-- Játék billentyűzet -->
+                <div class="overflow-x-auto pb-2">
+                    <div id="findKeyboardMount" class="min-w-[740px]"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- 3. FÜL: VARÁZS-ÍRÓGÉP SZIMULÁTOR KÜLDETÉSEKKEL        -->
+        <!-- ===================================================== -->
+        <section id="view-typewriter" class="hidden space-y-5">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-amber-100 text-amber-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            ✍️ Kipróbálható Szövegszerkesztő
+                        </span>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                            Próbáld ki élőben, hogyan működnek a billentyűk!
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-black">
+                        <span id="capsStatusPill" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200">
+                            Caps Lock: KI ⚪
+                        </span>
+                        <span id="shiftStatusPill" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200">
+                            Shift: KI ⚪
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Aktív Küldetés sáv -->
+                <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎯</span>
+                        <div>
+                            <div class="text-xs font-black text-emerald-800 uppercase" id="missionStepTitle">1 / 6. Mini-küldetés</div>
+                            <div class="text-sm sm:text-base font-black text-slate-800" id="missionInstruction">
+                                Kapcsold be a <strong>Caps Lock</strong> gombot (folyamatos nagybetű)!
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="skipMission()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs">
+                        Következő küldetés ⏭️
+                    </button>
+                </div>
+
+                <!-- Virtuális Monitor / Füzetlap, ahol a kurzor mozog -->
+                <div class="bg-slate-900 text-emerald-300 rounded-2xl p-4 border-4 border-slate-700 shadow-inner mb-4">
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold border-b border-slate-700 pb-2 mb-2">
+                        <span>🖥️ Szövegszerkesztő ablak (A piros csík a KURZOR!)</span>
+                        <span id="lastKeyPressedLabel" class="text-amber-300 font-black">Utolsó leütött gomb: –</span>
+                    </div>
+                    <div id="virtualScreenText" class="min-h-[76px] font-mono text-lg sm:text-2xl font-bold whitespace-pre-wrap break-words leading-relaxed text-white"></div>
+                </div>
+
+                <!-- Kompakt, mobilon is kényelmesen nyomkodható Varázs-Billentyűzet -->
+                <div class="bg-slate-200 p-3 rounded-2xl border-2 border-slate-300 space-y-2">
+                    <!-- 1. sor: Esc, Számok, BackSpace -->
+                    <div class="flex flex-wrap gap-1.5 justify-center">
+                        <button onclick="simKey('ESC')" class="kb-key kb-esc px-3 py-2 text-xs sm:text-sm font-black">Esc (Kilépés)</button>
+                        <button onclick="simChar('1', '\'')" class="kb-key kb-typewriter px-2.5 py-2">1</button>
+                        <button onclick="simChar('2', '&quot;')" class="kb-key kb-typewriter px-2.5 py-2">2</button>
+                        <button onclick="simChar('3', '+')" class="kb-key kb-typewriter px-2.5 py-2">3</button>
+                        <button onclick="simChar('4', '!')" class="kb-key kb-typewriter px-2.5 py-2">4</button>
+                        <button onclick="simChar('5', '%')" class="kb-key kb-typewriter px-2.5 py-2">5</button>
+                        <button onclick="simKey('BACKSPACE')" class="kb-key kb-special-blue px-3.5 py-2 text-xs sm:text-sm">← BackSpace (Törlés balra)</button>
+                    </div>
+
+                    <!-- 2. sor: Caps Lock + Betűk + Enter -->
+                    <div class="flex flex-wrap gap-1.5 justify-center">
+                        <button onclick="simKey('CAPSLOCK')" id="simCapsBtn" class="kb-key kb-special-blue px-3 py-2 text-xs sm:text-sm">Caps Lock (Folyamatos nagybetű)</button>
+                        <button onclick="simLetter('a')" class="kb-key kb-typewriter px-3 py-2 text-sm">A</button>
+                        <button onclick="simLetter('l')" class="kb-key kb-typewriter px-3 py-2 text-sm">L</button>
+                        <button onclick="simLetter('m')" class="kb-key kb-typewriter px-3 py-2 text-sm">M</button>
+                        <button onclick="simLetter('c')" class="kb-key kb-typewriter px-3 py-2 text-sm">C</button>
+                        <button onclick="simLetter('i')" class="kb-key kb-typewriter px-3 py-2 text-sm">I</button>
+                        <button onclick="simLetter('s')" class="kb-key kb-typewriter px-3 py-2 text-sm">S</button>
+                        <button onclick="simLetter('z')" class="kb-key kb-typewriter px-3 py-2 text-sm">Z</button>
+                        <button onclick="simLetter('i')" class="kb-key kb-typewriter px-3 py-2 text-sm">Í</button>
+                        <button onclick="simKey('ENTER')" class="kb-key kb-enter px-4 py-2 text-xs sm:text-sm">↵ Enter (Új sor / Parancs)</button>
+                    </div>
+
+                    <!-- 3. sor: Shift + Szóköz + Kurzor nyilak -->
+                    <div class="flex flex-wrap gap-1.5 justify-center items-center">
+                        <button onclick="simKey('SHIFT')" id="simShiftBtn" class="kb-key kb-special-blue px-3.5 py-2 text-xs sm:text-sm">⇧ Shift (1 nagybetű)</button>
+                        <button onclick="simKey('SPACE')" class="kb-key kb-typewriter px-10 sm:px-16 py-2 text-xs sm:text-sm">Szóköz (Üres hely)</button>
+                        <div class="flex items-center gap-1 bg-emerald-950/10 p-1 rounded-xl">
+                            <button onclick="simKey('LEFT')" class="kb-key kb-cursor px-2.5 py-2 text-sm" title="Kurzor balra">◀</button>
+                            <button onclick="simKey('UP')" class="kb-key kb-cursor px-2.5 py-2 text-sm" title="Kurzor fel">▲</button>
+                            <button onclick="simKey('DOWN')" class="kb-key kb-cursor px-2.5 py-2 text-sm" title="Kurzor le">▼</button>
+                            <button onclick="simKey('RIGHT')" class="kb-key kb-cursor px-2.5 py-2 text-sm" title="Kurzor jobbra">▶</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- 4. FÜL: 10-KÉRDÉSES KVÍZ                              -->
+        <!-- ===================================================== -->
+        <section id="view-quiz" class="hidden max-w-2xl mx-auto">
+            <div class="glass-panel rounded-3xl p-5 sm:p-7" id="quizContainer"></div>
+        </section>
+
+    </main>
+
+    <script>
+        // =====================================================
+        // HANG ÉS CSILLAGOK (iOS / Android kompatibilis + LauraApp)
+        // =====================================================
+        let stars = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                try { navigator.audioSession.type = 'playback'; } catch (e) {}
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        ['touchstart', 'touchend', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (soundEnabled) {
+                    try { getAudioCtx(); } catch (e) {}
+                }
+            }, { once: true, passive: true });
+        });
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.16, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [250, 195].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.13);
+                        gain.gain.setValueAtTime(0.11, now + i * 0.13);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.13 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.13);
+                        osc.stop(now + i * 0.13 + 0.24);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function addStars(amount) {
+            stars += amount;
+            const el = document.getElementById('starCount');
+            if (el) el.textContent = stars;
+            if (window.LauraApp) LauraApp.setStars('billentyuzet', stars);
+            playTone('win');
+        }
+
+        // =====================================================
+        // A FÜZETBEN SZEREPLŐ 10 BILLENTYŰCSOPORT ADATAI
+        // =====================================================
+        const KEY_GROUPS = [
+            {
+                id: 'esc',
+                label: 'Esc / kilépés',
+                shortName: 'Esc',
+                icon: '🚪',
+                colorName: 'Bal felső sarok (Fehér gomb)',
+                desc: 'Az **Esc (Escape)** gomb a billentyűzet bal felső sarkában található. Jelentése: **kilépés / menekülés**. Ezzel léphetünk ki egy teljes képernyős videóból, játékból, vagy szakíthatunk meg egy véletlenül megnyitott ablakot.',
+                tip: '💡 Jegyezd meg: Esc = Kilépés (mindig a bal felső sarokban lakik!).'
+            },
+            {
+                id: 'func',
+                label: 'funkció billentyűk',
+                shortName: 'F1 – F12',
+                icon: '🟧',
+                colorName: 'Narancssárga gombok a legfelső sorban',
+                desc: 'A **funkció billentyűk (`F1`-től `F12`-ig)** a legfelső sorban sorakoznak. Különleges gyorsparancsokat hajtanak végre: például az `F1` szinte minden programban a **Súgót (Segítséget)** nyitja meg, az `F5` pedig frissíti az oldalt.',
+                tip: '💡 A füzet ábráján narancssárga színűek, és F betűvel + számmal kezdődnek (F1..F12).'
+            },
+            {
+                id: 'capslock',
+                label: 'Caps Lock / folyamatos nagybetű',
+                shortName: 'Caps Lock',
+                icon: '🔠',
+                colorName: 'Bal oldali kék gomb (a Shift felett)',
+                desc: 'A **Caps Lock** egyszeri megnyomásával bekapcsoljuk a **folyamatos nagybetűs írást** (CSUPA NAGYBETŰ). Ilyenkor a billentyűzet jobb felső sarkában világítani kezd a kis **Caps Lock visszajelző lámpa**. Ha újra megnyomjuk, kikapcsol.',
+                tip: '💡 Ha csak 1 nagybetűt akarsz írni, a Shiftet használd; ha egy egész szót CSUPA NAGYBETŰVEL, akkor a Caps Lockot!'
+            },
+            {
+                id: 'shift',
+                label: 'Shift / nagybetű',
+                shortName: 'Shift ⇧',
+                icon: '⇧',
+                colorName: 'Bal és jobb oldali alsó kék gomb',
+                desc: 'A **Shift** billentyűt **nyomva kell tartani**, miközben leütünk egy betűt: így tudunk **egyetlen nagybetűt** (pl. mondat elején vagy név kezdőbetűjénél) írni! Szintén a Shift nyomva tartásával írhatjuk le a számgombok feletti írásjeleket (pl. `!`, `?`, `%`, `+`).',
+                tip: '💡 Két Shift gomb is van a billentyűzeten: egy a bal oldalon és egy a jobb oldalon, hogy mindkét kézzel kényelmes legyen!'
+            },
+            {
+                id: 'space',
+                label: 'szóköz',
+                shortName: 'Szóköz (Space)',
+                icon: '➖',
+                colorName: 'A legalsó sor leghosszabb kék gombja',
+                desc: 'A **szóköz (Space)** a billentyűzet **leghosszabb gombja** legalul középen. Minden szó után megnyomjuk, hogy **üres helyet (szóközt)** hagyjunk a szavak között, különbenösszefolynánakaszavak!',
+                tip: '💡 Hüvelykujjal a legkönnyebb lenyomni gépelés közben.'
+            },
+            {
+                id: 'typewriter',
+                label: 'írógép billentyűk',
+                shortName: 'Betűk, számok, írásjelek',
+                icon: '🔤',
+                colorName: 'Középső nagy kék mező',
+                desc: 'Az **írógép billentyűk** adják a billentyűzet legnagyobb, középső részét. Itt találhatók a **betűk (A–Z)**, a **magyar ékezetes betűk (Ö, Ü, Ó, Ő, Ú, É, Á, Ű, Í)**, a felső **számsor (0–9)** és az **írásjelek (`.`, `,`, `-`)**.',
+                tip: '💡 A régi írógépekről kapta a nevét, mert ezekkel írjuk magát a szöveget.'
+            },
+            {
+                id: 'backspace',
+                label: 'BackSpace / törlés balra',
+                shortName: '← BackSpace',
+                icon: '⌫',
+                colorName: 'A felső számsor jobb végén lévő ← nyilas gomb',
+                desc: 'A **BackSpace (visszatörlés)** gomb az Enter felett található, és egy balra mutató nyíl (`←`) van rajta. Megnyomásakor **letörli a kurzortól BALRA lévő** (vagyis az éppen előbb leütött, elrontott) karaktert!',
+                tip: '💡 BackSpace = Törlés BALRA (visszafelé javítja ki az elgépelést).'
+            },
+            {
+                id: 'enter',
+                label: 'Enter / parancs',
+                shortName: '↵ Enter',
+                icon: '↵',
+                colorName: 'Nagy sárga gomb középen és a számoknál',
+                desc: 'Az **Enter** a billentyűzet egyik legfontosabb gombja (a füzet ábráján **sárga** színű!). Két fő feladata van: 1) Szövegszerkesztőben **új sort (új bekezdést) kezd**, 2) Programokban és ablakokban **végrehajtja a parancsot** (olyan, mintha az OK gombra kattintanál).',
+                tip: '💡 Enter = Parancs végrehajtása VAGY új sor kezdése!'
+            },
+            {
+                id: 'cursor',
+                label: 'kurzor billentyűk',
+                shortName: '↑ ↓ ← → Nyilak',
+                icon: '🧭',
+                colorName: '4 zöld nyilas gomb alul',
+                desc: 'A **kurzor billentyűk** (a 4 **zöld** nyíl: **fel `↑`, le `↓`, balra `←`, jobbra `→`**) segítségével a szövegben villogó kis vonalat (a **kurzort**) tudjuk elmozdítani bármelyik irányba anélkül, hogy letörölnénk a betűket!',
+                tip: '💡 Játékokban is gyakran ezekkel a nyilakkal irányítjuk a szereplőt!'
+            },
+            {
+                id: 'numpad',
+                label: 'számok',
+                shortName: 'Numerikus (0–9)',
+                icon: '🔢',
+                colorName: 'Jobb oldali lila számológép-rész',
+                desc: 'A billentyűzet jobb szélén külön csoportban találhatók a **számok (numerikus billentyűzet)** – pont úgy elrendezve, mint egy számológépen! Itt gyorsan beírhatjuk a számokat (`0–9`) és a matematikai műveleteket (`+`, `-`, `*`, `/`). A **Num Lock** gombbal kapcsolható be.',
+                tip: '💡 A füzet ábráján lila színűek a jobb oldalon, mellettük pedig külön kis sárga Enter gomb is van!'
+            }
+        ];
+
+        let exploredGroups = new Set();
+        let activeStudyGroupId = 'enter';
+
+        // =====================================================
+        // INTERAKTÍV BILLENTYŰZET KIRAJZOLÁSA (FÜZET SZERINTI)
+        // =====================================================
+        function buildKeyboardHTML(modePrefix) {
+            const clickAttr = (groupId, keyLabel) =>
+                `onclick="onKeyboardKeyClick('${modePrefix}', '${groupId}', '${keyLabel.replace(/'/g, "\\'")}')" data-group="${groupId}"`;
+
+            // Felső sor: Esc + F1..F12 + PrintScreen.. + 3 LED
+            const fKeys1 = ['F1', 'F2', 'F3', 'F4'].map(k => `<div ${clickAttr('func', k)} class="kb-key kb-func w-8">${k}</div>`).join('');
+            const fKeys2 = ['F5', 'F6', 'F7', 'F8'].map(k => `<div ${clickAttr('func', k)} class="kb-key kb-func w-8">${k}</div>`).join('');
+            const fKeys3 = ['F9', 'F10', 'F11', 'F12'].map(k => `<div ${clickAttr('func', k)} class="kb-key kb-func w-8">${k}</div>`).join('');
+
+            // Számsor (magyar QWERTZ)
+            const numRowKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Ö', 'Ü', 'Ó']
+                .map(k => `<div ${clickAttr('typewriter', k)} class="kb-key kb-typewriter w-8">${k}</div>`).join('');
+
+            // QWERTZ sor
+            const rowQ = ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ő', 'Ú']
+                .map(k => `<div ${clickAttr('typewriter', k)} class="kb-key kb-typewriter w-8">${k}</div>`).join('');
+
+            // ASDF sor
+            const rowA = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'É', 'Á', 'Ű']
+                .map(k => `<div ${clickAttr('typewriter', k)} class="kb-key kb-typewriter w-8">${k}</div>`).join('');
+
+            // ÍYXCV sor
+            const rowY = ['Í', 'Y', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '-']
+                .map(k => `<div ${clickAttr('typewriter', k)} class="kb-key kb-typewriter w-8">${k}</div>`).join('');
+
+            return `
+                <div class="kb-board">
+                    <div class="flex gap-3 items-stretch">
+
+                        <!-- BAL FŐ BLOKK (Esc, F1-F12, Írógép, Shift, CapsLock, Backspace, Enter, Space) -->
+                        <div class="flex-1 space-y-1.5">
+                            <!-- 1. Sor: Esc + F1..F12 -->
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div ${clickAttr('esc', 'Esc')} class="kb-key kb-esc w-11">Esc</div>
+                                <div class="flex gap-1">${fKeys1}</div>
+                                <div class="flex gap-1">${fKeys2}</div>
+                                <div class="flex gap-1">${fKeys3}</div>
+                            </div>
+
+                            <!-- 2. Sor: 0..Ó + BackSpace -->
+                            <div class="flex gap-1">
+                                ${numRowKeys}
+                                <div ${clickAttr('backspace', 'BackSpace')} class="kb-key kb-special-blue flex-1 min-w-[54px]" title="BackSpace / törlés balra">
+                                    <span>←</span>
+                                    <span class="text-[9px] font-bold">BackSpace</span>
+                                </div>
+                            </div>
+
+                            <!-- 3. és 4. Sor + Nagy sárga Enter jobb oldalon -->
+                            <div class="flex gap-1 items-stretch">
+                                <div class="flex-1 space-y-1.5">
+                                    <!-- Tab + Q..Ú -->
+                                    <div class="flex gap-1">
+                                        <div ${clickAttr('typewriter', 'Tab')} class="kb-key kb-special-blue w-11 text-[10px]">Tab ⇥</div>
+                                        ${rowQ}
+                                    </div>
+                                    <!-- Caps Lock + A..Ű -->
+                                    <div class="flex gap-1">
+                                        <div ${clickAttr('capslock', 'Caps Lock')} class="kb-key kb-special-blue w-14 text-[10px]">Caps Lock</div>
+                                        ${rowA}
+                                    </div>
+                                </div>
+                                <!-- Nagy Sárga Enter -->
+                                <div ${clickAttr('enter', 'Enter')} class="kb-key kb-enter w-14 flex flex-col justify-center items-center text-xs font-black">
+                                    <span class="text-base">↵</span>
+                                    <span>Enter</span>
+                                </div>
+                            </div>
+
+                            <!-- 5. Sor: Bal Shift + Í..M + Jobb Shift -->
+                            <div class="flex gap-1">
+                                <div ${clickAttr('shift', 'Shift')} class="kb-key kb-special-blue w-12 text-[10px]">⇧ Shift</div>
+                                ${rowY}
+                                <div ${clickAttr('shift', 'Shift')} class="kb-key kb-special-blue flex-1 text-[10px]">⇧ Shift</div>
+                            </div>
+
+                            <!-- 6. Sor: Ctrl, Win, Alt, SZÓKÖZ, AltGr, Win, Menu, Ctrl -->
+                            <div class="flex gap-1">
+                                <div ${clickAttr('typewriter', 'Ctrl')} class="kb-key kb-special-blue w-10 text-[10px]">Ctrl</div>
+                                <div ${clickAttr('typewriter', 'Win')} class="kb-key kb-win w-9 text-[10px]">❖</div>
+                                <div ${clickAttr('typewriter', 'Alt')} class="kb-key kb-special-blue w-10 text-[10px]">Alt</div>
+                                <div ${clickAttr('space', 'Szóköz')} class="kb-key kb-typewriter flex-1 font-black text-xs">Szóköz (Space)</div>
+                                <div ${clickAttr('typewriter', 'AltGr')} class="kb-key kb-special-blue w-11 text-[10px]">Alt Gr</div>
+                                <div ${clickAttr('typewriter', 'Win')} class="kb-key kb-win w-9 text-[10px]">❖</div>
+                                <div ${clickAttr('typewriter', 'Menu')} class="kb-key kb-menu w-9 text-[10px]">☰</div>
+                                <div ${clickAttr('typewriter', 'Ctrl')} class="kb-key kb-special-blue w-10 text-[10px]">Ctrl</div>
+                            </div>
+                        </div>
+
+                        <!-- KÖZÉPSŐ BLOKK (Navigáció + Zöld Kurzor billentyűk) -->
+                        <div class="w-28 flex flex-col justify-between">
+                            <div class="space-y-1.5">
+                                <div class="grid grid-cols-3 gap-1 mb-2">
+                                    <div class="kb-key kb-nav">PrtSc</div>
+                                    <div class="kb-key kb-nav">ScrLk</div>
+                                    <div class="kb-key kb-nav">Pause</div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div class="kb-key kb-nav">Ins</div>
+                                    <div class="kb-key kb-nav">Home</div>
+                                    <div class="kb-key kb-nav">PgUp</div>
+                                    <div class="kb-key kb-nav">Del</div>
+                                    <div class="kb-key kb-nav">End</div>
+                                    <div class="kb-key kb-nav">PgDn</div>
+                                </div>
+                            </div>
+
+                            <!-- Zöld Kurzor nyilak alul -->
+                            <div class="space-y-1 pt-2">
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div></div>
+                                    <div ${clickAttr('cursor', 'Kurzor Fel ↑')} class="kb-key kb-cursor text-xs">▲</div>
+                                    <div></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div ${clickAttr('cursor', 'Kurzor Balra ←')} class="kb-key kb-cursor text-xs">◀</div>
+                                    <div ${clickAttr('cursor', 'Kurzor Le ↓')} class="kb-key kb-cursor text-xs">▼</div>
+                                    <div ${clickAttr('cursor', 'Kurzor Jobbra →')} class="kb-key kb-cursor text-xs">▶</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- JOBB BLOKK: LILA SZÁMOK (NUMERIKUS BILLENTYŰZET) -->
+                        <div class="w-36 flex flex-col justify-between">
+                            <!-- 3 visszajelző LED lámpa -->
+                            <div class="flex justify-around items-center h-9 bg-slate-300/70 rounded-lg px-2 mb-2 text-[9px] font-black text-slate-600">
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>Num</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>Caps</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400 inline-block"></span>Scroll</span>
+                            </div>
+
+                            <!-- Számológép gombok -->
+                            <div class="grid grid-cols-4 gap-1 flex-1">
+                                <div ${clickAttr('numpad', 'Num Lock')} class="kb-key kb-numpad text-[9px]">Num</div>
+                                <div ${clickAttr('numpad', '/')} class="kb-key kb-numpad">/</div>
+                                <div ${clickAttr('numpad', '*')} class="kb-key kb-numpad">*</div>
+                                <div ${clickAttr('numpad', '-')} class="kb-key kb-numpad">-</div>
+
+                                <div ${clickAttr('numpad', '7')} class="kb-key kb-numpad">7</div>
+                                <div ${clickAttr('numpad', '8')} class="kb-key kb-numpad">8</div>
+                                <div ${clickAttr('numpad', '9')} class="kb-key kb-numpad">9</div>
+                                <div ${clickAttr('numpad', '+')} class="kb-key kb-numpad row-span-2">+</div>
+
+                                <div ${clickAttr('numpad', '4')} class="kb-key kb-numpad">4</div>
+                                <div ${clickAttr('numpad', '5')} class="kb-key kb-numpad">5</div>
+                                <div ${clickAttr('numpad', '6')} class="kb-key kb-numpad">6</div>
+
+                                <div ${clickAttr('numpad', '1')} class="kb-key kb-numpad">1</div>
+                                <div ${clickAttr('numpad', '2')} class="kb-key kb-numpad">2</div>
+                                <div ${clickAttr('numpad', '3')} class="kb-key kb-numpad">3</div>
+                                <div ${clickAttr('enter', 'Enter')} class="kb-key kb-enter row-span-2 text-[10px]">Enter</div>
+
+                                <div ${clickAttr('numpad', '0')} class="kb-key kb-numpad col-span-2">0</div>
+                                <div ${clickAttr('numpad', ',')} class="kb-key kb-numpad">,</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatMarkdownBold(text) {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-indigo-950 font-black">$1</strong>');
+        }
+
+        function initStudyTab() {
+            document.getElementById('studyKeyboardMount').innerHTML = buildKeyboardHTML('study');
+
+            // Piros keretes címkék sávja
+            const bar = document.getElementById('calloutButtonsBar');
+            bar.innerHTML = '';
+            KEY_GROUPS.forEach(g => {
+                const btn = document.createElement('button');
+                btn.id = `callout-btn-${g.id}`;
+                btn.className = 'callout-pill';
+                btn.innerHTML = `${g.icon} ${g.label}`;
+                btn.onclick = () => selectStudyGroup(g.id, true);
+                bar.appendChild(btn);
+            });
+
+            // Puska táblázat
+            const grid = document.getElementById('cheatSheetGrid');
+            grid.innerHTML = '';
+            KEY_GROUPS.forEach(g => {
+                const card = document.createElement('div');
+                card.className = 'p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-indigo-300 transition cursor-pointer flex items-start gap-3';
+                card.onclick = () => {
+                    selectStudyGroup(g.id, true);
+                    window.scrollTo({ top: 120, behavior: 'smooth' });
+                };
+                card.innerHTML = `
+                    <span class="text-2xl shrink-0">${g.icon}</span>
+                    <div>
+                        <div class="font-black text-sm text-rose-700">${g.label}</div>
+                        <div class="text-xs text-slate-600 font-semibold mt-0.5">${formatMarkdownBold(g.desc)}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            selectStudyGroup('enter', false);
+        }
+
+        function selectStudyGroup(groupId, userClicked = true) {
+            if (userClicked) playTone('click');
+            activeStudyGroupId = groupId;
+            const grp = KEY_GROUPS.find(g => g.id === groupId);
+            if (!grp) return;
+
+            if (userClicked && !exploredGroups.has(groupId)) {
+                exploredGroups.add(groupId);
+                document.getElementById('exploredProgressBadge').textContent =
+                    `Felfedezve: ${exploredGroups.size} / ${KEY_GROUPS.length} rész ✨`;
+                addStars(1);
+            }
+
+            // Címke gombok kijelölése
+            KEY_GROUPS.forEach(g => {
+                const btn = document.getElementById(`callout-btn-${g.id}`);
+                if (btn) {
+                    btn.classList.toggle('active', g.id === groupId);
+                }
+            });
+
+            // Billentyűzet gombok villogtatása
+            const mount = document.getElementById('studyKeyboardMount');
+            mount.querySelectorAll('[data-group]').forEach(el => {
+                el.classList.toggle('kb-highlight', el.getAttribute('data-group') === groupId);
+            });
+
+            // Magyarázó kártya frissítése
+            document.getElementById('studyInfoIcon').textContent = grp.icon;
+            document.getElementById('studyInfoTitle').textContent = grp.label;
+            document.getElementById('studyInfoColorTag').textContent = grp.colorName;
+            document.getElementById('studyInfoDesc').innerHTML = formatMarkdownBold(grp.desc);
+            document.getElementById('studyInfoTip').textContent = grp.tip;
+        }
+
+        function onKeyboardKeyClick(modePrefix, groupId, keyLabel) {
+            if (modePrefix === 'study') {
+                selectStudyGroup(groupId, true);
+            } else if (modePrefix === 'find') {
+                evaluateFindClick(groupId, keyLabel);
+            }
+        }
+
+        // =====================================================
+        // 2. FÜL: HOL TALÁLHATÓ A BILLENTYŰZETEN? (JÁTÉK)
+        // =====================================================
+        let findQueue = [];
+        let findIndex = 0;
+        let findWaiting = false;
+
+        function startFindGame() {
+            document.getElementById('findKeyboardMount').innerHTML = buildKeyboardHTML('find');
+            findQueue = [...KEY_GROUPS].sort(() => Math.random() - 0.5);
+            findIndex = 0;
+            findWaiting = false;
+            loadFindPrompt();
+        }
+
+        function loadFindPrompt() {
+            const fb = document.getElementById('findFeedback');
+            fb.classList.add('hidden');
+
+            const mount = document.getElementById('findKeyboardMount');
+            mount.querySelectorAll('[data-group]').forEach(el => el.classList.remove('kb-highlight'));
+
+            if (findIndex >= findQueue.length) {
+                document.getElementById('findProgressText').textContent = '10 / 10 KÉSZ! 🏆';
+                document.getElementById('findTargetName').textContent = '🎉 Minden billentyűcsoportot megtaláltál!';
+                document.getElementById('findTargetHint').textContent = 'Kattints az „Új sorrend” gombra, ha szeretnél még egy kört játszani!';
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            const current = findQueue[findIndex];
+            document.getElementById('findProgressText').textContent = `${findIndex + 1} / ${findQueue.length}. feladat`;
+            document.getElementById('findTargetName').textContent = current.label;
+            document.getElementById('findTargetHint').textContent = `(${current.colorName})`;
+        }
+
+        function evaluateFindClick(clickedGroupId, keyLabel) {
+            if (findWaiting || findIndex >= findQueue.length) return;
+            const target = findQueue[findIndex];
+            const fb = document.getElementById('findFeedback');
+            fb.classList.remove('hidden');
+
+            if (clickedGroupId === target.id) {
+                findWaiting = true;
+                addStars(1);
+                fb.className = 'mb-4 p-3.5 rounded-2xl text-center font-black text-sm sm:text-base bg-emerald-100 text-emerald-900 border-2 border-emerald-400';
+                fb.textContent = `✅ Szuper! Ez valóban a(z) „${target.label}” (${keyLabel})! +1 ⭐`;
+
+                const mount = document.getElementById('findKeyboardMount');
+                mount.querySelectorAll(`[data-group="${target.id}"]`).forEach(el => el.classList.add('kb-highlight'));
+
+                setTimeout(() => {
+                    findIndex++;
+                    findWaiting = false;
+                    loadFindPrompt();
+                }, 1300);
+            } else {
+                playTone('error');
+                const clickedObj = KEY_GROUPS.find(g => g.id === clickedGroupId);
+                const clickedName = clickedObj ? clickedObj.label : keyLabel;
+                fb.className = 'mb-4 p-3.5 rounded-2xl text-center font-black text-sm sm:text-base bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = `❌ Amire kattintottál, az a(z) „${clickedName}”. Keresd ezt: ${target.label} (${target.colorName})!`;
+            }
+        }
+
+        // =====================================================
+        // 3. FÜL: VARÁZS-ÍRÓGÉP SZIMULÁTOR ÉS KÜLDETÉSEK
+        // =====================================================
+        let simState = {
+            textBefore: 'Szia',
+            textAfter: '',
+            capsLock: false,
+            shiftActive: false,
+            missionIdx: 0
+        };
+
+        const MISSIONS = [
+            {
+                title: '1 / 6. Küldetés: Szóköz (Space)',
+                instruction: 'Nyomd meg a <strong>Szóköz</strong> gombot, hogy üres hely legyen a „Szia” szó után!',
+                check: (action) => action === 'SPACE'
+            },
+            {
+                title: '2 / 6. Küldetés: Shift / nagybetű',
+                instruction: 'Kapcsold be a <strong>⇧ Shift</strong> gombot, majd nyomj meg egy betűt, hogy <strong>1 nagybetűt</strong> írj!',
+                check: (action, charWritten) => charWritten && charWritten === charWritten.toUpperCase() && !simState.capsLock
+            },
+            {
+                title: '3 / 6. Küldetés: Caps Lock / folyamatos nagybetű',
+                instruction: 'Kapcsold be a <strong>Caps Lock</strong> gombot, hogy folyamatosan CSUPA NAGYBETŰVEL tudj írni!',
+                check: (action) => action === 'CAPSLOCK' && simState.capsLock
+            },
+            {
+                title: '4 / 6. Küldetés: BackSpace / törlés balra',
+                instruction: 'Nyomd meg a <strong>← BackSpace (Törlés balra)</strong> gombot, hogy letöröld a kurzortól balra lévő betűt!',
+                check: (action) => action === 'BACKSPACE'
+            },
+            {
+                title: '5 / 6. Küldetés: Enter / parancs (Új sor)',
+                instruction: 'Nyomd meg a sárga <strong>↵ Enter</strong> gombot, hogy új sort kezdjünk!',
+                check: (action) => action === 'ENTER'
+            },
+            {
+                title: '6 / 6. Küldetés: Kurzor billentyűk (◀ ▲ ▼ ▶) és Esc',
+                instruction: 'Mozgasd el a villogó kurzort a zöld <strong>◀ Kurzor nyilakkal</strong>, vagy nyomd meg az <strong>Esc</strong> gombot!',
+                check: (action) => ['LEFT', 'RIGHT', 'UP', 'DOWN', 'ESC'].includes(action)
+            }
+        ];
+
+        function renderSimulator() {
+            const screen = document.getElementById('virtualScreenText');
+            const safeBefore = simState.textBefore.replace(/</g, '&lt;');
+            const safeAfter = simState.textAfter.replace(/</g, '&lt;');
+            screen.innerHTML = `${safeBefore}<span class="text-cursor"></span>${safeAfter}`;
+
+            const capsPill = document.getElementById('capsStatusPill');
+            const shiftPill = document.getElementById('shiftStatusPill');
+            const capsBtn = document.getElementById('simCapsBtn');
+            const shiftBtn = document.getElementById('simShiftBtn');
+
+            if (simState.capsLock) {
+                capsPill.textContent = 'Caps Lock: BE 🟢 (CSUPA NAGYBETŰ)';
+                capsPill.className = 'px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-900 border-2 border-emerald-400';
+                if (capsBtn) capsBtn.classList.add('kb-highlight');
+            } else {
+                capsPill.textContent = 'Caps Lock: KI ⚪';
+                capsPill.className = 'px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200';
+                if (capsBtn) capsBtn.classList.remove('kb-highlight');
+            }
+
+            if (simState.shiftActive) {
+                shiftPill.textContent = 'Shift: BE 🟡 (Következő 1 betű nagy!)';
+                shiftPill.className = 'px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border-2 border-amber-400';
+                if (shiftBtn) shiftBtn.classList.add('kb-highlight');
+            } else {
+                shiftPill.textContent = 'Shift: KI ⚪';
+                shiftPill.className = 'px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200';
+                if (shiftBtn) shiftBtn.classList.remove('kb-highlight');
+            }
+
+            if (simState.missionIdx < MISSIONS.length) {
+                const m = MISSIONS[simState.missionIdx];
+                document.getElementById('missionStepTitle').textContent = m.title;
+                document.getElementById('missionInstruction').innerHTML = m.instruction;
+            } else {
+                document.getElementById('missionStepTitle').textContent = '🏆 MIND A 6 KÜLDETÉS KÉSZ!';
+                document.getElementById('missionInstruction').innerHTML = 'Szabadon gépelhetsz és kipróbálhatod az összes billentyűt!';
+            }
+        }
+
+        function checkMissionProgress(action, charWritten = null) {
+            if (simState.missionIdx >= MISSIONS.length) return;
+            const currentM = MISSIONS[simState.missionIdx];
+            if (currentM.check(action, charWritten)) {
+                addStars(1);
+                simState.missionIdx++;
+                renderSimulator();
+            }
+        }
+
+        function skipMission() {
+            playTone('click');
+            simState.missionIdx = (simState.missionIdx + 1) % MISSIONS.length;
+            renderSimulator();
+        }
+
+        function simLetter(baseChar) {
+            playTone('click');
+            const isUpper = simState.capsLock ? !simState.shiftActive : simState.shiftActive;
+            const finalChar = isUpper ? baseChar.toUpperCase() : baseChar.toLowerCase();
+            simState.textBefore += finalChar;
+
+            // A Shift 1 betű leütése után automatikusan kikapcsol (pont mint az igazi billentyűzeten!)
+            const wasShift = simState.shiftActive;
+            simState.shiftActive = false;
+
+            document.getElementById('lastKeyPressedLabel').textContent =
+                `Utolsó leütött gomb: "${finalChar}" (${wasShift ? 'Shift + nagybetű' : simState.capsLock ? 'Caps Lock nagybetű' : 'kisbetű'})`;
+
+            checkMissionProgress('LETTER', finalChar);
+            renderSimulator();
+        }
+
+        function simChar(normalCh, shiftCh) {
+            playTone('click');
+            const ch = simState.shiftActive ? shiftCh : normalCh;
+            simState.textBefore += ch;
+            simState.shiftActive = false;
+            document.getElementById('lastKeyPressedLabel').textContent = `Utolsó leütött gomb: "${ch}"`;
+            checkMissionProgress('CHAR', ch);
+            renderSimulator();
+        }
+
+        function simKey(action) {
+            playTone('click');
+            const lbl = document.getElementById('lastKeyPressedLabel');
+
+            if (action === 'CAPSLOCK') {
+                simState.capsLock = !simState.capsLock;
+                lbl.textContent = `Caps Lock: ${simState.capsLock ? 'BEKAPCSOLVA (folyamatos nagybetű)' : 'KIKAPCSOLVA'}`;
+            } else if (action === 'SHIFT') {
+                simState.shiftActive = !simState.shiftActive;
+                lbl.textContent = `Shift: ${simState.shiftActive ? 'Nyomva tartva (a következő betű NAGY lesz)' : 'Elengedve'}`;
+            } else if (action === 'SPACE') {
+                simState.textBefore += ' ';
+                lbl.textContent = 'Szóköz: Üres hely került a szavak közé';
+            } else if (action === 'BACKSPACE') {
+                const deleted = simState.textBefore.slice(-1);
+                simState.textBefore = simState.textBefore.slice(0, -1);
+                lbl.textContent = `BackSpace (Törlés balra): Letöröltük a(z) "${deleted || '–'}" jelet a kurzor bal oldaláról`;
+            } else if (action === 'ENTER') {
+                simState.textBefore += '\n';
+                lbl.textContent = 'Enter: Új sort kezdtünk!';
+            } else if (action === 'LEFT') {
+                if (simState.textBefore.length > 0) {
+                    const last = simState.textBefore.slice(-1);
+                    simState.textBefore = simState.textBefore.slice(0, -1);
+                    simState.textAfter = last + simState.textAfter;
+                }
+                lbl.textContent = 'Kurzor balra (◀): A villogó kurzor 1 hellyel balra lépett törlés nélkül!';
+            } else if (action === 'RIGHT') {
+                if (simState.textAfter.length > 0) {
+                    const first = simState.textAfter[0];
+                    simState.textAfter = simState.textAfter.slice(1);
+                    simState.textBefore += first;
+                }
+                lbl.textContent = 'Kurzor jobbra (▶): A villogó kurzor 1 hellyel jobbra lépett!';
+            } else if (action === 'UP' || action === 'DOWN') {
+                lbl.textContent = `Kurzor ${action === 'UP' ? 'fel (▲)' : 'le (▼)'}: Mozgatja a kurzort a sorok között!`;
+            } else if (action === 'ESC') {
+                simState.textBefore = '';
+                simState.textAfter = '';
+                lbl.textContent = 'Esc (Kilépés): Megszakítottuk a műveletet / tiszta lappal indulunk!';
+            }
+
+            checkMissionProgress(action, null);
+            renderSimulator();
+        }
+
+        // =====================================================
+        // 4. FÜL: 10-KÉRDÉSES KVÍZ
+        // =====================================================
+        const QUIZ_QUESTIONS = [
+            {
+                q: 'Mire való az Esc (Escape) billentyű a bal felső sarokban?',
+                options: [
+                    'Kilépésre (pl. teljes képernyőből, ablakból vagy műveletből)',
+                    'Folyamatos nagybetűs írásra',
+                    'Szóköz beszúrására a szavak közé'
+                ],
+                correct: 0,
+                exp: 'Az Esc jelentése: kilépés. Ezzel léphetünk ki ablakokból vagy szakíthatunk meg egy parancsot.'
+            },
+            {
+                q: 'Melyik billentyűvel töröljük le a kurzortól BALRA lévő (az imént leütött) betűt?',
+                options: [
+                    'Enter',
+                    'BackSpace (← törlés balra)',
+                    'Caps Lock'
+                ],
+                correct: 1,
+                exp: 'A BackSpace (törlés balra) gomb letörli a kurzortól balra álló karaktert.'
+            },
+            {
+                q: 'Mi a különbség a Shift és a Caps Lock között?',
+                options: [
+                    'A Shift csak nyomva tartva ír nagybetűt, a Caps Lock viszont bekapcsolja a folyamatos nagybetűs írást',
+                    'A Shift törli a betűket, a Caps Lock pedig új sort kezd',
+                    'Semmi különbség nincs köztük'
+                ],
+                correct: 0,
+                exp: 'A Shiftet nyomva tartva 1 nagybetűt írunk (pl. név elején), a Caps Lock pedig bekapcsolja a folyamatos nagybetűket.'
+            },
+            {
+                q: 'Mi történik, ha szövegszerkesztés közben megnyomjuk a nagy sárga Enter billentyűt?',
+                options: [
+                    'Kikapcsol a számítógép',
+                    'Új sort kezdünk (programokban pedig végrehajtja a parancsot)',
+                    'Minden betű nagybetűvé változik'
+                ],
+                correct: 1,
+                exp: 'Az Enter szövegírásnál új sort kezd, kérdéseknél/ablakokban pedig végrehajtja a parancsot.'
+            },
+            {
+                q: 'Melyek a funkció billentyűk a billentyűzet legfelső sorában (narancssárga gombok)?',
+                options: [
+                    'Az F1-től F12-ig számozott billentyűk',
+                    'A 4 zöld nyilas billentyű',
+                    'Az A, S, D, F betűk'
+                ],
+                correct: 0,
+                exp: 'A legfelső sorban lévő F1–F12 gombok a funkció billentyűk.'
+            },
+            {
+                q: 'Mire szolgálnak a zöld színű kurzor billentyűk (↑ ↓ ← →)?',
+                options: [
+                    'Letörlik az egész mondatot',
+                    'A szövegben villogó kurzort mozgatják fel, le, balra és jobbra törlés nélkül',
+                    'Csak számokat lehet velük írni'
+                ],
+                correct: 1,
+                exp: 'A 4 kurzormozgató nyíllal bármerre lépkedhetünk a szövegben anélkül, hogy letörölnénk a betűket.'
+            },
+            {
+                q: 'Melyik a billentyűzet leghosszabb billentyűje a legalsó sor közepén?',
+                options: [
+                    'A Szóköz (Space) billentyű',
+                    'Az Esc billentyű',
+                    'A BackSpace billentyű'
+                ],
+                correct: 0,
+                exp: 'A Szóköz (Space) a leghosszabb billentyű, ezzel hagyunk üres helyet a szavak között.'
+            },
+            {
+                q: 'Mit tartalmaznak a középső nagy kék területen található „írógép billentyűk”?',
+                options: [
+                    'A betűket (A–Z, ékezetes betűk), a felső számsort és az írásjeleket',
+                    'Csak a számítógép bekapcsoló gombját',
+                    'Csak a hangerőszabályzót'
+                ],
+                correct: 0,
+                exp: 'Az írógép billentyűkkel írjuk a szöveget: itt vannak a betűk, a felső számsor és az írásjelek.'
+            },
+            {
+                q: 'Hol található a számológép-elrendezésű „számok” (numerikus) billentyűzet-rész?',
+                options: [
+                    'A billentyűzet jobb szélén (a füzet ábráján lila színnel)',
+                    'A bal felső sarokban az Esc helyén',
+                    'A szóköz alatt'
+                ],
+                correct: 0,
+                exp: 'A jobb oldalon külön blokkban találhatók a számok (0–9) és a műveleti jelek (+, -, *, /).'
+            },
+            {
+                q: 'Hogyan tudsz felkiáltójelet (!) vagy kérdőjelet (?) írni olyan billentyűről, amelynek a felső részén van a jel?',
+                options: [
+                    'Nyomva tartom a Shift billentyűt, és közben megnyomom a gombot',
+                    'Megnyomom az Esc billentyűt',
+                    'Háromszor megnyomom a Szóközt'
+                ],
+                correct: 0,
+                exp: 'A Shift nyomva tartásával érjük el a billentyűk felső felére rajzolt írásjeleket is!'
+            }
+        ];
+
+        let qIdx = 0;
+        let qScore = 0;
+        let qSelected = null;
+
+        function renderQuiz() {
+            const box = document.getElementById('quizContainer');
+            if (qIdx >= QUIZ_QUESTIONS.length) {
+                box.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="text-6xl">👑</div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-indigo-950">
+                            Kvíz teljesítve!
+                        </h2>
+                        <p class="text-base sm:text-lg font-bold text-slate-700">
+                            Elért eredményed: <span class="text-emerald-600 font-black">${qScore} / ${QUIZ_QUESTIONS.length}</span> helyes válasz!
+                        </p>
+                        <button onclick="restartQuiz()" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm sm:text-base shadow-lg transition">
+                            🔄 Kvíz újrakezdése
+                        </button>
+                    </div>
+                `;
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            const item = QUIZ_QUESTIONS[qIdx];
+            const optsHtml = item.options.map((opt, idx) => {
+                let cls = 'bg-white border-slate-200 hover:border-indigo-400 text-slate-800';
+                let icon = '';
+                if (qSelected !== null) {
+                    if (idx === item.correct) {
+                        cls = 'bg-emerald-100 border-emerald-500 text-emerald-950 font-black';
+                        icon = '✅';
+                    } else if (idx === qSelected) {
+                        cls = 'bg-rose-100 border-rose-400 text-rose-900';
+                        icon = '❌';
+                    } else {
+                        cls = 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
+                    }
+                }
+                return `
+                    <button onclick="answerQuiz(${idx})" class="w-full p-4 rounded-2xl border-2 text-left font-extrabold text-sm sm:text-base transition flex items-center justify-between gap-3 ${cls}">
+                        <span>${opt}</span>
+                        <span>${icon}</span>
+                    </button>
+                `;
+            }).join('');
+
+            const expHtml = qSelected !== null ? `
+                <div class="mt-5 p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-200">
+                    <div class="text-xs sm:text-sm font-bold text-indigo-950">💡 ${item.exp}</div>
+                    <button onclick="nextQuiz()" class="mt-3 w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm sm:text-base shadow transition">
+                        ${qIdx + 1 < QUIZ_QUESTIONS.length ? 'Következő kérdés ➡️' : 'Eredmény megtekintése 🏆'}
+                    </button>
+                </div>
+            ` : '';
+
+            box.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs font-black uppercase bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+                        ${qIdx + 1} / ${QUIZ_QUESTIONS.length}. kérdés
+                    </span>
+                    <span class="text-xs font-black bg-amber-100 text-amber-800 px-3 py-1 rounded-full">
+                        ⭐ Helyes: ${qScore}
+                    </span>
+                </div>
+                <h3 class="text-lg sm:text-xl font-black text-slate-800 mb-5">
+                    ${item.q}
+                </h3>
+                <div class="space-y-3">${optsHtml}</div>
+                ${expHtml}
+            `;
+        }
+
+        function answerQuiz(idx) {
+            if (qSelected !== null) return;
+            qSelected = idx;
+            if (idx === QUIZ_QUESTIONS[qIdx].correct) {
+                qScore++;
+                addStars(1);
+            } else {
+                playTone('error');
+            }
+            renderQuiz();
+        }
+
+        function nextQuiz() {
+            qIdx++;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            qIdx = 0;
+            qScore = 0;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        // =====================================================
+        // FÜLVÁLTÁS ÉS INDÍTÁS
+        // =====================================================
+        function switchTab(tab) {
+            playTone('click');
+            ['study', 'find', 'typewriter', 'quiz'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow';
+                } else {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-indigo-50';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                stars = LauraApp.getStars('billentyuzet');
+                const el = document.getElementById('starCount');
+                if (el) el.textContent = stars;
+            }
+            initStudyTab();
+            startFindGame();
+            renderSimulator();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>
