@@ -69,7 +69,7 @@
                 <div class="summary-stat-card theme-tint wide-mobile">
                     <span class="summary-stat-icon">🎯</span>
                     <div>
-                        <div class="summary-stat-value" id="summaryActiveModules">0 / 10</div>
+                        <div class="summary-stat-value" id="summaryActiveModules">0 / 12</div>
                         <div class="summary-stat-label">Kipróbált modul</div>
                     </div>
                 </div>
@@ -108,6 +108,30 @@
                     <span>Kétjegyű számok összeadása és kivonása</span>
                     <span class="app-btn-right">
                         <span class="lesson-star-badge empty" id="badge-ketjegyu">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+                <a href="./szoveges-feladatok.html" class="app-btn">
+                    <span>🧩 Matekos szöveges feladatok lépésről-lépésre</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-szoveges">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Magyar nyelv és Olvasás -->
+        <div class="category">
+            <h2>
+                <span>📖 Magyar és Olvasás</span>
+                <span class="category-stars-pill" id="cat-stars-reading">⭐ 0</span>
+            </h2>
+            <div class="links-grid">
+                <a href="./szovegertes.html" class="app-btn">
+                    <span>🕵️‍♀️ Olvasási szövegértés és Szövegnyomozó (6 történet)</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-szovegertes">⭐ 0</span>
                         <span class="icon">👉</span>
                     </span>
                 </a>
@@ -388,7 +412,7 @@
             }
 
             // Lecke-jelvények frissítése
-            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg'];
             let activeModules = felmeroStats.tested > 0 ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -407,14 +431,17 @@
                 felmeroBadge.className = felmeroStats.mastered > 0 ? 'lesson-star-badge green' : 'lesson-star-badge empty';
             }
 
-            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 10`;
+            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 12`;
 
             // Kategória összesítők
-            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu');
+            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu') + LauraApp.getStars('szoveges');
+            const readingStars = LauraApp.getStars('szovegertes');
             const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet');
             const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg');
 
             document.getElementById('cat-stars-math').textContent = `⭐ ${mathStars}`;
+            const readingEl = document.getElementById('cat-stars-reading');
+            if (readingEl) readingEl.textContent = `⭐ ${readingStars}`;
             document.getElementById('cat-stars-digital').textContent = `⭐ ${digiStars}`;
             document.getElementById('cat-stars-nature').textContent = `⭐ ${natureStars}`;
         }

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matekos Szöveges Feladatok Lépésről-Lépésre 🧩🧮</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f3e8ff;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(168, 85, 247, 0.20) 0px, transparent 50%),
+                radial-gradient(at 90% 15%, rgba(251, 191, 36, 0.22) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.18) 0px, transparent 50%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bouncy-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.01);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .kw-num {
+            background-color: #e0e7ff;
+            color: #312e81;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 900;
+            border: 1px solid #818cf8;
+        }
+        .kw-op {
+            background-color: #fef08a;
+            color: #713f12;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 900;
+            border: 1px solid #facc15;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <!-- Felső Fejléc -->
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-purple-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5">
+                    <span class="text-3xl sm:text-4xl">🧩</span>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 bg-clip-text text-transparent leading-tight">
+                            Matekos Szöveges Feladatok
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">
+                            Adatok kigyűjtése, kulcsszavak, műveletválasztás, terv és szöveges válasz ✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="toggleSound()" id="soundBtn" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="Hang be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő Fülek -->
+    <div class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-purple-100 grid grid-cols-3 gap-1.5">
+            <button onclick="switchTab('setup')" id="tab-btn-setup" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow">
+                <span>🎛️</span> <span>1. Témaválasztó</span>
+            </button>
+            <button onclick="switchTab('play')" id="tab-btn-play" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50">
+                <span>🎮</span> <span>2. Megoldó Műhely</span>
+            </button>
+            <button onclick="switchTab('study')" id="tab-btn-study" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50">
+                <span>📖</span> <span>3. Kulcsszó-Szótár</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-4 mt-5 space-y-5">
+
+        <!-- ===================================================== -->
+        <!-- 1. FÜL: TÉMAVÁLASZTÓ ÉS INDÍTÁS                       -->
+        <!-- ===================================================== -->
+        <section id="view-setup" class="space-y-5">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <h2 class="text-lg sm:text-xl font-black text-slate-800 mb-1">
+                    🎯 Milyen szöveges feladatokat gyakoroljunk?
+                </h2>
+                <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-4">
+                    Minden feladatnál 3 egyszerű lépésben haladunk: 1) Melyik művelet kell? 2) Mi a terv (nyitott mondat)? 3) Mennyi az eredmény és a válasz?
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <button onclick="selectCategory('all')" id="cat-btn-all" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition flex items-center gap-3.5 bg-purple-50 border-purple-500">
+                        <span class="text-3xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs border border-purple-100">🌟</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Vegyesen minden típus</div>
+                            <div class="text-xs text-slate-500 font-semibold">Összeadás, kivonás, szorzás, osztás és maradékos osztás</div>
+                        </div>
+                    </button>
+
+                    <button onclick="selectCategory('add_sub')" id="cat-btn-add_sub" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition flex items-center gap-3.5 bg-slate-50 border-slate-200">
+                        <span class="text-2xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs border border-emerald-100 font-black text-emerald-600">+ −</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Összeadás és Kivonás</div>
+                            <div class="text-xs text-slate-500 font-semibold">„Összesen”, „mennyivel több”, „mennyi maradt”</div>
+                        </div>
+                    </button>
+
+                    <button onclick="selectCategory('mul_div')" id="cat-btn-mul_div" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition flex items-center gap-3.5 bg-slate-50 border-slate-200">
+                        <span class="text-2xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs border border-indigo-100 font-black text-indigo-600">· :</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Szorzás és Bennfoglalás</div>
+                            <div class="text-xs text-slate-500 font-semibold">„Fejenként”, „minden dobozban”, „egyenlően szétosztva”</div>
+                        </div>
+                    </button>
+
+                    <button onclick="selectCategory('remainder')" id="cat-btn-remainder" class="bouncy-btn p-4 rounded-2xl border-2 text-left transition flex items-center gap-3.5 bg-slate-50 border-slate-200">
+                        <span class="text-2xl bg-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs border border-amber-100">🧺</span>
+                        <div>
+                            <div class="font-black text-slate-800 text-base">Maradékos osztásos szövegesek</div>
+                            <div class="text-xs text-slate-500 font-semibold">„Hány csomag telik meg, és hány darab marad ki?”</div>
+                        </div>
+                    </button>
+                </div>
+
+                <button onclick="startWordProblems()" class="bouncy-btn mt-5 w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 text-white font-black text-base sm:text-lg shadow-lg flex items-center justify-center gap-2">
+                    <span>🚀</span>
+                    <span>Szöveges Feladatok Indítása!</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- 2. FÜL: LÉPÉSRŐL-LÉPÉSRE MEGOLDÓ MŰHELY               -->
+        <!-- ===================================================== -->
+        <section id="view-play" class="hidden space-y-5">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+
+                <!-- Felső állapotsor -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-black text-xs" id="wpProgressBadge">
+                            1 / 12. feladat
+                        </span>
+                        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs" id="wpTopicBadge">
+                            Vegyes feladatok
+                        </span>
+                    </div>
+
+                    <button onclick="toggleHighlightClues()" id="clueHighlightBtn" class="px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs flex items-center gap-1.5">
+                        <span>🖍️</span>
+                        <span>Adatok és kulcsszavak kiemelése</span>
+                    </button>
+                </div>
+
+                <!-- A szöveges feladat kártyája -->
+                <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-indigo-50/70 via-purple-50/50 to-amber-50/60 border-2 border-indigo-100 mb-5">
+                    <div class="flex items-start gap-3">
+                        <span id="wpIcon" class="text-3xl sm:text-4xl shrink-0">🧁</span>
+                        <div class="space-y-2 flex-1">
+                            <div id="wpTextContainer" class="text-base sm:text-xl font-extrabold text-slate-800 leading-relaxed"></div>
+                            <div id="wpClueNote" class="hidden text-xs font-bold text-indigo-900 bg-white/90 px-3 py-2 rounded-xl border border-indigo-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 LÉPÉSES INTERAKTÍV MEGOLDÓ -->
+                <div class="space-y-4">
+
+                    <!-- 1. LÉPÉS: MELYIK MŰVELET KELL? -->
+                    <div id="step1Box" class="p-4 rounded-2xl bg-slate-50 border-2 border-purple-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-xs sm:text-sm text-purple-900 uppercase">1. Lépés: Melyik művelettel tudjuk kiszámolni?</span>
+                            <span id="step1Status" class="text-xs font-black text-slate-400">Válassz egyet!</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2" id="step1Buttons"></div>
+                    </div>
+
+                    <!-- 2. LÉPÉS: MELYIK A HELYES TERV (NYITOTT MONDAT)? -->
+                    <div id="step2Box" class="hidden p-4 rounded-2xl bg-slate-50 border-2 border-indigo-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-xs sm:text-sm text-indigo-900 uppercase">2. Lépés: Melyik a helyes Terv (nyitott mondat)?</span>
+                            <span id="step2Status" class="text-xs font-black text-slate-400">Válaszd ki a felírást!</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" id="step2Buttons"></div>
+                    </div>
+
+                    <!-- 3. LÉPÉS: SZÁMOLÁS ÉS SZÖVEGES VÁLASZ -->
+                    <div id="step3Box" class="hidden p-4 rounded-2xl bg-slate-50 border-2 border-emerald-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-xs sm:text-sm text-emerald-900 uppercase">3. Lépés: Mennyi a végeredmény és a szöveges válasz?</span>
+                            <span id="step3Status" class="text-xs font-black text-slate-400">Számold ki!</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" id="step3Buttons"></div>
+                    </div>
+
+                </div>
+
+                <!-- Visszajelzés és Következő gomb -->
+                <div id="wpFeedbackBox" class="hidden mt-4 p-4 rounded-2xl text-center font-black text-sm sm:text-base"></div>
+
+                <div class="flex justify-end mt-4">
+                    <button onclick="nextWordProblem()" id="nextWpBtn" class="hidden bouncy-btn px-7 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-sm sm:text-base shadow-md">
+                        Következő szöveges feladat ➡️
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- 3. FÜL: KULCSSZÓ-SZÓTÁR ÉS MEGOLDÁSI PUSKA            -->
+        <!-- ===================================================== -->
+        <section id="view-study" class="hidden space-y-5">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <h2 class="text-lg sm:text-2xl font-black text-slate-800 mb-2">
+                    📖 Kulcsszó-Szótár: Melyik szó melyik műveletet jelenti?
+                </h2>
+                <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-4">
+                    Ha elolvasol egy szöveges feladatot, keresd meg benne ezeket a „varázsszavakat” – azonnal elárulják, mivel kell számolnod!
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
+                        <div class="font-black text-emerald-950 text-base mb-1">➕ Összeadás (+), ha ezt olvasod:</div>
+                        <ul class="text-xs sm:text-sm font-bold text-slate-700 space-y-1 list-disc list-inside">
+                            <li><strong>„összesen”</strong>, <strong>„együtt”</strong>, <strong>„mindössze”</strong></li>
+                            <li><strong>„még kapott hozzá”</strong>, <strong>„érkezett még”</strong></li>
+                            <li><strong>„...val több”</strong> (pl. 15-tel több, mint 20)</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-200">
+                        <div class="font-black text-rose-950 text-base mb-1">➖ Kivonás (−), ha ezt olvasod:</div>
+                        <ul class="text-xs sm:text-sm font-bold text-slate-700 space-y-1 list-disc list-inside">
+                            <li><strong>„mennyi maradt?”</strong>, <strong>„elfogyott”</strong>, <strong>„elajándékozott”</strong></li>
+                            <li><strong>„mennyivel több / mennyivel kevesebb?”</strong> (különbség!)</li>
+                            <li><strong>„...val kevesebb”</strong> (pl. 8-cal kevesebb, mint 35)</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-200">
+                        <div class="font-black text-indigo-950 text-base mb-1">✖️ Szorzás (·), ha ezt olvasod:</div>
+                        <ul class="text-xs sm:text-sm font-bold text-slate-700 space-y-1 list-disc list-inside">
+                            <li><strong>„mindegyikben”</strong>, <strong>„minden dobozban / sorban”</strong></li>
+                            <li><strong>„fejenként”</strong> (pl. 6 gyerek fejenként 4 matricát kap)</li>
+                            <li><strong>„...szor / ...ször annyi”</strong> (pl. háromszor annyi)</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-200">
+                        <div class="font-black text-amber-950 text-base mb-1">➗ Osztás és Maradékos osztás (:), ha ezt olvasod:</div>
+                        <ul class="text-xs sm:text-sm font-bold text-slate-700 space-y-1 list-disc list-inside">
+                            <li><strong>„egyenlően szétosztották”</strong>, <strong>„hány jut egynek?”</strong></li>
+                            <li><strong>„hány dobozba / csomagba fér bele?”</strong> (bennfoglalás)</li>
+                            <li><strong>„hány telik meg, és mennyi marad ki?”</strong> (maradékos osztás!)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // =====================================================
+        // HANG ÉS CSILLAGOK (LauraApp integrációval)
+        // =====================================================
+        let totalStars = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                try { navigator.audioSession.type = 'playback'; } catch (e) {}
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        ['touchstart', 'touchend', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (soundEnabled) {
+                    try { getAudioCtx(); } catch (e) {}
+                }
+            }, { once: true, passive: true });
+        });
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(560, now);
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.15, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [250, 195].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                        gain.gain.setValueAtTime(0.11, now + i * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.22);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function awardStars(amount) {
+            totalStars += amount;
+            document.getElementById('totalStarsDisplay').textContent = totalStars;
+            if (window.LauraApp) {
+                LauraApp.setStars('szoveges', totalStars);
+            }
+        }
+
+        // =====================================================
+        // SZÖVEGES FELADAT ADATBÁZIS (12 KIDOLGOZOTT FELADAT)
+        // =====================================================
+        const WORD_PROBLEMS = [
+            {
+                cat: 'add_sub',
+                icon: '🧁',
+                plainText: 'A cukrászdában délelőtt 36 darab epres muffint sütöttek, délután pedig még 28 darabot. Hány darab muffint sütöttek összesen aznap?',
+                highlightedText: 'A cukrászdában délelőtt <span class="kw-num">36 darab</span> epres muffint sütöttek, délután pedig <span class="kw-op">még</span> <span class="kw-num">28 darabot</span>. Hány darab muffint sütöttek <span class="kw-op">összesen</span> aznap?',
+                clueNote: 'Adatok: 36 és 28. Kulcsszavak: „még”, „összesen” → Összeadás (+)!',
+                correctOp: 'add',
+                plans: ['36 + 28 = ?', '36 − 28 = ?', '36 : 28 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '64 darab muffint sütöttek összesen.',
+                    '54 darab muffint sütöttek összesen.',
+                    '8 darab muffint sütöttek összesen.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'add_sub',
+                icon: '📚',
+                plainText: 'Laura egy 82 oldalas mesekönyvet olvas. Eddig már elolvasott belőle 47 oldalt. Hány oldal van még hátra a könyvből?',
+                highlightedText: 'Laura egy <span class="kw-num">82 oldalas</span> mesekönyvet olvas. Eddig már <span class="kw-op">elolvasott belőle</span> <span class="kw-num">47 oldalt</span>. Hány oldal <span class="kw-op">van még hátra</span> a könyvből?',
+                clueNote: 'Adatok: 82 oldal összesen, 47 oldal kész. Kulcsszó: „van még hátra” → Kivonás (−)!',
+                correctOp: 'sub',
+                plans: ['82 − 47 = ?', '82 + 47 = ?', '47 + 82 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '35 oldal van még hátra a könyvből.',
+                    '45 oldal van még hátra a könyvből.',
+                    '129 oldal van még hátra a könyvből.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'add_sub',
+                icon: '🌟',
+                plainText: 'Peti 63 matricát gyűjtött össze az albumába, míg húga, Nóri 38 matricát. Mennyivel több matricája van Petinek, mint Nórinak?',
+                highlightedText: 'Peti <span class="kw-num">63 matricát</span> gyűjtött össze az albumába, míg húga, Nóri <span class="kw-num">38 matricát</span>. <span class="kw-op">Mennyivel több</span> matricája van Petinek, mint Nórinak?',
+                clueNote: 'Adatok: 63 és 38. Kulcsszó: „Mennyivel több?” (különbséget keresünk!) → Kivonás (−)!',
+                correctOp: 'sub',
+                plans: ['63 − 38 = ?', '63 + 38 = ?', '63 · 38 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '25 matricával van több Petinek.',
+                    '35 matricával van több Petinek.',
+                    '101 matricával van több Petinek.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'mul_div',
+                icon: '🌷',
+                plainText: 'A virágboltban 7 váza áll a polcon. Mindegyik vázába 6 szál tulipánt tettek. Hány szál tulipán van a vázákban összesen?',
+                highlightedText: 'A virágboltban <span class="kw-num">7 váza</span> áll a polcon. <span class="kw-op">Mindegyik vázába</span> <span class="kw-num">6 szál</span> tulipánt tettek. Hány szál tulipán van a vázákban <span class="kw-op">összesen</span>?',
+                clueNote: 'Adatok: 7 váza, mindegyikben 6 szál. Kulcsszó: „Mindegyik vázába 6” → Szorzás (·)!',
+                correctOp: 'mul',
+                plans: ['7 · 6 = ?', '7 + 6 = ?', '7 − 6 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '42 szál tulipán van összesen.',
+                    '13 szál tulipán van összesen.',
+                    '36 szál tulipán van összesen.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'mul_div',
+                icon: '🖍️',
+                plainText: 'Tanító néni 45 darab színes ceruzát osztott szét egyenlően 9 tanuló között. Hány színes ceruzát kapott egy-egy tanuló?',
+                highlightedText: 'Tanító néni <span class="kw-num">45 darab</span> színes ceruzát <span class="kw-op">osztott szét egyenlően</span> <span class="kw-num">9 tanuló</span> között. Hány színes ceruzát kapott <span class="kw-op">egy-egy tanuló</span>?',
+                clueNote: 'Adatok: 45 ceruza, 9 tanuló. Kulcsszó: „osztott szét egyenlően” → Osztás (:)!',
+                correctOp: 'div',
+                plans: ['45 : 9 = ?', '45 − 9 = ?', '45 · 9 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '5 színes ceruzát kapott egy-egy tanuló.',
+                    '6 színes ceruzát kapott egy-egy tanuló.',
+                    '36 színes ceruzát kapott egy-egy tanuló.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'mul_div',
+                icon: '🚲',
+                plainText: 'Az iskola udvarán 8 darab kerékpár és 0 roller parkol. Minden kerékpárnak 2 kereke van, a tanár úr autójának pedig 4. Hány kereke van a 8 kerékpárnak összesen?',
+                highlightedText: 'Az iskola udvarán <span class="kw-num">8 darab kerékpár</span> parkol. <span class="kw-op">Minden kerékpárnak</span> <span class="kw-num">2 kereke</span> van. Hány kereke van a 8 kerékpárnak <span class="kw-op">összesen</span>?',
+                clueNote: 'Vigyázz, csak a kerékpárok kerekét kérdezi! 8 kerékpár, mindegyiknek 2 kereke → Szorzás (·)!',
+                correctOp: 'mul',
+                plans: ['8 · 2 = ?', '8 + 2 = ?', '8 : 2 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '16 kereke van a 8 kerékpárnak összesen.',
+                    '10 kereke van a 8 kerékpárnak összesen.',
+                    '20 kereke van a 8 kerékpárnak összesen.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'remainder',
+                icon: '🍓',
+                plainText: 'Nagymama 23 szem epret szedett a kertben, és 5-ösével kis tálkákba rakja őket. Hány tálka telik meg teljesen, és hány szem eper marad ki?',
+                highlightedText: 'Nagymama <span class="kw-num">23 szem</span> epret szedett a kertben, és <span class="kw-op">5-ösével</span> kis tálkákba rakja őket. <span class="kw-op">Hány tálka telik meg</span> teljesen, és <span class="kw-op">hány szem eper marad ki</span>?',
+                clueNote: 'Adatok: 23 szem eper, 5-ösével csomagolva. Kulcsszó: „hány telik meg, és hány marad ki” → Maradékos osztás!',
+                correctOp: 'rem_div',
+                plans: ['23 : 5 = ?, maradék: ?', '23 − 5 = ?', '23 · 5 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '4 tálka telik meg, és 3 szem eper marad ki (mert 4 · 5 + 3 = 23).',
+                    '4 tálka telik meg, és 1 szem eper marad ki.',
+                    '5 tálka telik meg, és 2 szem eper marad ki.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'remainder',
+                icon: '🥚',
+                plainText: 'A gazda 38 darab friss tojást gyűjtött össze. 6 darabos tojástartó dobozokba csomagolja őket. Hány doboz telik meg teljesen, és hány tojásnak nem jut teljes doboz?',
+                highlightedText: 'A gazda <span class="kw-num">38 darab</span> friss tojást gyűjtött össze. <span class="kw-num">6 darabos</span> tojástartó dobozokba <span class="kw-op">csomagolja őket</span>. <span class="kw-op">Hány doboz telik meg</span>, és <span class="kw-op">hány tojás marad ki</span>?',
+                clueNote: 'Adatok: 38 tojás, 6-osával dobozolva → Maradékos osztás (38 : 6)!',
+                correctOp: 'rem_div',
+                plans: ['38 : 6 = ?, maradék: ?', '38 − 6 = ?', '38 + 6 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '6 doboz telik meg, és 2 tojás marad ki (mert 6 · 6 + 2 = 38).',
+                    '5 doboz telik meg, és 8 tojás marad ki.',
+                    '6 doboz telik meg, és 4 tojás marad ki.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'remainder',
+                icon: '🛶',
+                plainText: 'Az osztálykiránduláson 29 gyerek szeretne csónakázni. Egy csónakba legfeljebb 4 gyerek ülhet be. Hány csónak telik meg teljesen 4 gyerekkel, és hány gyerek ül az utolsó, nem tele csónakba?',
+                highlightedText: 'Az osztálykiránduláson <span class="kw-num">29 gyerek</span> szeretne csónakázni. Egy csónakba <span class="kw-op">4-esével</span> ülhetnek be. <span class="kw-op">Hány csónak telik meg</span> 4 gyerekkel, és <span class="kw-op">hány gyerek marad</span> az utolsó csónakba?',
+                clueNote: 'Adatok: 29 gyerek, 4-esével elosztva → Maradékos osztás (29 : 4)!',
+                correctOp: 'rem_div',
+                plans: ['29 : 4 = ?, maradék: ?', '29 − 4 = ?', '29 · 4 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '7 csónak telik meg teljesen, és 1 gyerek ül az utolsóba (mert 7 · 4 + 1 = 29).',
+                    '6 csónak telik meg teljesen, és 5 gyerek marad.',
+                    '7 csónak telik meg teljesen, és 3 gyerek marad.'
+                ],
+                correctAns: 0
+            },
+            {
+                cat: 'mul_div',
+                icon: '🍪',
+                plainText: 'Anya 54 darab mézeskalácsot sütött, és 6-osával kis celofánzacskókba csomagolta őket. Hány zacskó mézeskalács készült?',
+                highlightedText: 'Anya <span class="kw-num">54 darab</span> mézeskalácsot sütött, és <span class="kw-op">6-osával</span> kis zacskókba csomagolta őket. <span class="kw-op">Hány zacskó</span> mézeskalács készült?',
+                clueNote: 'Adatok: 54 darab, 6-osával csomagolva (nincs maradék, mert 54-ben a 6 pontosan megvan!) → Bennfoglalás / Osztás (:)!',
+                correctOp: 'div',
+                plans: ['54 : 6 = ?', '54 − 6 = ?', '54 + 6 = ?'],
+                correctPlan: 0,
+                answers: [
+                    '9 zacskó mézeskalács készült (mert 9 · 6 = 54).',
+                    '8 zacskó mézeskalács készült.',
+                    '48 zacskó mézeskalács készült.'
+                ],
+                correctAns: 0
+            }
+        ];
+
+        const OP_DEFS = [
+            { id: 'add', label: '➕ Összeadás (+)' },
+            { id: 'sub', label: '➖ Kivonás (−)' },
+            { id: 'mul', label: '✖️ Szorzás (·)' },
+            { id: 'div', label: '➗ Osztás (:)' },
+            { id: 'rem_div', label: '🧺 Maradékos osztás' }
+        ];
+
+        let selectedCategory = 'all';
+        let activeQueue = [];
+        let wpIdx = 0;
+        let showClues = false;
+        let currentStep = 1; // 1 | 2 | 3 | 4 (done)
+
+        function selectCategory(cat) {
+            playSound('click');
+            selectedCategory = cat;
+            ['all', 'add_sub', 'mul_div', 'remainder'].forEach(c => {
+                const btn = document.getElementById(`cat-btn-${c}`);
+                if (c === cat) {
+                    btn.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition flex items-center gap-3.5 bg-purple-50 border-purple-500';
+                } else {
+                    btn.className = 'bouncy-btn p-4 rounded-2xl border-2 text-left transition flex items-center gap-3.5 bg-slate-50 border-slate-200';
+                }
+            });
+        }
+
+        function startWordProblems() {
+            playSound('click');
+            const filtered = selectedCategory === 'all'
+                ? [...WORD_PROBLEMS]
+                : WORD_PROBLEMS.filter(p => p.cat === selectedCategory);
+            activeQueue = filtered.sort(() => Math.random() - 0.5);
+            wpIdx = 0;
+            switchTab('play');
+            loadCurrentWordProblem();
+        }
+
+        function loadCurrentWordProblem() {
+            if (activeQueue.length === 0) {
+                activeQueue = [...WORD_PROBLEMS];
+            }
+            const item = activeQueue[wpIdx];
+            currentStep = 1;
+
+            document.getElementById('wpProgressBadge').textContent = `${wpIdx + 1} / ${activeQueue.length}. feladat`;
+            document.getElementById('wpIcon').textContent = item.icon;
+            document.getElementById('wpFeedbackBox').classList.add('hidden');
+            document.getElementById('nextWpBtn').classList.add('hidden');
+
+            renderProblemText();
+            renderStep1();
+            document.getElementById('step2Box').classList.add('hidden');
+            document.getElementById('step3Box').classList.add('hidden');
+        }
+
+        function renderProblemText() {
+            const item = activeQueue[wpIdx];
+            const txtEl = document.getElementById('wpTextContainer');
+            const noteEl = document.getElementById('wpClueNote');
+
+            txtEl.innerHTML = showClues ? item.highlightedText : item.plainText;
+            noteEl.textContent = `💡 ${item.clueNote}`;
+            noteEl.classList.toggle('hidden', !showClues);
+        }
+
+        function toggleHighlightClues() {
+            playSound('click');
+            showClues = !showClues;
+            const btn = document.getElementById('clueHighlightBtn');
+            btn.className = showClues
+                ? 'px-3.5 py-1.5 rounded-xl bg-amber-400 text-slate-900 border border-amber-500 font-extrabold text-xs flex items-center gap-1.5'
+                : 'px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs flex items-center gap-1.5';
+            renderProblemText();
+        }
+
+        function renderStep1() {
+            const container = document.getElementById('step1Buttons');
+            container.innerHTML = '';
+            document.getElementById('step1Status').textContent = 'Válassz egyet!';
+
+            OP_DEFS.forEach(op => {
+                const btn = document.createElement('button');
+                btn.className = 'bouncy-btn py-2.5 px-3 rounded-xl border-2 border-slate-200 bg-white hover:border-purple-400 font-extrabold text-xs sm:text-sm text-slate-800';
+                btn.textContent = op.label;
+                btn.onclick = () => checkStep1(op.id, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkStep1(chosenOp, btnEl) {
+            if (currentStep !== 1) return;
+            const item = activeQueue[wpIdx];
+            const fb = document.getElementById('wpFeedbackBox');
+
+            if (chosenOp === item.correctOp) {
+                playSound('click');
+                currentStep = 2;
+                btnEl.className = 'py-2.5 px-3 rounded-xl border-2 border-emerald-500 bg-emerald-100 font-black text-xs sm:text-sm text-emerald-950';
+                document.getElementById('step1Status').textContent = '✔️ Helyes művelet!';
+                fb.classList.add('hidden');
+                renderStep2();
+            } else {
+                playSound('error');
+                btnEl.className = 'py-2.5 px-3 rounded-xl border-2 border-rose-400 bg-rose-100 font-bold text-xs sm:text-sm text-rose-900';
+                fb.classList.remove('hidden');
+                fb.className = 'mt-4 p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = '❌ Nézd meg újra a szövegben a kulcsszavakat (kapcsold be fent a „🖍️ Kulcsszavak kiemelése” gombot)!';
+            }
+        }
+
+        function renderStep2() {
+            const item = activeQueue[wpIdx];
+            const box = document.getElementById('step2Box');
+            box.classList.remove('hidden');
+            const container = document.getElementById('step2Buttons');
+            container.innerHTML = '';
+            document.getElementById('step2Status').textContent = 'Válaszd ki a felírást!';
+
+            item.plans.forEach((planStr, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'bouncy-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-indigo-400 font-black text-sm sm:text-base text-indigo-950';
+                btn.textContent = planStr;
+                btn.onclick = () => checkStep2(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkStep2(idx, btnEl) {
+            if (currentStep !== 2) return;
+            const item = activeQueue[wpIdx];
+            const fb = document.getElementById('wpFeedbackBox');
+
+            if (idx === item.correctPlan) {
+                playSound('click');
+                currentStep = 3;
+                btnEl.className = 'py-3 px-4 rounded-xl border-2 border-emerald-500 bg-emerald-100 font-black text-sm sm:text-base text-emerald-950';
+                document.getElementById('step2Status').textContent = '✔️ Helyes terv!';
+                fb.classList.add('hidden');
+                renderStep3();
+            } else {
+                playSound('error');
+                btnEl.className = 'py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-100 font-bold text-sm sm:text-base text-rose-900';
+                fb.classList.remove('hidden');
+                fb.className = 'mt-4 p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = '❌ Figyeld meg a számok sorrendjét és a műveleti jelet!';
+            }
+        }
+
+        function renderStep3() {
+            const item = activeQueue[wpIdx];
+            const box = document.getElementById('step3Box');
+            box.classList.remove('hidden');
+            const container = document.getElementById('step3Buttons');
+            container.innerHTML = '';
+            document.getElementById('step3Status').textContent = 'Válaszd ki a választ!';
+
+            item.answers.forEach((ansStr, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'bouncy-btn p-3.5 rounded-xl border-2 border-slate-200 bg-white hover:border-emerald-400 font-extrabold text-xs sm:text-sm text-slate-800 text-left';
+                btn.textContent = ansStr;
+                btn.onclick = () => checkStep3(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkStep3(idx, btnEl) {
+            if (currentStep !== 3) return;
+            const item = activeQueue[wpIdx];
+            const fb = document.getElementById('wpFeedbackBox');
+            fb.classList.remove('hidden');
+
+            if (idx === item.correctAns) {
+                currentStep = 4;
+                playSound('win');
+                awardStars(2);
+                btnEl.className = 'p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-100 font-black text-xs sm:text-sm text-emerald-950 text-left';
+                document.getElementById('step3Status').textContent = '🏆 Kész!';
+
+                fb.className = 'mt-4 p-4 rounded-2xl text-center font-black text-sm sm:text-base bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = `🎉 <strong>Hibátlan megoldás! (+2 ⭐)</strong><div class="text-xs sm:text-sm font-bold text-emerald-800 mt-1">Terv: ${item.plans[item.correctPlan]} → Válasz: ${item.answers[item.correctAns]}</div>`;
+
+                const nextBtn = document.getElementById('nextWpBtn');
+                nextBtn.classList.remove('hidden');
+            } else {
+                playSound('error');
+                btnEl.className = 'p-3.5 rounded-xl border-2 border-rose-400 bg-rose-100 font-bold text-xs sm:text-sm text-rose-900 text-left';
+                fb.className = 'mt-4 p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = '❌ Számold át még egyszer a felírt terv alapján!';
+            }
+        }
+
+        function nextWordProblem() {
+            playSound('click');
+            if (wpIdx + 1 < activeQueue.length) {
+                wpIdx++;
+            } else {
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+                }
+                wpIdx = 0;
+            }
+            loadCurrentWordProblem();
+        }
+
+        function switchTab(tab) {
+            playSound('click');
+            ['setup', 'play', 'study'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow';
+                } else {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50';
+                }
+            });
+            if (tab === 'play' && activeQueue.length === 0) {
+                activeQueue = [...WORD_PROBLEMS];
+                loadCurrentWordProblem();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                totalStars = LauraApp.getStars('szoveges');
+                document.getElementById('totalStarsDisplay').textContent = totalStars;
+            }
+            activeQueue = [...WORD_PROBLEMS];
+            loadCurrentWordProblem();
+        });
+    </script>
+</body>
+</html>

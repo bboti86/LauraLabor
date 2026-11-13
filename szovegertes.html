@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olvasási Szövegértés & Szövegnyomozó 📖🕵️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f3e8ff;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(251, 191, 36, 0.22) 0px, transparent 50%),
+                radial-gradient(at 90% 15%, rgba(244, 114, 182, 0.20) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, rgba(56, 189, 248, 0.20) 0px, transparent 50%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .story-sentence {
+            display: inline;
+            padding: 2px 5px;
+            margin: 0 1px;
+            border-radius: 10px;
+            transition: all 0.18s ease;
+            cursor: pointer;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+        .story-sentence:hover {
+            background-color: rgba(147, 51, 234, 0.12);
+        }
+        .story-sentence.ruler-focus {
+            background-color: #fef08a;
+            box-shadow: 0 0 0 2px #facc15;
+            color: #0f172a;
+        }
+        .story-sentence.detective-correct {
+            background-color: #bbf7d0 !important;
+            box-shadow: 0 0 0 2px #16a34a;
+            color: #064e3b;
+            font-weight: 800;
+        }
+        .story-sentence.detective-wrong {
+            background-color: #fecdd3 !important;
+            box-shadow: 0 0 0 2px #e11d48;
+            color: #881337;
+        }
+
+        .story-text-normal {
+            font-size: 1.08rem;
+            line-height: 1.95;
+        }
+        .story-text-large {
+            font-size: 1.28rem;
+            line-height: 2.25;
+            letter-spacing: 0.02em;
+        }
+
+        .bouncy-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.01);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.98);
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <!-- Felső Fejléc -->
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-purple-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5">
+                    <span class="text-3xl sm:text-4xl">🕵️‍♀️</span>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 bg-clip-text text-transparent leading-tight">
+                            Olvasási Szövegértés & Szövegnyomozó
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">
+                            Mesék és ismeretterjesztő történetek • Bizonyíték-kereső, Időrend és Kvíz ✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="toggleSound()" id="soundBtn" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="Hang be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 mt-5 space-y-5">
+
+        <!-- TÖRTÉNETVÁLASZTÓ SÁV -->
+        <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-md border-2 border-purple-100">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h2 class="text-sm sm:text-base font-black text-slate-800 flex items-center gap-2">
+                    <span>📚</span> Válassz egy történetet az olvasáshoz:
+                </h2>
+                <span class="text-xs font-extrabold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200" id="storyProgressLabel">
+                    1 / 6. történet
+                </span>
+            </div>
+            <div id="storySelectorBar" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2"></div>
+        </div>
+
+        <!-- FŐ MUNKATERÜLET: BAL OLDALON A SZÖVEG, JOBB OLDALON A 4 KÜLDETÉS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+            <!-- BAL PANEL: OLVASÓKUCKÓ (MAGA A SZÖVEG) -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 lg:sticky lg:top-20">
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span id="storyIcon" class="text-3xl">🦔</span>
+                        <div>
+                            <span id="storyCategoryBadge" class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                                Ismeretterjesztő
+                            </span>
+                            <h3 id="storyTitle" class="text-lg sm:text-xl font-black text-slate-800 leading-tight">
+                                Tüsi, a kíváncsi sündisznó
+                            </h3>
+                        </div>
+                    </div>
+
+                    <!-- Olvasást segítő gombok -->
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="toggleFontSize()" id="fontSizeBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs" title="Betűméret növelése">
+                            🔠 Nagy betűk
+                        </button>
+                        <button onclick="toggleReadingRuler()" id="rulerBtn" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-extrabold text-xs" title="Sorvezető kiemelés">
+                            📏 Sorvezető
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tipp sáv a szöveg felett -->
+                <div id="storyInstructionBanner" class="mb-3 px-3.5 py-2 rounded-2xl bg-purple-50 border border-purple-200 text-xs font-extrabold text-purple-900 flex items-center gap-2">
+                    <span>🕵️</span>
+                    <span id="storyInstructionText">Olvasd el figyelmesen a történetet! Kattints bármelyik mondatra, ha ki szeretnéd emelni!</span>
+                </div>
+
+                <!-- Maga a történet mondatonként -->
+                <div id="storySentencesContainer" class="story-text-normal font-semibold text-slate-800 bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70"></div>
+
+                <!-- Sorvezető léptető gombok (ha a sorvezető be van kapcsolva) -->
+                <div id="rulerControls" class="hidden mt-3 flex items-center justify-between bg-amber-100/80 px-3.5 py-2 rounded-xl border border-amber-300 text-xs font-black text-amber-950">
+                    <button onclick="stepRuler(-1)" class="px-3 py-1 rounded-lg bg-white hover:bg-amber-50 shadow-xs">⬅️ Előző mondat</button>
+                    <span id="rulerSentenceCounter">1. mondat</span>
+                    <button onclick="stepRuler(1)" class="px-3 py-1 rounded-lg bg-white hover:bg-amber-50 shadow-xs">Következő mondat ➡️</button>
+                </div>
+            </div>
+
+            <!-- JOBB PANEL: A 4 SZÖVEGÉRTÉSI FELADATTÍPUS -->
+            <div class="lg:col-span-6 space-y-4">
+
+                <!-- Módválasztó fülek a történethez -->
+                <div class="bg-white/90 p-1.5 rounded-3xl shadow-sm border border-purple-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    <button onclick="switchActivityTab('detective')" id="act-btn-detective" class="py-2.5 px-2 rounded-2xl font-extrabold text-xs transition flex items-center justify-center gap-1 bg-purple-600 text-white shadow">
+                        <span>🕵️</span> <span>1. Nyomozó</span>
+                    </button>
+                    <button onclick="switchActivityTab('truefalse')" id="act-btn-truefalse" class="py-2.5 px-2 rounded-2xl font-extrabold text-xs transition flex items-center justify-center gap-1 text-slate-600 hover:bg-purple-50">
+                        <span>⚖️</span> <span>2. Igaz/Hamis</span>
+                    </button>
+                    <button onclick="switchActivityTab('order')" id="act-btn-order" class="py-2.5 px-2 rounded-2xl font-extrabold text-xs transition flex items-center justify-center gap-1 text-slate-600 hover:bg-purple-50">
+                        <span>🔢</span> <span>3. Időrend</span>
+                    </button>
+                    <button onclick="switchActivityTab('quiz')" id="act-btn-quiz" class="py-2.5 px-2 rounded-2xl font-extrabold text-xs transition flex items-center justify-center gap-1 text-slate-600 hover:bg-purple-50">
+                        <span>🏆</span> <span>4. Kvíz</span>
+                    </button>
+                </div>
+
+                <!-- 1. FELADAT: SZÖVEGNYOMOZÓ (KATTINTS A BIZONYÍTÉK MONDATRA!) -->
+                <div id="act-view-detective" class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-black text-xs" id="detectiveProgressBadge">
+                            1 / 3. nyomozás
+                        </span>
+                        <span class="text-xs font-bold text-slate-400">Keresd meg a választ a szövegben!</span>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200">
+                        <div class="text-xs font-black uppercase text-purple-700 mb-1">🕵️ Kérdés a Szövegnyomozónak:</div>
+                        <div id="detectiveQuestionText" class="text-base sm:text-lg font-black text-slate-800"></div>
+                        <div class="text-xs font-bold text-slate-600 mt-2">
+                            👉 <strong>Feladat:</strong> Kattints a bal oldali történetben arra a <strong>mondatra</strong>, amelyik megválaszolja ezt a kérdést!
+                        </div>
+                    </div>
+
+                    <div id="detectiveFeedback" class="hidden p-4 rounded-2xl font-black text-sm"></div>
+
+                    <div class="flex justify-between items-center pt-1">
+                        <button onclick="showDetectiveHint()" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-extrabold text-xs">
+                            💡 Adj egy kis tippet!
+                        </button>
+                        <button onclick="nextDetectiveQuestion()" id="nextDetectiveBtn" class="hidden bouncy-btn px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs sm:text-sm shadow">
+                            Következő nyomozás ➡️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. FELADAT: IGAZ VAGY HAMIS? -->
+                <div id="act-view-truefalse" class="hidden bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 space-y-4">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-slate-800">⚖️ Igaz vagy Hamis a szöveg alapján?</h3>
+                        <p class="text-xs font-semibold text-slate-500">Ne találgass: ellenőrizd a történetben, hogy valóban így történt-e!</p>
+                    </div>
+                    <div id="trueFalseList" class="space-y-3"></div>
+                </div>
+
+                <!-- 3. FELADAT: ESEMÉNYEK IDŐRENDBE ÁLLÍTÁSA -->
+                <div id="act-view-order" class="hidden bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-800">🔢 Állítsd időrendbe az eseményeket!</h3>
+                            <p class="text-xs font-semibold text-slate-500">Kattints a kártyákra abban a sorrendben (1. → 2. → 3. → 4.), ahogy a történetben történtek!</p>
+                        </div>
+                        <button onclick="resetOrderGame()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                            🔄 Újrakezdés
+                        </button>
+                    </div>
+                    <div id="orderCardsContainer" class="space-y-2.5"></div>
+                    <div id="orderFeedbackBox" class="hidden p-4 rounded-2xl text-center font-black text-sm"></div>
+                </div>
+
+                <!-- 4. FELADAT: LÉNYEGKIEMELŐ ÉS SZÓKINCS KVÍZ -->
+                <div id="act-view-quiz" class="hidden bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 space-y-4">
+                    <div id="storyQuizContainer"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // =====================================================
+        // HANG ÉS CSILLAGOK (LauraApp integrációval)
+        // =====================================================
+        let totalStars = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                try { navigator.audioSession.type = 'playback'; } catch (e) {}
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        ['touchstart', 'touchend', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (soundEnabled) {
+                    try { getAudioCtx(); } catch (e) {}
+                }
+            }, { once: true, passive: true });
+        });
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(560, now);
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.15, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [250, 195].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                        gain.gain.setValueAtTime(0.11, now + i * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.22);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function awardStars(amount) {
+            totalStars += amount;
+            document.getElementById('totalStarsDisplay').textContent = totalStars;
+            if (window.LauraApp) {
+                LauraApp.setStars('szovegertes', totalStars);
+            }
+        }
+
+        // =====================================================
+        // 6 KOROSZTÁLYOS TÖRTÉNET (MESÉK ÉS ISMERETTERJESZTŐK)
+        // =====================================================
+        const STORIES = [
+            {
+                id: 'suni',
+                icon: '🦔',
+                title: 'Tüsi, a kíváncsi sündisznó',
+                category: 'Ismeretterjesztő mese',
+                sentences: [
+                    'A kerti almafa alatt, egy kupac száraz falevél között lakott Tüsi, a kis keleti sün.',
+                    'Napközben békésen szunyókált, mert a sünök alkonyatkor és éjszaka indulnak táplálékot keresni.',
+                    'Amikor leszállt az este, Tüsi előbújt, és szimatolni kezdett a nedves fűben.',
+                    'Sokan azt hiszik, hogy a sünök hátán almát visznek a vackukba, pedig valójában rovarokkal, csigákkal és gilisztákkal táplálkoznak.',
+                    'Hirtelen egy kóbor macska lépett a kertbe, ezért Tüsi azonnal szúrós gömbbé gömbölyödött.',
+                    'A hátán lévő több ezer tüske megvédte őt, így a macska hamar továbbállt.',
+                    'November végén, amikor megérkezett a fagyos hideg, Tüsi vastag avarháza mélyén téli álomba merült egészen tavaszig.'
+                ],
+                detective: [
+                    {
+                        q: 'Melyik napszakban indulnak a sünök élelmet keresni?',
+                        sentenceIdx: 1,
+                        hint: 'Nézd meg a 2. mondatot: mit csinált Tüsi napközben, és mikor indulnak a sünök útnak?',
+                        exp: 'Pontosan! A sünök alkonyatkor és éjszaka keresnek táplálékot, nappal pedig alszanak.'
+                    },
+                    {
+                        q: 'Mivel táplálkoznak valójában a sünök az alma helyett?',
+                        sentenceIdx: 3,
+                        hint: 'Keresd azt a mondatot, amiben a „rovarokkal” szó szerepel!',
+                        exp: 'Ügyes nyomozás! A sünök rovarovó állatok: rovarokat, csigákat és gilisztákat esznek.'
+                    },
+                    {
+                        q: 'Hogyan védekezett Tüsi, amikor meglátta a macskát?',
+                        sentenceIdx: 4,
+                        hint: 'Az 5. mondatban találod, mit csinált, amikor a macska a kertbe lépett!',
+                        exp: 'Szuper! Veszély esetén a sün szúrós gömbbé gömbölyödik.'
+                    }
+                ],
+                trueFalse: [
+                    { text: 'Tüsi a hátára tűzött almákat gyűjtött télire.', isTrue: false, exp: 'Hamis! A szöveg szerint a sünök nem almát esznek, hanem rovarokat, csigákat és gilisztákat.' },
+                    { text: 'A sünök télen vastag avar alatt téli álmot alszanak.', isTrue: true, exp: 'Igaz! November végétől tavaszig téli álomba merülnek.' },
+                    { text: 'Tüsi délben, tűző napsütésben indult vadászni.', isTrue: false, exp: 'Hamis! Napközben szunyókált, és csak alkonyatkor bújt elő.' }
+                ],
+                chronology: [
+                    'Tüsi napközben a száraz falevelek között aludt az almafa alatt.',
+                    'Alkonyatkor előbújt, és rovarok után szimatolt a fűben.',
+                    'A macska közeledtére szúrós gömbbé gömbölyödött.',
+                    'A novemberi fagyok idején téli álomba merült tavaszig.'
+                ],
+                quiz: [
+                    {
+                        q: 'Hol volt Tüsi rejtekhelye a kertben?',
+                        options: ['Egy magas fenyőfa tetején', 'Az almafa alatt, száraz falevelek között', 'A kutyaházban'],
+                        correct: 1,
+                        exp: 'Az első mondatból kiderül: az almafa alatt, egy kupac száraz falevél között lakott.'
+                    },
+                    {
+                        q: 'Mit jelent az a szó a szövegben, hogy „alkonyatkor”?',
+                        options: ['Reggel, napkeltekor', 'Este, amikor lemegy a nap és sötétedni kezd', 'Délben, ebédidőben'],
+                        correct: 1,
+                        exp: 'Az alkonyat a naplemente utáni szürkület, amikor esteledik.'
+                    },
+                    {
+                        q: 'Miért állt tovább a kóbor macska?',
+                        options: ['Mert Tüsi több ezer szúrós tüskéje megvédte a kis sünt', 'Mert Tüsi gyorsan felmászott a fára', 'Mert eleredt az eső'],
+                        correct: 0,
+                        exp: 'A gömbbé gömbölyödött sün tüskéihez nem tudott hozzányúlni a macska.'
+                    }
+                ]
+            },
+            {
+                id: 'roka',
+                icon: '🦊',
+                title: 'A róka és a holló sajtja',
+                category: 'Tanulságos állatmese',
+                sentences: [
+                    'Egy napsütéses reggelen a fekete holló egy nagy darab illatos sajtot talált a réten.',
+                    'Felrepült vele egy magas tölgyfa ágára, hogy ott nyugodtan elfogyassza a reggelijét.',
+                    'Arra sétált a ravasz róka, és megérezte a finom sajt csábító illatát.',
+                    'Tudta, hogy a fára nem tud felmászni, ezért cselhez folyamodott.',
+                    'Így szólt hízelgő hangon: „Ó, kedves holló, milyen gyönyörűen csillog a tollad, biztosan az énekhangod is felséges!”',
+                    'A hiú holló nagyon büszke lett a dicséretre, és tüstént kinyitotta a csőrét, hogy károgjon egyet.',
+                    'Abba a pillanatban a sajt kiesett a csőréből, egyenesen a fa alatt várakozó róka szájába.',
+                    'A róka jóízűen lenyelte a falatot, a holló pedig szomorúan tanulta meg, hogy nem szabad hinni a hízelgőknek.'
+                ],
+                detective: [
+                    {
+                        q: 'Hová repült fel a holló a sajttal?',
+                        sentenceIdx: 1,
+                        hint: 'A 2. mondatban olvasd el, milyen fára szállt fel!',
+                        exp: 'Pontos találat! Egy magas tölgyfa ágára repült fel.'
+                    },
+                    {
+                        q: 'Miért folyamodott cselhez a róka?',
+                        sentenceIdx: 3,
+                        hint: 'A 4. mondat árulja el, miért nem tudta egyszerűen elvenni a sajtot!',
+                        exp: 'Így van! A róka tudta, hogy a magas fára nem tud felmászni.'
+                    },
+                    {
+                        q: 'Mi történt abban a pillanatban, amikor a holló kinyitotta a csőrét?',
+                        sentenceIdx: 6,
+                        hint: 'Nézd meg az utolsó előtti (7.) mondatot!',
+                        exp: 'Szuper! A sajt kiesett a csőréből, egyenesen a róka szájába.'
+                    }
+                ],
+                trueFalse: [
+                    { text: 'A róka felmászott a tölgyfára, és kikapta a sajtot a holló csőréből.', isTrue: false, exp: 'Hamis! A róka nem tudott fára mászni, ezért hízelgéssel vette rá a hollót, hogy kinyissa a csőrét.' },
+                    { text: 'A holló azért nyitotta ki a csőrét, mert meg akarta mutatni az énekhangját.', isTrue: true, exp: 'Igaz! Büszke lett a róka dicséretére, és károgni akart.' },
+                    { text: 'A holló egy darab friss kenyeret tartott a csőrében.', isTrue: false, exp: 'Hamis! Egy nagy darab illatos sajtot talált.' }
+                ],
+                chronology: [
+                    'A holló sajtot talált, és felrepült vele a tölgyfa ágára.',
+                    'A róka megérezte a sajt illatát, és megállt a fa alatt.',
+                    'A róka megdicsérte a holló tollát és énekhangját.',
+                    'A holló károgni kezdett, a sajt pedig a róka szájába pottyant.'
+                ],
+                quiz: [
+                    {
+                        q: 'Milyen tulajdonság jellemezte a rókát a mesében?',
+                        options: ['Ravasz és furfangos volt', 'Félénk és álmos volt', 'Segítőkész volt'],
+                        correct: 0,
+                        exp: 'A róka ravasz volt: hízelgéssel szerezte meg a sajtot.'
+                    },
+                    {
+                        q: 'Mit jelent az, hogy a holló „hiú” volt?',
+                        options: ['Nagyon éhes volt', 'Túlságosan tetszett neki a dicséret és a hízelgés', 'Fázott a szárnya'],
+                        correct: 1,
+                        exp: 'A hiú ember vagy mesehős elhiszi a túlzó dicséretet, mert szeret büszkélkedni.'
+                    },
+                    {
+                        q: 'Mi a mese legfőbb tanulsága?',
+                        options: ['A hollók szépen énekelnek', 'Nem szabad bedőlni az önző hízelgőknek', 'A sajt a fán terem'],
+                        correct: 1,
+                        exp: 'Az utolsó mondat mondja ki: nem szabad hinni a hízelgőknek!'
+                    }
+                ]
+            },
+            {
+                id: 'delfin',
+                icon: '🐬',
+                title: 'A delfinek titkos nyelve',
+                category: 'Ismeretterjesztő',
+                sentences: [
+                    'Bár a delfinek egész életüket a tengerben töltik, nem halak, hanem melegvérű emlősállatok.',
+                    'Ez azt jelenti, hogy nem kopoltyúval, hanem tüdővel lélegeznek, ezért rendszeresen fel kell úszniuk a víz felszínére levegőt venni.',
+                    'A fejük tetején található orrnyílásukon keresztül fújják ki a levegőt, és vesznek gyorsan újat.',
+                    'A delfinek rendkívül okos, társas állatok, és mindig csapatokban, úgynevezett „iskolákban” úsznak.',
+                    'A víz alatt különleges füttyökkel és kattogó hangokkal beszélgetnek egymással.',
+                    'Minden egyes delfinnek van egy saját, egyedi füttyjele, ami pont olyan, mint az embereknél a keresztnév!',
+                    'Ha egy kisborjú elszakad az anyjától, ezzel a név-füttyel hívják egymást a hatalmas óceánban.'
+                ],
+                detective: [
+                    {
+                        q: 'Miért kell a delfineknek rendszeresen felúszniuk a víz felszínére?',
+                        sentenceIdx: 1,
+                        hint: 'A 2. mondatban keresd meg, mivel lélegeznek a delfinek!',
+                        exp: 'Pontosan! Tüdővel lélegeznek (nem kopoltyúval), ezért a felszínen vesznek levegőt.'
+                    },
+                    {
+                        q: 'Hogyan nevezik a delfinek csapatát?',
+                        sentenceIdx: 3,
+                        hint: 'A 4. mondatban idézőjelben is szerepel ez az érdekes szó!',
+                        exp: 'Szuper! A delfincsapatokat „iskoláknak” is nevezik.'
+                    },
+                    {
+                        q: 'Mire szolgál a delfinek saját, egyedi füttyjele?',
+                        sentenceIdx: 5,
+                        hint: 'A 6. mondatban olvasd el, mihez hasonlít ez az embereknél!',
+                        exp: 'Ügyes! A saját füttyjelük olyan, mint az embereknél a keresztnév.'
+                    }
+                ],
+                trueFalse: [
+                    { text: 'A delfinek kopoltyúval lélegeznek a víz alatt, mert halak.', isTrue: false, exp: 'Hamis! A delfinek emlősállatok, és tüdővel lélegeznek.' },
+                    { text: 'A delfinek a fejük tetején lévő orrnyíláson át vesznek levegőt.', isTrue: true, exp: 'Igaz! A 3. mondat pontosan ezt írja le.' },
+                    { text: 'Minden delfinnek saját, névként szolgáló füttyjele van.', isTrue: true, exp: 'Igaz! Ezzel hívják egymást a víz alatt.' }
+                ],
+                chronology: [
+                    'A delfinek emlősként tüdővel lélegeznek a tengerben.',
+                    'Amikor levegőre van szükségük, felúsznak a víz felszínére.',
+                    'A fejük tetején lévő orrnyíláson kifújják a levegőt és újat szívnak be.',
+                    'A víz alatt saját füttyjelekkel és kattogással tartják a kapcsolatot.'
+                ],
+                quiz: [
+                    {
+                        q: 'Milyen állatcsoportba tartoznak a delfinek?',
+                        options: ['Halak', 'Melegvérű emlősállatok', 'Kétéltűek'],
+                        correct: 1,
+                        exp: 'Az 1. mondat hangsúlyozza: nem halak, hanem melegvérű emlősállatok.'
+                    },
+                    {
+                        q: 'Mit csinál a kis delfinborjú, ha elszakad az anyjától?',
+                        options: ['Kimegy a szárazföldre', 'Az egyedi név-füttyel hívják egymást az óceánban', 'Téli álomba merül'],
+                        correct: 1,
+                        exp: 'Az utolsó mondat szerint a saját füttyjelükkel találják meg egymást.'
+                    },
+                    {
+                        q: 'Hol található a delfinek orrnyílása?',
+                        options: ['A farkuk végén', 'A fejük tetején', 'Az uszonyuk alatt'],
+                        correct: 1,
+                        exp: 'A fejük tetején van az orrnyílásuk, hogy úszás közben könnyen levegőt vehessenek.'
+                    }
+                ]
+            },
+            {
+                id: 'lufi',
+                icon: '🎈',
+                title: 'Az elszabadult piros lufi',
+                category: 'Kalandos történet',
+                sentences: [
+                    'Szombaton városi majálist tartottak a nagy parkban, ahol Marci egy héliummal töltött piros lufit kapott.',
+                    'Amikor Marci a fagylaltos pultnál a csokis tölcsérért nyúlt, a lufi zsinórja véletlenül kicsúszott az ujjai közül.',
+                    'A könnyű gázzal töltött léggömb azonnal emelkedni kezdett a kék ég felé.',
+                    'Egy hirtelen szélroham azonban nem az égbe, hanem a park szélén álló öreg hársfa lombjai közé fújta.',
+                    'A fa egyik alsó ágán éppen a tűzoltók gyakorlatoztak egy magas létrával.',
+                    'A mosolygós tűzoltó parancsnok észrevette a szomorkodó kisfiút, és óvatosan leakasztotta a sértetlen lufit az ágról.',
+                    'Marci boldogan megköszönte a segítséget, a tűzoltó pedig csuklópántot kötött a zsinór végére, hogy többé ne repülhessen el.'
+                ],
+                detective: [
+                    {
+                        q: 'Mikor csúszott ki Marci kezéből a lufi zsinórja?',
+                        sentenceIdx: 1,
+                        hint: 'A 2. mondatban keresd meg, mit csinált éppen a fagylaltos pultnál!',
+                        exp: 'Pontosan! Amikor a csokis fagylaltért nyúlt, kicsúszott a zsinór az ujjai közül.'
+                    },
+                    {
+                        q: 'Hová fújta a szélroham az elszabadult léggömböt?',
+                        sentenceIdx: 3,
+                        hint: 'A 4. mondatban keresd meg, milyen fa állt a park szélén!',
+                        exp: 'Szuper! Az öreg hársfa lombjai közé fújta a szél.'
+                    },
+                    {
+                        q: 'Hogyan előzték meg a végén, hogy a lufi újra elrepüljön?',
+                        sentenceIdx: 6,
+                        hint: 'Az utolsó mondatban olvasd el, mit kötött a tűzoltó a zsinór végére!',
+                        exp: 'Ügyes! A tűzoltó csuklópántot kötött a zsinór végére.'
+                    }
+                ],
+                trueFalse: [
+                    { text: 'A lufi kipukkadt a hársfa tüskés ágai között.', isTrue: false, exp: 'Hamis! A szöveg szerint a tűzoltó sértetlenül akasztotta le a lufit.' },
+                    { text: 'A lufi azért szállt felfelé, mert héliummal (könnyű gázzal) volt megtöltve.', isTrue: true, exp: 'Igaz! A hélium könnyebb a levegőnél, ezért emelkedett fel.' },
+                    { text: 'Marci epres fagylaltért nyúlt, amikor elengedte a lufit.', isTrue: false, exp: 'Hamis! Csokis tölcsérért nyúlt a fagylaltos pultnál.' }
+                ],
+                chronology: [
+                    'Marci piros héliumos lufit kapott a városi majálison.',
+                    'A fagylaltos pultnál a lufi zsinórja kicsúszott a kezéből.',
+                    'A szél az öreg hársfa lombjai közé fújta a léggömböt.',
+                    'A tűzoltó parancsnok leakasztotta a lufit, és csuklópántot kötött rá.'
+                ],
+                quiz: [
+                    {
+                        q: 'Milyen fán akadt fenn a piros lufi?',
+                        options: ['Egy öreg hársfán', 'Egy szomorúfűzön', 'Egy almafán'],
+                        correct: 0,
+                        exp: 'A 4. mondat szerint a park szélén álló öreg hársfa lombjai közé fújta a szél.'
+                    },
+                    {
+                        q: 'Miért voltak éppen ott a tűzoltók a parkban?',
+                        options: ['Tüzet oltottak', 'Magas létrával gyakorlatoztak a fánál', 'Fagylaltot árultak'],
+                        correct: 1,
+                        exp: 'Az 5. mondatból kiderül: éppen gyakorlatoztak a magas létrával.'
+                    },
+                    {
+                        q: 'Milyen gázzal volt megtöltve Marci lufija?',
+                        options: ['Héliummal', 'Oxigénnel', 'Vízgőzzel'],
+                        correct: 0,
+                        exp: 'Az 1. mondat írja: héliummal töltött piros lufit kapott.'
+                    }
+                ]
+            },
+            {
+                id: 'mehek',
+                icon: '🐝',
+                title: 'Hogyan készül a virágméz?',
+                category: 'Ismeretterjesztő',
+                sentences: [
+                    'Tavasszal, amikor kivirágoznak a rétek és a gyümölcsfák, a szorgalmas gyűjtőméhek kirepülnek a kaptárból.',
+                    'Hosszú szívókájukkal édes virágnektárt szippantanak fel a szirmok közül, és a mézgyomrukban raktározzák el.',
+                    'Eközben a bundájukra tapadt virágport egyik virágról a másikra szállítják, amivel beporozzák a növényeket.',
+                    'Amikor a gyűjtőméh visszaér a kaptárba, átadja a nektárt a fiatal belső munkásméheknek.',
+                    'A kaptárban lévő méhek a szárnyaik szorgalmas rezegtetésével szellőztetik és sűrítik a nektárt, hogy elpárologjon belőle a felesleges víz.',
+                    'Az így besűrűsödött, aranysárga mézet hatszögletű viaszsejtekbe töltik.',
+                    'Végül vékony viaszfedéllel lezárják a teli sejteket, hogy a méz télen is friss és tápláló maradjon.'
+                ],
+                detective: [
+                    {
+                        q: 'Miben szállítják haza a gyűjtőméhek a felszippantott nektárt?',
+                        sentenceIdx: 1,
+                        hint: 'A 2. mondat végén keresd meg a különleges testrész nevét!',
+                        exp: 'Pontosan! A mézgyomrukban raktározzák el a nektárt a hazaút során.'
+                    },
+                    {
+                        q: 'Hogyan párologtatják el a méhek a nektárból a felesleges vizet?',
+                        sentenceIdx: 4,
+                        hint: 'Az 5. mondatban olvasd el, mit csinálnak a szárnyaikkal a kaptárban!',
+                        exp: 'Szuper! A szárnyaik rezegtetésével szellőztetik és sűrítik a nektárt.'
+                    },
+                    {
+                        q: 'Milyen alakú viaszsejtekbe töltik a kész mézet?',
+                        sentenceIdx: 5,
+                        hint: 'A 6. mondatban keresd meg a mértani alakzat nevét!',
+                        exp: 'Ügyes! Hatszögletű viaszsejtekbe töltik az aranysárga mézet.'
+                    }
+                ],
+                trueFalse: [
+                    { text: 'A virágok már eleve kész, sűrű mézet termelnek a szirmaik között.', isTrue: false, exp: 'Hamis! A virágok híg nektárt termelnek, amit a méhek a kaptárban sűrítenek mézzé.' },
+                    { text: 'A méhek a virágpor szállításával segítik a növények beporzását.', isTrue: true, exp: 'Igaz! A bundájukra tapadt virágport egyik virágról a másikra viszik.' },
+                    { text: 'A teli mézes sejteket viaszfedéllel zárják le.', isTrue: true, exp: 'Igaz! Így marad friss a méz télen is.' }
+                ],
+                chronology: [
+                    'A gyűjtőméhek kirepülnek, és felszippantják a virágok édes nektárját.',
+                    'A kaptárba visszatérve átadják a nektárt a belső munkásméheknek.',
+                    'Szárnyaik rezegtetésével elpárologtatják a vizet, így besűrítik a mézet.',
+                    'A kész mézet hatszögletű viaszsejtekbe töltik és viaszfedéllel lezárják.'
+                ],
+                quiz: [
+                    {
+                        q: 'Miért hasznos a gyümölcsfáknak a méhek látogatása?',
+                        options: ['Mert megeszik a leveleket', 'Mert a bundájukra tapadt virágporral beporozzák a virágokat', 'Mert megöntözik a fákat'],
+                        correct: 1,
+                        exp: 'A beporzás nélkül nem fejlődne ki a virágokból a gyümölcs!'
+                    },
+                    {
+                        q: 'Mi történik a nektárral a szárnyak rezegtetése közben?',
+                        options: ['Elpárolog belőle a felesleges víz, és besűrűsödik', 'Megfagy a kaptárban', 'Kék színűvé válik'],
+                        correct: 0,
+                        exp: 'A szellőztetéstől elpárolog a víz, és sűrű, eltartható méz lesz belőle.'
+                    },
+                    {
+                        q: 'Miből készülnek a lépek sejtjei, amikbe a mézet töltik?',
+                        options: ['Papírból', 'Viaszból (hatszögletű viaszsejtek)', 'Kavicsszemekből'],
+                        correct: 1,
+                        exp: 'A méhek hatszögletű viaszsejteket építenek.'
+                    }
+                ]
+            },
+            {
+                id: 'kiralyfi',
+                icon: '🏰',
+                title: 'A királyfi, aki nem szeretett olvasni',
+                category: 'Varázsmese',
+                sentences: [
+                    'Élt egyszer egy palotában egy Olivér nevű királyfi, aki minden könyvet unalmasnak tartott.',
+                    'Jobban szeretett az udvaron fakarddal vívni, mint a vastag betűket böngészni.',
+                    'Egy esős délután azonban az udvari varázsló egy különleges, aranycsatos könyvet tett az asztalára.',
+                    'A könyv borítóján ez állt: „Csak annak nyílik ki a titok, aki elolvassa az első oldalt!”',
+                    'Olivér kíváncsiságból felütötte a könyvet, és lassan, szótagolva kiolvasta az első bekezdést egy elveszett sárkányfiókáról.',
+                    'Ahogy a mondat végére ért, a lapokon lévő rajzok megelevenedtek, és a sárkányfióka a segítségét kérte a hazajutáshoz.',
+                    'A királyfi egész délután izgatottan olvasott tovább, mert minden elolvasott fejezet újabb hidat és ösvényt nyitott meg a kis sárkány előtt.',
+                    'Attól a naptól kezdve Olivér tudta, hogy minden könyvben egy egész titkos világ rejtőzik, amely csak az olvasóra vár.'
+                ],
+                detective: [
+                    {
+                        q: 'Mit szeretett csinálni Olivér királyfi az olvasás helyett a mese elején?',
+                        sentenceIdx: 1,
+                        hint: 'A 2. mondatban keresd meg, mivel játszott az udvaron!',
+                        exp: 'Pontosan! Az udvaron szeretett fakarddal vívni.'
+                    },
+                    {
+                        q: 'Mi volt ráírva az aranycsatos könyv borítójára?',
+                        sentenceIdx: 3,
+                        hint: 'A 4. mondatban idézőjelben találod a feliratot!',
+                        exp: 'Szuper! „Csak annak nyílik ki a titok, aki elolvassa az első oldalt!”'
+                    },
+                    {
+                        q: 'Miért olvasott tovább Olivér egész délután?',
+                        sentenceIdx: 6,
+                        hint: 'A 7. mondatban keresd meg, mit nyitott meg minden elolvasott fejezet!',
+                        exp: 'Ügyes! Minden elolvasott fejezet újabb hidat és ösvényt nyitott meg a sárkányfióka hazajutásához.'
+                    }
+                ],
+                trueFalse: [
+                    { text: 'Olivér már a mese legelején is imádta a vastag könyveket.', isTrue: false, exp: 'Hamis! A mese elején minden könyvet unalmasnak tartott.' },
+                    { text: 'Az aranycsatos könyvet az udvari varázsló tette Olivér asztalára.', isTrue: true, exp: 'Igaz! Egy esős délután hozta neki a varázsló.' },
+                    { text: 'A könyv egy elveszett sárkányfiókáról szólt.', isTrue: true, exp: 'Igaz! Olivér az olvasásával segített neki hazajutni.' }
+                ],
+                chronology: [
+                    'Olivér királyfi unalmasnak tartotta a könyveket, inkább fakarddal vívott.',
+                    'Egy esős délután a varázsló egy aranycsatos könyvet tett az asztalára.',
+                    'Olivér elolvasta az első oldalt, mire a sárkányfióka rajza megelevenedett.',
+                    'A királyfi végigolvasta a fejezeteket, és megszerette a könyvek titkos világát.'
+                ],
+                quiz: [
+                    {
+                        q: 'Mi vette rá Olivért, hogy mégis kinyissa a könyvet?',
+                        options: ['A borítón lévő titokzatos felirat felkeltette a kíváncsiságát', 'A király megparancsolta neki', 'Elromlott a fakardja'],
+                        correct: 0,
+                        exp: 'A kíváncsiság győzött, amikor elolvasta a borító feliratát.'
+                    },
+                    {
+                        q: 'Mit jelent az a kifejezés, hogy a rajzok „megelevenedtek”?',
+                        options: ['Elhalványultak a papíron', 'Életre keltek és mozogni kezdtek', 'Kiestek a könyvből'],
+                        correct: 1,
+                        exp: 'Amikor valami megelevenedik, az életre kel.'
+                    },
+                    {
+                        q: 'Mire jött rá Olivér a mese végén?',
+                        options: ['Hogy minden könyvben egy titkos világ rejtőzik', 'Hogy a sárkányok félnek az esőtől', 'Hogy csak esőben szabad olvasni'],
+                        correct: 0,
+                        exp: 'Rájött, hogy az olvasás egész világokat nyit meg a képzeletünkben.'
+                    }
+                ]
+            }
+        ];
+
+        // =====================================================
+        // ÁLLAPOTVÁLTOZÓK
+        // =====================================================
+        let currentStoryIdx = 0;
+        let currentActivity = 'detective'; // 'detective' | 'truefalse' | 'order' | 'quiz'
+        let largeFont = false;
+        let rulerEnabled = false;
+        let rulerIdx = 0;
+
+        // Nyomozó állapot
+        let detectiveIdx = 0;
+        let detectiveResolved = false;
+
+        // Időrend állapot
+        let shuffledOrderItems = [];
+        let userOrderProgress = 0;
+
+        // Kvíz állapot
+        let quizIdx = 0;
+        let quizScore = 0;
+        let quizSelected = null;
+
+        function renderStorySelector() {
+            const bar = document.getElementById('storySelectorBar');
+            bar.innerHTML = '';
+            STORIES.forEach((st, idx) => {
+                const active = idx === currentStoryIdx;
+                const btn = document.createElement('button');
+                btn.onclick = () => selectStory(idx);
+                btn.className = `bouncy-btn p-2.5 rounded-2xl border-2 text-left transition flex items-center gap-2 ${
+                    active
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+                        : 'bg-slate-50 hover:bg-purple-50 text-slate-700 border-slate-200'
+                }`;
+                btn.innerHTML = `
+                    <span class="text-2xl shrink-0">${st.icon}</span>
+                    <span class="text-xs font-extrabold leading-tight line-clamp-2">${st.title}</span>
+                `;
+                bar.appendChild(btn);
+            });
+            document.getElementById('storyProgressLabel').textContent = `${currentStoryIdx + 1} / ${STORIES.length}. történet`;
+        }
+
+        function selectStory(idx) {
+            playSound('click');
+            currentStoryIdx = idx;
+            rulerIdx = 0;
+            detectiveIdx = 0;
+            detectiveResolved = false;
+            quizIdx = 0;
+            quizScore = 0;
+            quizSelected = null;
+
+            renderStorySelector();
+            renderStoryText();
+            renderDetectiveView();
+            renderTrueFalseView();
+            resetOrderGame();
+            renderStoryQuiz();
+        }
+
+        function renderStoryText() {
+            const st = STORIES[currentStoryIdx];
+            document.getElementById('storyIcon').textContent = st.icon;
+            document.getElementById('storyTitle').textContent = st.title;
+            document.getElementById('storyCategoryBadge').textContent = st.category;
+
+            const container = document.getElementById('storySentencesContainer');
+            container.className = `${largeFont ? 'story-text-large' : 'story-text-normal'} font-semibold text-slate-800 bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70`;
+
+            container.innerHTML = st.sentences.map((sent, i) => {
+                const isRuler = rulerEnabled && i === rulerIdx;
+                return `<span onclick="onSentenceClick(${i})" id="sent-${i}" class="story-sentence ${isRuler ? 'ruler-focus' : ''}">${sent}</span> `;
+            }).join('');
+
+            document.getElementById('rulerControls').classList.toggle('hidden', !rulerEnabled);
+            document.getElementById('rulerSentenceCounter').textContent = `${rulerIdx + 1} / ${st.sentences.length}. mondat`;
+        }
+
+        function toggleFontSize() {
+            playSound('click');
+            largeFont = !largeFont;
+            const btn = document.getElementById('fontSizeBtn');
+            btn.className = largeFont
+                ? 'px-2.5 py-1.5 rounded-xl bg-purple-600 text-white font-extrabold text-xs'
+                : 'px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs';
+            renderStoryText();
+        }
+
+        function toggleReadingRuler() {
+            playSound('click');
+            rulerEnabled = !rulerEnabled;
+            const btn = document.getElementById('rulerBtn');
+            btn.className = rulerEnabled
+                ? 'px-2.5 py-1.5 rounded-xl bg-amber-400 text-slate-900 border border-amber-500 font-extrabold text-xs'
+                : 'px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-extrabold text-xs';
+            renderStoryText();
+        }
+
+        function stepRuler(delta) {
+            playSound('click');
+            const st = STORIES[currentStoryIdx];
+            rulerIdx = Math.max(0, Math.min(st.sentences.length - 1, rulerIdx + delta));
+            renderStoryText();
+        }
+
+        function onSentenceClick(sentIdx) {
+            if (currentActivity === 'detective') {
+                evaluateDetectiveClick(sentIdx);
+            } else {
+                playSound('click');
+                rulerEnabled = true;
+                rulerIdx = sentIdx;
+                renderStoryText();
+            }
+        }
+
+        // =====================================================
+        // 1. SZÖVEGNYOMOZÓ (BIZONYÍTÉK-KERESŐ)
+        // =====================================================
+        function renderDetectiveView() {
+            const st = STORIES[currentStoryIdx];
+            const item = st.detective[detectiveIdx];
+
+            document.getElementById('detectiveProgressBadge').textContent =
+                `${detectiveIdx + 1} / ${st.detective.length}. nyomozás`;
+            document.getElementById('detectiveQuestionText').textContent = item.q;
+            document.getElementById('detectiveFeedback').classList.add('hidden');
+            document.getElementById('nextDetectiveBtn').classList.add('hidden');
+            detectiveResolved = false;
+
+            // Töröljük a korábbi kiemeléseket
+            st.sentences.forEach((_, i) => {
+                const el = document.getElementById(`sent-${i}`);
+                if (el) el.classList.remove('detective-correct', 'detective-wrong');
+            });
+        }
+
+        function evaluateDetectiveClick(sentIdx) {
+            if (detectiveResolved) return;
+            const st = STORIES[currentStoryIdx];
+            const item = st.detective[detectiveIdx];
+            const fb = document.getElementById('detectiveFeedback');
+            fb.classList.remove('hidden');
+
+            st.sentences.forEach((_, i) => {
+                const el = document.getElementById(`sent-${i}`);
+                if (el) el.classList.remove('detective-wrong');
+            });
+
+            const clickedEl = document.getElementById(`sent-${sentIdx}`);
+
+            if (sentIdx === item.sentenceIdx) {
+                detectiveResolved = true;
+                playSound('win');
+                awardStars(1);
+                if (clickedEl) clickedEl.classList.add('detective-correct');
+
+                fb.className = 'p-4 rounded-2xl font-black text-sm bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = `✅ <strong>Megvan a bizonyíték! (+1 ⭐)</strong><div class="text-xs font-bold text-emerald-800 mt-1">${item.exp}</div>`;
+
+                const nextBtn = document.getElementById('nextDetectiveBtn');
+                nextBtn.classList.remove('hidden');
+                nextBtn.textContent = detectiveIdx + 1 < st.detective.length ? 'Következő nyomozás ➡️' : 'Tovább az Igaz/Hamisra ⚖️';
+            } else {
+                playSound('error');
+                if (clickedEl) clickedEl.classList.add('detective-wrong');
+                fb.className = 'p-4 rounded-2xl font-black text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.innerHTML = `❌ Ez a(z) ${sentIdx + 1}. mondat még nem erre a kérdésre válaszol! Olvasd át újra, és kattints a megfelelő mondatra!`;
+            }
+        }
+
+        function showDetectiveHint() {
+            playSound('click');
+            const st = STORIES[currentStoryIdx];
+            const item = st.detective[detectiveIdx];
+            const fb = document.getElementById('detectiveFeedback');
+            fb.classList.remove('hidden');
+            fb.className = 'p-4 rounded-2xl font-bold text-xs sm:text-sm bg-amber-50 text-amber-900 border-2 border-amber-300';
+            fb.textContent = `💡 Nyomozó-tipp: ${item.hint}`;
+        }
+
+        function nextDetectiveQuestion() {
+            playSound('click');
+            const st = STORIES[currentStoryIdx];
+            if (detectiveIdx + 1 < st.detective.length) {
+                detectiveIdx++;
+                renderDetectiveView();
+            } else {
+                switchActivityTab('truefalse');
+            }
+        }
+
+        // =====================================================
+        // 2. IGAZ VAGY HAMIS?
+        // =====================================================
+        function renderTrueFalseView() {
+            const st = STORIES[currentStoryIdx];
+            const list = document.getElementById('trueFalseList');
+            list.innerHTML = '';
+
+            st.trueFalse.forEach((tf, idx) => {
+                const card = document.createElement('div');
+                card.className = 'p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-2.5';
+                card.innerHTML = `
+                    <div class="font-extrabold text-sm sm:text-base text-slate-800">${idx + 1}. ${tf.text}</div>
+                    <div class="flex gap-2" id="tf-btns-${idx}">
+                        <button onclick="answerTrueFalse(${idx}, true)" class="bouncy-btn flex-1 py-2 px-3 rounded-xl bg-white hover:bg-emerald-50 border-2 border-emerald-300 text-emerald-800 font-black text-xs sm:text-sm">
+                            ✔️ Igaz
+                        </button>
+                        <button onclick="answerTrueFalse(${idx}, false)" class="bouncy-btn flex-1 py-2 px-3 rounded-xl bg-white hover:bg-rose-50 border-2 border-rose-300 text-rose-800 font-black text-xs sm:text-sm">
+                            ❌ Hamis
+                        </button>
+                    </div>
+                    <div id="tf-exp-${idx}" class="hidden text-xs font-bold p-2.5 rounded-xl"></div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function answerTrueFalse(idx, userChoice) {
+            const st = STORIES[currentStoryIdx];
+            const tf = st.trueFalse[idx];
+            const expEl = document.getElementById(`tf-exp-${idx}`);
+            const btnsEl = document.getElementById(`tf-btns-${idx}`);
+            if (!expEl || !btnsEl || expEl.dataset.answered === '1') return;
+
+            expEl.dataset.answered = '1';
+            expEl.classList.remove('hidden');
+
+            if (userChoice === tf.isTrue) {
+                playSound('win');
+                awardStars(1);
+                expEl.className = 'text-xs font-bold p-2.5 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300';
+                expEl.textContent = `✅ Helyes! (+1 ⭐) ${tf.exp}`;
+            } else {
+                playSound('error');
+                expEl.className = 'text-xs font-bold p-2.5 rounded-xl bg-rose-100 text-rose-900 border border-rose-300';
+                expEl.textContent = `❌ Nem egészen! ${tf.exp}`;
+            }
+        }
+
+        // =====================================================
+        // 3. ESEMÉNYEK IDŐRENDBE ÁLLÍTÁSA
+        // =====================================================
+        function resetOrderGame() {
+            const st = STORIES[currentStoryIdx];
+            userOrderProgress = 0;
+            shuffledOrderItems = st.chronology.map((text, origIdx) => ({
+                text,
+                origIdx,
+                pickedOrder: null
+            })).sort(() => Math.random() - 0.5);
+
+            document.getElementById('orderFeedbackBox').classList.add('hidden');
+            renderOrderCards();
+        }
+
+        function renderOrderCards() {
+            const container = document.getElementById('orderCardsContainer');
+            container.innerHTML = '';
+
+            shuffledOrderItems.forEach((item, idx) => {
+                const isPicked = item.pickedOrder !== null;
+                const btn = document.createElement('button');
+                btn.disabled = isPicked;
+                btn.onclick = () => pickOrderCard(idx);
+                btn.className = `w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 ${
+                    isPicked
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-black'
+                        : 'bg-slate-50 hover:bg-purple-50 border-slate-200 text-slate-800 font-bold'
+                }`;
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+                        isPicked ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-300 text-slate-500'
+                    }">
+                        ${isPicked ? `${item.pickedOrder}.` : '?'}
+                    </span>
+                    <span class="text-xs sm:text-sm">${item.text}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function pickOrderCard(idx) {
+            const item = shuffledOrderItems[idx];
+            const fb = document.getElementById('orderFeedbackBox');
+
+            if (item.origIdx === userOrderProgress) {
+                playSound('click');
+                userOrderProgress++;
+                item.pickedOrder = userOrderProgress;
+                renderOrderCards();
+
+                if (userOrderProgress === shuffledOrderItems.length) {
+                    playSound('win');
+                    awardStars(2);
+                    fb.classList.remove('hidden');
+                    fb.className = 'p-4 rounded-2xl text-center font-black text-sm bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                    fb.textContent = '🎉 Tökéletes időrend! Mind a 4 esemény a helyére került! (+2 ⭐)';
+                } else {
+                    fb.classList.add('hidden');
+                }
+            } else {
+                playSound('error');
+                fb.classList.remove('hidden');
+                fb.className = 'p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = `❌ Ez később történt a mesében! Keresd meg, mi volt a(z) ${userOrderProgress + 1}. esemény!`;
+            }
+        }
+
+        // =====================================================
+        // 4. LÉNYEGKIEMELŐ ÉS SZÓKINCS KVÍZ
+        // =====================================================
+        function renderStoryQuiz() {
+            const st = STORIES[currentStoryIdx];
+            const box = document.getElementById('storyQuizContainer');
+
+            if (quizIdx >= st.quiz.length) {
+                box.innerHTML = `
+                    <div class="text-center py-5 space-y-3">
+                        <div class="text-5xl">🏆</div>
+                        <h4 class="text-xl font-black text-indigo-950">Történet kvíz teljesítve!</h4>
+                        <p class="text-sm font-bold text-slate-600">Eredményed: <span class="text-emerald-600 font-black">${quizScore} / ${st.quiz.length}</span> helyes válasz!</p>
+                        <div class="flex flex-wrap justify-center gap-2 pt-2">
+                            <button onclick="restartStoryQuiz()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                                🔄 Kvíz újra
+                            </button>
+                            <button onclick="selectStory((currentStoryIdx + 1) % STORIES.length)" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow">
+                                Következő történet 📚 ➡️
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            const qItem = st.quiz[quizIdx];
+            const optsHtml = qItem.options.map((opt, idx) => {
+                let cls = 'bg-slate-50 border-slate-200 hover:border-purple-400 text-slate-800';
+                let icon = '';
+                if (quizSelected !== null) {
+                    if (idx === qItem.correct) {
+                        cls = 'bg-emerald-100 border-emerald-500 text-emerald-950 font-black';
+                        icon = '✅';
+                    } else if (idx === quizSelected) {
+                        cls = 'bg-rose-100 border-rose-400 text-rose-900';
+                        icon = '❌';
+                    } else {
+                        cls = 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
+                    }
+                }
+                return `
+                    <button onclick="answerStoryQuiz(${idx})" class="w-full p-3.5 rounded-2xl border-2 text-left font-extrabold text-xs sm:text-sm transition flex items-center justify-between gap-2 ${cls}">
+                        <span>${opt}</span>
+                        <span>${icon}</span>
+                    </button>
+                `;
+            }).join('');
+
+            const expHtml = quizSelected !== null ? `
+                <div class="mt-4 p-3.5 rounded-2xl bg-indigo-50 border-2 border-indigo-200">
+                    <div class="text-xs font-bold text-indigo-950">💡 ${qItem.exp}</div>
+                    <button onclick="nextStoryQuiz()" class="mt-2.5 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs sm:text-sm shadow">
+                        ${quizIdx + 1 < st.quiz.length ? 'Következő kérdés ➡️' : 'Eredmény megtekintése 🏆'}
+                    </button>
+                </div>
+            ` : '';
+
+            box.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-black uppercase bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+                        ${quizIdx + 1} / ${st.quiz.length}. kérdés
+                    </span>
+                    <span class="text-xs font-black bg-amber-100 text-amber-800 px-3 py-1 rounded-full">
+                        ⭐ Helyes: ${quizScore}
+                    </span>
+                </div>
+                <h4 class="text-base sm:text-lg font-black text-slate-800 mb-3">${qItem.q}</h4>
+                <div class="space-y-2.5">${optsHtml}</div>
+                ${expHtml}
+            `;
+        }
+
+        function answerStoryQuiz(idx) {
+            if (quizSelected !== null) return;
+            const st = STORIES[currentStoryIdx];
+            quizSelected = idx;
+            if (idx === st.quiz[quizIdx].correct) {
+                quizScore++;
+                awardStars(1);
+                playSound('win');
+            } else {
+                playSound('error');
+            }
+            renderStoryQuiz();
+        }
+
+        function nextStoryQuiz() {
+            playSound('click');
+            quizIdx++;
+            quizSelected = null;
+            renderStoryQuiz();
+        }
+
+        function restartStoryQuiz() {
+            playSound('click');
+            quizIdx = 0;
+            quizScore = 0;
+            quizSelected = null;
+            renderStoryQuiz();
+        }
+
+        function switchActivityTab(act) {
+            playSound('click');
+            currentActivity = act;
+            ['detective', 'truefalse', 'order', 'quiz'].forEach(t => {
+                document.getElementById(`act-view-${t}`).classList.toggle('hidden', t !== act);
+                const btn = document.getElementById(`act-btn-${t}`);
+                if (t === act) {
+                    btn.className = 'py-2.5 px-2 rounded-2xl font-extrabold text-xs transition flex items-center justify-center gap-1 bg-purple-600 text-white shadow';
+                } else {
+                    btn.className = 'py-2.5 px-2 rounded-2xl font-extrabold text-xs transition flex items-center justify-center gap-1 text-slate-600 hover:bg-purple-50';
+                }
+            });
+
+            const bannerText = document.getElementById('storyInstructionText');
+            if (act === 'detective') {
+                bannerText.textContent = 'Nyomozó mód: Kattints a szövegben arra a mondatra, amelyik megválaszolja a jobb oldali kérdést!';
+            } else {
+                bannerText.textContent = 'Olvasd el figyelmesen a történetet! Bármikor visszanézhetsz a szövegbe a válaszokért!';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                totalStars = LauraApp.getStars('szovegertes');
+                document.getElementById('totalStarsDisplay').textContent = totalStars;
+            }
+            selectStory(0);
+        });
+    </script>
+</body>
+</html>
