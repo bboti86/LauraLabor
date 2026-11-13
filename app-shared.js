@@ -522,7 +522,7 @@
             toast = document.createElement('div');
             toast.id = 'lauraAppToast';
             toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:12px 20px;border-radius:16px;font-weight:800;font-size:0.92rem;z-index:10000;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:opacity 0.3s ease;';
-            document.body.appendChild(toast);
+            (document.getElementById('landscapeStage') || document.body).appendChild(toast);
         }
         toast.textContent = msg;
         toast.style.opacity = '1';
@@ -568,7 +568,7 @@
                     Elfogadom ✔️
                 </button>
             `;
-            document.body.appendChild(bar);
+            (document.getElementById('landscapeStage') || document.body).appendChild(bar);
             document.getElementById('globalAcceptCookieBtn').addEventListener('click', () => {
                 window.LauraApp.acceptCookies();
                 bar.classList.add('hidden');
