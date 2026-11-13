@@ -20,6 +20,7 @@
     const LESSON_KEYS = [
         'szorzas',
         'felmero',
+        'maradekos',
         'ketjegyu',
         'pcreszek',
         'billentyuzet',
@@ -52,6 +53,7 @@
             stars: {
                 szorzas: 0,
                 felmero: 0,
+                maradekos: 0,
                 ketjegyu: 0,
                 pcreszek: 0,
                 billentyuzet: 0,

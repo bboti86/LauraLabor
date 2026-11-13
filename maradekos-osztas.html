@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maradékos Osztás & Bennfoglalás Gyakorló 🧺➗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f3e8ff;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(251, 191, 36, 0.22) 0px, transparent 50%),
+                radial-gradient(at 90% 15%, rgba(236, 72, 153, 0.20) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, rgba(99, 102, 241, 0.20) 0px, transparent 50%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bouncy-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        .divisor-card-selected {
+            box-shadow: 0 10px 20px -5px rgba(217, 70, 239, 0.4), inset 0 0 0 3px #ffffff;
+            transform: translateY(-3px);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.88); }
+            70% { transform: scale(1.03); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popIn 0.32s ease-out forwards;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .math-slot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 68px;
+            height: 60px;
+            padding: 0 12px;
+            border-radius: 18px;
+            border: 3px solid #cbd5e1;
+            background: #ffffff;
+            font-weight: 900;
+            font-size: 1.65rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .math-slot.active-slot {
+            border-color: #9333ea;
+            background: #faf5ff;
+            box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.2);
+            transform: scale(1.04);
+        }
+        .math-slot.correct-slot {
+            border-color: #10b981;
+            background: #ecfdf5;
+            color: #065f46;
+        }
+        .math-slot.wrong-slot {
+            border-color: #ef4444;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <!-- Felső Fejléc & Pontszámok -->
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-purple-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0" title="Vissza a főoldalra">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchMainTab('setup')">
+                    <span class="text-3xl sm:text-4xl animate-float">🧺</span>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 bg-clip-text text-transparent leading-tight">
+                            Maradékos Osztás Gyakorló
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">
+                            Bennfoglalás maradékkal, csomagoló-vizualizáció és szorzásos ellenőrzés ✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Eredményjelző sáv -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="toggleSound()" id="soundBtn" title="Hangok ki/be kapcsolása" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm" title="Összegyűjtött csillagok">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 px-3 py-1.5 rounded-2xl shadow-sm" title="Hibátlan sorozat">
+                    <span class="text-xl">🔥</span>
+                    <span id="streakDisplay" class="font-black text-orange-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő Navigációs Fülek -->
+    <div class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-purple-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button onclick="switchMainTab('setup')" id="tab-setup" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow-md">
+                <span>🎛️</span> <span>1. Beállítások</span>
+            </button>
+            <button onclick="switchMainTab('play')" id="tab-play" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50">
+                <span>🎮</span> <span>2. Gyakorló Játék</span>
+            </button>
+            <button onclick="switchMainTab('lab')" id="tab-lab" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50">
+                <span>🍓</span> <span>3. Csomagoló Labor</span>
+            </button>
+            <button onclick="switchMainTab('study')" id="tab-study" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50">
+                <span>📖</span> <span>4. Tanulósarok</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Fő Tartalom Konténer -->
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- =========================================================================
+             1. NÉZET: BEÁLLÍTÁSOK ÉS OSZTÓVÁLASZTÓ
+             ========================================================================= -->
+        <section id="view-setup" class="space-y-6 animate-pop">
+
+            <!-- Osztók kiválasztása (2..10) -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+                            <span>🔢</span> 1. Melyik osztókkal szeretnél gyakorolni?
+                        </h2>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-500">
+                            Kattints a számokra! Egyszerre egy vagy több osztót is kiválaszthatsz.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="selectDivisorPreset([2, 5, 10])" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-extrabold text-xs border border-emerald-200">
+                            🌱 Könnyű (2, 5, 10)
+                        </button>
+                        <button onclick="selectDivisorPreset([3, 4, 6])" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs border border-amber-200">
+                            ⚡ Közepes (3, 4, 6)
+                        </button>
+                        <button onclick="selectDivisorPreset([7, 8, 9])" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 font-extrabold text-xs border border-rose-200">
+                            🔥 Nehéz (7, 8, 9)
+                        </button>
+                        <button onclick="selectDivisorPreset([2, 3, 4, 5, 6, 7, 8, 9, 10])" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-extrabold text-xs border border-purple-200">
+                            🌟 Összes (2–10)
+                        </button>
+                    </div>
+                </div>
+
+                <div id="divisorGrid" class="grid grid-cols-3 sm:grid-cols-9 gap-2.5 mt-4"></div>
+            </div>
+
+            <!-- Feladattípus és Játékmód beállítása -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Feladattípus -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                    <h2 class="text-base sm:text-lg font-black text-slate-800 mb-3 flex items-center gap-2">
+                        <span>🎯</span> 2. Feladatok típusa
+                    </h2>
+                    <div class="space-y-2.5">
+                        <button onclick="setRemainderMode('only_rem')" id="rm-only_rem" class="w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-purple-50 border-purple-500">
+                            <span class="text-2xl">🧺</span>
+                            <div>
+                                <div class="font-black text-slate-800 text-sm sm:text-base">Csak maradékos osztások</div>
+                                <div class="text-xs text-slate-500 font-semibold">Minden feladatban marad legalább 1 darab (pl. 17 : 5 = 3, m: 2)</div>
+                            </div>
+                        </button>
+                        <button onclick="setRemainderMode('mixed_zero')" id="rm-mixed_zero" class="w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-slate-50 border-slate-200">
+                            <span class="text-2xl">🎲</span>
+                            <div>
+                                <div class="font-black text-slate-800 text-sm sm:text-base">Vegyesen (0 maradékkal is)</div>
+                                <div class="text-xs text-slate-500 font-semibold">Néha pontosan megvan benne (maradék = 0), figyelni kell!</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <div>
+                            <div class="font-black text-xs sm:text-sm text-slate-800">🔍 Szorzásos ellenőrzés kérése</div>
+                            <div class="text-[11px] font-semibold text-slate-500">„mert hányados · osztó + maradék = osztandó”</div>
+                        </div>
+                        <button onclick="toggleCheckStep()" id="checkStepToggleBtn" class="px-3.5 py-2 rounded-xl font-black text-xs bg-emerald-100 text-emerald-800 border-2 border-emerald-300">
+                            BEKAPCSOLVA ✔️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Válaszadás módja -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-slate-800 mb-3 flex items-center gap-2">
+                            <span>⌨️</span> 3. Hogyan szeretnél válaszolni?
+                        </h2>
+                        <div class="space-y-2.5">
+                            <button onclick="setAnswerStyle('keypad')" id="as-keypad" class="w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-purple-50 border-purple-500">
+                                <span class="text-2xl">🔢</span>
+                                <div>
+                                    <div class="font-black text-slate-800 text-sm sm:text-base">Számbillentyűzettel (Beírós)</div>
+                                    <div class="text-xs text-slate-500 font-semibold">Beírod a hányadost és a maradékot (pont mint a füzetben!)</div>
+                                </div>
+                            </button>
+                            <button onclick="setAnswerStyle('choices')" id="as-choices" class="w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-slate-50 border-slate-200">
+                                <span class="text-2xl">🃏</span>
+                                <div>
+                                    <div class="font-black text-slate-800 text-sm sm:text-base">4 válaszlehetőségből (Kártyás)</div>
+                                    <div class="text-xs text-slate-500 font-semibold">Kiválasztod a helyes hányados + maradék párost</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="startPracticeGame()" class="bouncy-btn mt-5 w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 text-white font-black text-base sm:text-lg shadow-lg flex items-center justify-center gap-2">
+                        <span>🚀</span>
+                        <span>Gyakorlás Indítása!</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             2. NÉZET: GYAKORLÓ JÁTÉK (HÁNYADOS + MARADÉK + ELLENŐRZÉS)
+             ========================================================================= -->
+        <section id="view-play" class="hidden space-y-5 animate-pop">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-lg border-2 border-purple-100">
+
+                <!-- Felső állapotsor a játékban -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-black text-xs" id="playRoundBadge">
+                            1 / 10. feladat
+                        </span>
+                        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs" id="playDivisorsBadge">
+                            Osztók: 2, 5, 10
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleVisualHelper()" id="visualHelperBtn" class="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 font-extrabold text-xs flex items-center gap-1">
+                            <span>🍓</span> <span>Mutasd képpel!</span>
+                        </button>
+                        <button onclick="toggleHintSteps()" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-extrabold text-xs flex items-center gap-1">
+                            <span>💡</span> <span>Hogyan számoljam?</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fő egyenlet kártya (Iskolai füzet stílusban) -->
+                <div class="bg-gradient-to-br from-indigo-50/70 via-purple-50/60 to-amber-50/70 rounded-3xl p-5 sm:p-7 border-2 border-indigo-100 text-center">
+                    <div class="text-xs sm:text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-2" id="verbalQuestionText">
+                        17-ben az 5 megvan ...-szor, marad a ...
+                    </div>
+
+                    <!-- Osztás sor -->
+                    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 my-3">
+                        <span id="qDividend" class="text-3xl sm:text-5xl font-black text-indigo-950">17</span>
+                        <span class="text-2xl sm:text-4xl font-black text-purple-600">:</span>
+                        <span id="qDivisor" class="text-3xl sm:text-5xl font-black text-purple-700">5</span>
+                        <span class="text-2xl sm:text-4xl font-black text-slate-400">=</span>
+
+                        <!-- Hányados slot -->
+                        <div class="flex flex-col items-center">
+                            <div onclick="selectActiveSlot('quotient')" id="slot-quotient" class="math-slot active-slot">?</div>
+                            <span class="text-[11px] font-extrabold text-purple-700 mt-1">hányados</span>
+                        </div>
+
+                        <span class="text-base sm:text-xl font-black text-slate-600 ml-1 sm:ml-3">, maradék:</span>
+
+                        <!-- Maradék slot -->
+                        <div class="flex flex-col items-center">
+                            <div onclick="selectActiveSlot('remainder')" id="slot-remainder" class="math-slot">?</div>
+                            <span class="text-[11px] font-extrabold text-amber-700 mt-1" id="remainderRuleSubtext">maradék (&lt; 5)</span>
+                        </div>
+                    </div>
+
+                    <!-- Ellenőrzés sor (mert Q * B + R = A) -->
+                    <div id="checkRowContainer" class="mt-4 pt-3.5 border-t border-indigo-200/70 flex flex-wrap items-center justify-center gap-2 text-sm sm:text-lg font-extrabold text-slate-700">
+                        <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase">Ellenőrzés:</span>
+                        <span>mert</span>
+                        <span id="checkPreviewQuotient" class="px-2.5 py-0.5 rounded-lg bg-white border border-purple-200 font-black text-purple-700">?</span>
+                        <span>·</span>
+                        <span id="checkPreviewDivisor" class="font-black text-purple-700">5</span>
+                        <span>+</span>
+                        <span id="checkPreviewRemainder" class="px-2.5 py-0.5 rounded-lg bg-white border border-amber-200 font-black text-amber-700">?</span>
+                        <span>=</span>
+                        <span id="checkPreviewResult" class="font-black text-indigo-950">17</span>
+                    </div>
+                </div>
+
+                <!-- Lépésről-lépésre gondolkodás segítő (alapból rejtett, gombra nyílik) -->
+                <div id="hintStepsBox" class="hidden mt-4 p-4 rounded-2xl bg-amber-50 border-2 border-amber-200 text-xs sm:text-sm font-bold text-slate-700 space-y-1.5"></div>
+
+                <!-- Vizuális Csomagoló Segítő (eprek/csillagok csoportosítva) -->
+                <div id="visualHelperBox" class="hidden mt-4 p-4 rounded-2xl bg-pink-50/70 border-2 border-pink-200"></div>
+
+                <!-- Visszajelző üzenet -->
+                <div id="playFeedbackBox" class="hidden mt-4 p-4 rounded-2xl text-center font-black text-sm sm:text-base"></div>
+
+                <!-- BEÍRÓS SZÁMBILLENTYŰZET MÓD -->
+                <div id="keypadInputArea" class="mt-5 space-y-3">
+                    <div class="grid grid-cols-6 sm:grid-cols-11 gap-2 max-w-2xl mx-auto">
+                        <button onclick="pressNumberPad(0)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">0</button>
+                        <button onclick="pressNumberPad(1)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">1</button>
+                        <button onclick="pressNumberPad(2)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">2</button>
+                        <button onclick="pressNumberPad(3)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">3</button>
+                        <button onclick="pressNumberPad(4)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">4</button>
+                        <button onclick="pressNumberPad(5)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">5</button>
+                        <button onclick="pressNumberPad(6)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">6</button>
+                        <button onclick="pressNumberPad(7)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">7</button>
+                        <button onclick="pressNumberPad(8)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">8</button>
+                        <button onclick="pressNumberPad(9)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200">9</button>
+                        <button onclick="pressNumberPad(10)" class="bouncy-btn py-3 rounded-2xl bg-slate-100 hover:bg-purple-100 text-slate-800 font-black text-lg sm:text-xl border-2 border-slate-200 col-span-6 sm:col-span-1">10</button>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-3 pt-2">
+                        <button onclick="clearCurrentSlots()" class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm">
+                            ⌫ Törlés
+                        </button>
+                        <button onclick="submitKeypadAnswer()" id="submitAnswerBtn" class="bouncy-btn px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base shadow-md">
+                            ✔️ Ellenőrzés!
+                        </button>
+                        <button onclick="nextQuestion()" id="nextQuestionBtn" class="hidden bouncy-btn px-8 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-base shadow-md">
+                            Következő feladat ➡️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 KÁRTYÁS FELELETVÁLASZTÓS MÓD -->
+                <div id="choicesInputArea" class="hidden mt-5">
+                    <div id="choicesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             3. NÉZET: INTERAKTÍV CSOMAGOLÓ LABOR (VIZUÁLIS BENNFOGLALÁS)
+             ========================================================================= -->
+        <section id="view-lab" class="hidden space-y-5 animate-pop">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <div class="mb-4">
+                    <span class="inline-block bg-pink-100 text-pink-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                        🍓 Kipróbálható Varázs-Csomagoló
+                    </span>
+                    <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                        Nézd meg saját szemeddel, hogyan keletkezik a maradék!
+                    </h2>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">
+                        Állítsd be, hány darab epret szeretnél becsomagolni, és hány darab fér egy dobozba!
+                    </p>
+                </div>
+
+                <!-- Csúszkák -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-5">
+                    <div>
+                        <div class="flex justify-between font-black text-sm text-slate-700 mb-1">
+                            <span>🍓 Összes eper (Osztandó):</span>
+                            <span id="labDividendVal" class="text-purple-700 text-base">17 db</span>
+                        </div>
+                        <input type="range" id="labDividendSlider" min="2" max="50" value="17" oninput="updateLabView()" class="w-full accent-purple-600 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between font-black text-sm text-slate-700 mb-1">
+                            <span>📦 Egy dobozba fér (Osztó):</span>
+                            <span id="labDivisorVal" class="text-pink-600 text-base">5 db</span>
+                        </div>
+                        <input type="range" id="labDivisorSlider" min="2" max="10" value="5" oninput="updateLabView()" class="w-full accent-pink-600 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Eredmény kártya a laborban -->
+                <div id="labEquationCard" class="rounded-2xl p-4 bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200 text-center mb-4"></div>
+
+                <!-- Dobozok és kimaradó eprek rajza -->
+                <div id="labBoxesContainer" class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200"></div>
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             4. NÉZET: TANULÓSAROK ÉS SZORZÓTÁBLA-KERESŐ PUSKA
+             ========================================================================= -->
+        <section id="view-study" class="hidden space-y-5 animate-pop">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100 space-y-4">
+                <h2 class="text-lg sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                    <span>📖</span> Hogyan működik a maradékos osztás?
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-2xl bg-purple-50 border-2 border-purple-200">
+                        <div class="text-2xl mb-1">1️⃣</div>
+                        <div class="font-black text-purple-950 text-sm sm:text-base">Keresd a legközelebbi szorzatot!</div>
+                        <p class="text-xs text-slate-700 font-semibold mt-1 leading-relaxed">
+                            Például <strong>17 : 5</strong> esetén gondold végig az 5-ös szorzótáblát (5, 10, <strong>15</strong>, 20). A 20 már sok, így a <strong>15</strong> a jó, ami <strong>3 · 5</strong>. A hányados tehát <strong>3</strong>!
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-200">
+                        <div class="text-2xl mb-1">2️⃣</div>
+                        <div class="font-black text-amber-950 text-sm sm:text-base">Számold ki a maradékot!</div>
+                        <p class="text-xs text-slate-700 font-semibold mt-1 leading-relaxed">
+                            Mennyi hiányzik a 15-höz, hogy 17 legyen? <strong>17 − 15 = 2</strong>. Tehát a <strong>maradék: 2</strong>.
+                            <br><span class="text-rose-700 font-black">Aranyszabály:</span> A maradék mindig kisebb, mint az osztó!
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
+                        <div class="text-2xl mb-1">3️⃣</div>
+                        <div class="font-black text-emerald-950 text-sm sm:text-base">Ellenőrizd szorzással!</div>
+                        <p class="text-xs text-slate-700 font-semibold mt-1 leading-relaxed">
+                            Szorozd össze a hányadost az osztóval, majd add hozzá a maradékot:
+                            <br><strong>mert 3 · 5 + 2 = 15 + 2 = 17</strong> ✔️
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Szorzótábla-többszörös puska minden osztóhoz -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-purple-100">
+                <h3 class="text-base sm:text-lg font-black text-slate-800 mb-3">
+                    🧭 Többszörös-kereső puska (Melyik szorzat fér még bele?)
+                </h3>
+                <div id="studyMultiplesTable" class="space-y-2.5"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // =====================================================
+        // HANG ÉS CSILLAGOK (LauraApp integrációval)
+        // =====================================================
+        let totalStars = 0;
+        let streak = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                try { navigator.audioSession.type = 'playback'; } catch (e) {}
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        ['touchstart', 'touchend', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (soundEnabled) {
+                    try { getAudioCtx(); } catch (e) {}
+                }
+            }, { once: true, passive: true });
+        });
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(560, now);
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.15, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [250, 195].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                        gain.gain.setValueAtTime(0.11, now + i * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.22);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function awardStars(amount) {
+            totalStars += amount;
+            document.getElementById('totalStarsDisplay').textContent = totalStars;
+            if (window.LauraApp) {
+                LauraApp.setStars('maradekos', totalStars);
+            }
+        }
+
+        // =====================================================
+        // JÁTÉK ÁLLAPOT ÉS BEÁLLÍTÁSOK
+        // =====================================================
+        let selectedDivisors = [2, 5, 10];
+        let remainderMode = 'only_rem'; // 'only_rem' | 'mixed_zero'
+        let showCheckRow = true;
+        let answerStyle = 'keypad'; // 'keypad' | 'choices'
+
+        let currentRound = 1;
+        const TOTAL_ROUNDS = 10;
+        let currentProblem = null;
+        let activeSlot = 'quotient'; // 'quotient' | 'remainder'
+        let userQuotient = null;
+        let userRemainder = null;
+        let questionResolved = false;
+        let visualHelperOpen = false;
+        let hintStepsOpen = false;
+
+        function renderDivisorGrid() {
+            const grid = document.getElementById('divisorGrid');
+            grid.innerHTML = '';
+            for (let d = 2; d <= 10; d++) {
+                const isSelected = selectedDivisors.includes(d);
+                const btn = document.createElement('button');
+                btn.onclick = () => toggleDivisor(d);
+                btn.className = `bouncy-btn py-3.5 px-2 rounded-2xl font-black text-center transition border-2 ${
+                    isSelected
+                        ? 'bg-gradient-to-br from-purple-600 to-pink-500 text-white border-purple-600 divisor-card-selected'
+                        : 'bg-slate-50 hover:bg-purple-50 text-slate-700 border-slate-200'
+                }`;
+                btn.innerHTML = `
+                    <div class="text-xl sm:text-2xl">:${d}</div>
+                    <div class="text-[10px] font-bold opacity-85">${d}-es osztó</div>
+                `;
+                grid.appendChild(btn);
+            }
+        }
+
+        function toggleDivisor(d) {
+            playSound('click');
+            if (selectedDivisors.includes(d)) {
+                if (selectedDivisors.length > 1) {
+                    selectedDivisors = selectedDivisors.filter(x => x !== d);
+                }
+            } else {
+                selectedDivisors.push(d);
+                selectedDivisors.sort((a, b) => a - b);
+            }
+            renderDivisorGrid();
+        }
+
+        function selectDivisorPreset(arr) {
+            playSound('click');
+            selectedDivisors = [...arr];
+            renderDivisorGrid();
+        }
+
+        function setRemainderMode(mode) {
+            playSound('click');
+            remainderMode = mode;
+            ['only_rem', 'mixed_zero'].forEach(m => {
+                const el = document.getElementById(`rm-${m}`);
+                if (m === mode) {
+                    el.className = 'w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-purple-50 border-purple-500';
+                } else {
+                    el.className = 'w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-slate-50 border-slate-200';
+                }
+            });
+        }
+
+        function toggleCheckStep() {
+            playSound('click');
+            showCheckRow = !showCheckRow;
+            const btn = document.getElementById('checkStepToggleBtn');
+            if (showCheckRow) {
+                btn.textContent = 'BEKAPCSOLVA ✔️';
+                btn.className = 'px-3.5 py-2 rounded-xl font-black text-xs bg-emerald-100 text-emerald-800 border-2 border-emerald-300';
+            } else {
+                btn.textContent = 'KIKAPCSOLVA ⚪';
+                btn.className = 'px-3.5 py-2 rounded-xl font-black text-xs bg-slate-100 text-slate-600 border-2 border-slate-200';
+            }
+        }
+
+        function setAnswerStyle(style) {
+            playSound('click');
+            answerStyle = style;
+            ['keypad', 'choices'].forEach(s => {
+                const el = document.getElementById(`as-${s}`);
+                if (s === style) {
+                    el.className = 'w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-purple-50 border-purple-500';
+                } else {
+                    el.className = 'w-full p-3.5 rounded-2xl border-2 text-left transition flex items-center gap-3 bg-slate-50 border-slate-200';
+                }
+            });
+        }
+
+        // =====================================================
+        // FELADAT GENERÁLÁSA ÉS MEGJELENÍTÉSE
+        // =====================================================
+        function generateProblem() {
+            const divisor = selectedDivisors[Math.floor(Math.random() * selectedDivisors.length)];
+            // Hányados 1 és 10 között
+            const quotient = Math.floor(Math.random() * 10) + 1;
+            let remainder;
+            if (remainderMode === 'only_rem') {
+                remainder = Math.floor(Math.random() * (divisor - 1)) + 1; // 1 .. divisor-1
+            } else {
+                // Vegyes: kb. 25% eséllyel 0 maradék, 75% eséllyel >0 maradék
+                if (Math.random() < 0.25) {
+                    remainder = 0;
+                } else {
+                    remainder = Math.floor(Math.random() * (divisor - 1)) + 1;
+                }
+            }
+            const dividend = quotient * divisor + remainder;
+            return { dividend, divisor, quotient, remainder };
+        }
+
+        function startPracticeGame() {
+            playSound('click');
+            currentRound = 1;
+            switchMainTab('play');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            currentProblem = generateProblem();
+            userQuotient = null;
+            userRemainder = null;
+            activeSlot = 'quotient';
+            questionResolved = false;
+
+            document.getElementById('playRoundBadge').textContent = `${currentRound} / ${TOTAL_ROUNDS}. feladat`;
+            document.getElementById('playDivisorsBadge').textContent = `Osztók: ${selectedDivisors.join(', ')}`;
+
+            document.getElementById('qDividend').textContent = currentProblem.dividend;
+            document.getElementById('qDivisor').textContent = currentProblem.divisor;
+            document.getElementById('verbalQuestionText').textContent =
+                `${currentProblem.dividend}-ben a(z) ${currentProblem.divisor} megvan ...-szor, marad a ...`;
+            document.getElementById('remainderRuleSubtext').textContent =
+                `maradék (< ${currentProblem.divisor})`;
+
+            // Ellenőrzés sor
+            const checkRow = document.getElementById('checkRowContainer');
+            checkRow.classList.toggle('hidden', !showCheckRow);
+            document.getElementById('checkPreviewDivisor').textContent = currentProblem.divisor;
+            document.getElementById('checkPreviewResult').textContent = currentProblem.dividend;
+
+            // Visszajelzés és gombok alaphelyzetbe
+            document.getElementById('playFeedbackBox').classList.add('hidden');
+            document.getElementById('submitAnswerBtn').classList.remove('hidden');
+            document.getElementById('nextQuestionBtn').classList.add('hidden');
+
+            // Segítők frissítése
+            renderVisualHelper();
+            renderHintSteps();
+            document.getElementById('visualHelperBox').classList.toggle('hidden', !visualHelperOpen);
+            document.getElementById('hintStepsBox').classList.toggle('hidden', !hintStepsOpen);
+
+            // Beviteli mód (Számbillentyűzet vs. 4 kártya)
+            document.getElementById('keypadInputArea').classList.toggle('hidden', answerStyle !== 'keypad');
+            document.getElementById('choicesInputArea').classList.toggle('hidden', answerStyle !== 'choices');
+
+            if (answerStyle === 'choices') {
+                renderChoicesGrid();
+            }
+
+            updateSlotUI();
+        }
+
+        function updateSlotUI() {
+            const qEl = document.getElementById('slot-quotient');
+            const rEl = document.getElementById('slot-remainder');
+
+            qEl.textContent = userQuotient !== null ? userQuotient : '?';
+            rEl.textContent = userRemainder !== null ? userRemainder : '?';
+
+            if (!questionResolved) {
+                qEl.className = `math-slot ${activeSlot === 'quotient' ? 'active-slot' : ''}`;
+                rEl.className = `math-slot ${activeSlot === 'remainder' ? 'active-slot' : ''}`;
+            }
+
+            document.getElementById('checkPreviewQuotient').textContent = userQuotient !== null ? userQuotient : '?';
+            document.getElementById('checkPreviewRemainder').textContent = userRemainder !== null ? userRemainder : '?';
+        }
+
+        function selectActiveSlot(slotName) {
+            if (questionResolved) return;
+            playSound('click');
+            activeSlot = slotName;
+            updateSlotUI();
+        }
+
+        function pressNumberPad(num) {
+            if (questionResolved) return;
+            playSound('click');
+            if (activeSlot === 'quotient') {
+                userQuotient = num;
+                activeSlot = 'remainder'; // Automatikusan átlép a maradék mezőre!
+            } else {
+                userRemainder = num;
+            }
+            updateSlotUI();
+        }
+
+        function clearCurrentSlots() {
+            if (questionResolved) return;
+            playSound('click');
+            userQuotient = null;
+            userRemainder = null;
+            activeSlot = 'quotient';
+            updateSlotUI();
+        }
+
+        function submitKeypadAnswer() {
+            if (questionResolved) return;
+            const fb = document.getElementById('playFeedbackBox');
+            fb.classList.remove('hidden');
+
+            if (userQuotient === null || userRemainder === null) {
+                playSound('error');
+                fb.className = 'mt-4 p-4 rounded-2xl text-center font-black text-sm sm:text-base bg-amber-100 text-amber-900 border-2 border-amber-300';
+                fb.textContent = '⚠️ Kérlek add meg mind a hányadost, mind a maradékot (ha nincs maradék, válaszd a 0-t)!';
+                return;
+            }
+
+            evaluateUserAnswer(userQuotient, userRemainder);
+        }
+
+        function renderChoicesGrid() {
+            const { dividend, divisor, quotient, remainder } = currentProblem;
+            const correctKey = `${quotient}|${remainder}`;
+            const optionsMap = new Map();
+            optionsMap.set(correctKey, { q: quotient, r: remainder, correct: true });
+
+            // Okos tévesztők generálása
+            const candidates = [
+                { q: quotient, r: (remainder + 1) % divisor },
+                { q: Math.max(1, quotient - 1), r: remainder + divisor }, // túl nagy maradék hiba!
+                { q: quotient + 1, r: remainder },
+                { q: Math.max(1, quotient - 1), r: Math.max(0, remainder - 1) },
+                { q: quotient, r: remainder === 0 ? 1 : 0 }
+            ];
+
+            for (const c of candidates) {
+                if (optionsMap.size >= 4) break;
+                const k = `${c.q}|${c.r}`;
+                if (!optionsMap.has(k) && c.q >= 0 && c.r >= 0) {
+                    optionsMap.set(k, { q: c.q, r: c.r, correct: false });
+                }
+            }
+
+            while (optionsMap.size < 4) {
+                const rq = Math.max(1, quotient + (Math.floor(Math.random() * 3) - 1));
+                const rr = Math.floor(Math.random() * divisor);
+                const k = `${rq}|${rr}`;
+                if (!optionsMap.has(k)) {
+                    optionsMap.set(k, { q: rq, r: rr, correct: false });
+                }
+            }
+
+            const shuffled = Array.from(optionsMap.values()).sort(() => Math.random() - 0.5);
+            const grid = document.getElementById('choicesGrid');
+            grid.innerHTML = '';
+
+            shuffled.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'bouncy-btn p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:border-purple-400 hover:bg-purple-50 text-left transition flex items-center justify-between';
+                btn.innerHTML = `
+                    <div>
+                        <div class="font-black text-base sm:text-lg text-slate-800">
+                            Hányados: <span class="text-purple-700">${opt.q}</span>, maradék: <span class="text-amber-700">${opt.r}</span>
+                        </div>
+                        <div class="text-xs font-bold text-slate-500 mt-0.5">
+                            mert ${opt.q} · ${divisor} + ${opt.r} = ${opt.q * divisor + opt.r}
+                        </div>
+                    </div>
+                    <span class="text-xl">👉</span>
+                `;
+                btn.onclick = () => {
+                    if (questionResolved) return;
+                    userQuotient = opt.q;
+                    userRemainder = opt.r;
+                    updateSlotUI();
+                    evaluateUserAnswer(opt.q, opt.r);
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function evaluateUserAnswer(qVal, rVal) {
+            const { dividend, divisor, quotient, remainder } = currentProblem;
+            const fb = document.getElementById('playFeedbackBox');
+            fb.classList.remove('hidden');
+
+            const qEl = document.getElementById('slot-quotient');
+            const rEl = document.getElementById('slot-remainder');
+
+            if (qVal === quotient && rVal === remainder) {
+                questionResolved = true;
+                streak++;
+                document.getElementById('streakDisplay').textContent = streak;
+                awardStars(1);
+                playSound('win');
+
+                qEl.className = 'math-slot correct-slot';
+                rEl.className = 'math-slot correct-slot';
+
+                fb.className = 'mt-4 p-4 rounded-2xl text-center font-black text-sm sm:text-base bg-emerald-100 text-emerald-950 border-2 border-emerald-400';
+                fb.innerHTML = `
+                    🎉 Kitűnő! <strong>${dividend} : ${divisor} = ${quotient}</strong>, maradék: <strong>${remainder}</strong>
+                    <div class="text-xs sm:text-sm font-bold text-emerald-800 mt-1">
+                        ✔️ Ellenőrzés: mert ${quotient} · ${divisor} + ${remainder} = ${quotient * divisor} + ${remainder} = ${dividend}! (+1 ⭐)
+                    </div>
+                `;
+
+                document.getElementById('submitAnswerBtn').classList.add('hidden');
+                const nextBtn = document.getElementById('nextQuestionBtn');
+                nextBtn.classList.remove('hidden');
+                nextBtn.textContent = currentRound < TOTAL_ROUNDS ? 'Következő feladat ➡️' : 'Kör befejezése 🏆';
+            } else {
+                streak = 0;
+                document.getElementById('streakDisplay').textContent = streak;
+                playSound('error');
+
+                qEl.className = `math-slot ${qVal === quotient ? 'correct-slot' : 'wrong-slot'}`;
+                rEl.className = `math-slot ${rVal === remainder ? 'correct-slot' : 'wrong-slot'}`;
+
+                // Speciális tanító visszajelzés, ha a maradék >= osztó
+                let reason = '';
+                if (rVal >= divisor) {
+                    reason = `⚠️ Figyelem! A megadott maradék (${rVal}) nem kisebb az osztónál (${divisor})! A maradéknak mindig kisebbnek kell lennie ${divisor}-nél!`;
+                } else if (qVal !== quotient) {
+                    reason = `💡 Tipp: ${dividend}-ben a(z) ${divisor} pontosan ${quotient}-szor van meg (mert ${quotient} · ${divisor} = ${quotient * divisor}).`;
+                } else {
+                    reason = `💡 A hányados (${quotient}) már jó! Számold ki a maradékot: ${dividend} − ${quotient * divisor} = ?`;
+                }
+
+                fb.className = 'mt-4 p-4 rounded-2xl text-center font-black text-sm sm:text-base bg-rose-100 text-rose-900 border-2 border-rose-300 animate-shake';
+                fb.innerHTML = `❌ Még nem egészen! Próbáld újra!<div class="text-xs sm:text-sm font-bold mt-1">${reason}</div>`;
+            }
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            if (currentRound >= TOTAL_ROUNDS) {
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 100, spread: 75, origin: { y: 0.6 } });
+                }
+                currentRound = 1;
+            } else {
+                currentRound++;
+            }
+            loadQuestion();
+        }
+
+        // Billentyűzetről is lehessen számokat és Entert nyomni
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('view-play').classList.contains('hidden')) return;
+            if (e.key >= '0' && e.key <= '9') {
+                if (!questionResolved && answerStyle === 'keypad') {
+                    pressNumberPad(parseInt(e.key, 10));
+                }
+            } else if (e.key === 'Backspace') {
+                if (!questionResolved && answerStyle === 'keypad') {
+                    clearCurrentSlots();
+                }
+            } else if (e.key === 'Enter') {
+                if (questionResolved) {
+                    nextQuestion();
+                } else if (answerStyle === 'keypad') {
+                    submitKeypadAnswer();
+                }
+            }
+        });
+
+        // =====================================================
+        // VIZUÁLIS CSOMAGOLÓ SEGÍTŐ ÉS LÉPÉSRŐL-LÉPÉSRE PUSKA
+        // =====================================================
+        function toggleVisualHelper() {
+            playSound('click');
+            visualHelperOpen = !visualHelperOpen;
+            document.getElementById('visualHelperBox').classList.toggle('hidden', !visualHelperOpen);
+        }
+
+        function toggleHintSteps() {
+            playSound('click');
+            hintStepsOpen = !hintStepsOpen;
+            document.getElementById('hintStepsBox').classList.toggle('hidden', !hintStepsOpen);
+        }
+
+        function buildGroupsHTML(dividend, divisor, quotient, remainder) {
+            const maxVisual = 60;
+            if (dividend > maxVisual) {
+                return `<div class="text-xs font-bold text-slate-600 text-center">
+                    📦 <strong>${quotient} darab</strong> teljes ${divisor}-ös csomag (${quotient} · ${divisor} = ${quotient * divisor}) + <strong>${remainder} darab</strong> kimaradó!
+                </div>`;
+            }
+
+            let boxesHtml = '';
+            for (let g = 0; g < quotient; g++) {
+                const items = Array(divisor).fill('🍓').join(' ');
+                boxesHtml += `
+                    <div class="px-2.5 py-1.5 rounded-xl bg-white border-2 border-purple-300 shadow-xs text-sm flex items-center gap-1">
+                        <span class="text-[10px] font-black text-purple-600 mr-1">${g + 1}.</span>
+                        <span>${items}</span>
+                    </div>
+                `;
+            }
+
+            const remItems = remainder > 0
+                ? `<div class="px-3 py-1.5 rounded-xl bg-amber-100 border-2 border-dashed border-amber-400 text-sm flex items-center gap-1.5">
+                        <span class="text-xs font-black text-amber-900">Kimarad (${remainder} db):</span>
+                        <span>${Array(remainder).fill('🍓').join(' ')}</span>
+                   </div>`
+                : `<div class="px-3 py-1.5 rounded-xl bg-emerald-100 border-2 border-emerald-300 text-xs font-black text-emerald-800">
+                        Nincs kimaradó eper (maradék = 0)!
+                   </div>`;
+
+            return `
+                <div class="text-xs font-extrabold text-pink-900 mb-2">
+                    🍓 <strong>${dividend} db epret</strong> csomagolunk <strong>${divisor}-ösével</strong>:
+                    lett <strong>${quotient} db teljes csomag</strong> (${quotient * divisor} db) és <strong>kimaradt ${remainder} db</strong>!
+                </div>
+                <div class="flex flex-wrap gap-2 items-center">
+                    ${boxesHtml}
+                    ${remItems}
+                </div>
+            `;
+        }
+
+        function renderVisualHelper() {
+            if (!currentProblem) return;
+            const { dividend, divisor, quotient, remainder } = currentProblem;
+            document.getElementById('visualHelperBox').innerHTML = buildGroupsHTML(dividend, divisor, quotient, remainder);
+        }
+
+        function renderHintSteps() {
+            if (!currentProblem) return;
+            const { dividend, divisor, quotient, remainder } = currentProblem;
+            const closestMultiple = quotient * divisor;
+            document.getElementById('hintStepsBox').innerHTML = `
+                <div><strong>1. lépés:</strong> Melyik a legnagyobb szám a(z) <strong>${divisor}-es szorzótáblában</strong>, ami nem nagyobb ${dividend}-nél? Ez a <strong>${closestMultiple}</strong> (mert <strong>${quotient} · ${divisor} = ${closestMultiple}</strong>).</div>
+                <div><strong>2. lépés:</strong> Tehát a hányados: <strong class="text-purple-700">${quotient}</strong>.</div>
+                <div><strong>3. lépés:</strong> Mennyi maradék jut? Vonjuk ki: <strong>${dividend} − ${closestMultiple} = <span class="text-amber-700">${remainder}</span></strong>.</div>
+            `;
+        }
+
+        // =====================================================
+        // 3. FÜL: CSOMAGOLÓ LABOR
+        // =====================================================
+        function updateLabView() {
+            const dividend = parseInt(document.getElementById('labDividendSlider').value, 10);
+            const divisor = parseInt(document.getElementById('labDivisorSlider').value, 10);
+            const quotient = Math.floor(dividend / divisor);
+            const remainder = dividend % divisor;
+
+            document.getElementById('labDividendVal').textContent = `${dividend} db`;
+            document.getElementById('labDivisorVal').textContent = `${divisor} db`;
+
+            document.getElementById('labEquationCard').innerHTML = `
+                <div class="text-2xl sm:text-3xl font-black text-indigo-950">
+                    ${dividend} : ${divisor} = <span class="text-purple-700">${quotient}</span>,
+                    <span class="text-amber-700">maradék: ${remainder}</span>
+                </div>
+                <div class="text-xs sm:text-sm font-extrabold text-slate-600 mt-1">
+                    ✔️ Ellenőrzés: mert <strong>${quotient} · ${divisor} + ${remainder} = ${quotient * divisor} + ${remainder} = ${dividend}</strong>
+                    &nbsp;|&nbsp; Maradék-szabály: <strong>${remainder} &lt; ${divisor}</strong>
+                </div>
+            `;
+
+            document.getElementById('labBoxesContainer').innerHTML = buildGroupsHTML(dividend, divisor, quotient, remainder);
+        }
+
+        // =====================================================
+        // 4. FÜL: TANULÓSAROK TÖBBSZÖRÖS-TÁBLÁZAT
+        // =====================================================
+        function renderStudyMultiples() {
+            const container = document.getElementById('studyMultiplesTable');
+            container.innerHTML = '';
+            for (let d = 2; d <= 10; d++) {
+                const mults = [];
+                for (let k = 1; k <= 10; k++) {
+                    mults.push(`<span class="px-2 py-1 rounded-lg bg-white border border-purple-200 font-black text-xs sm:text-sm text-indigo-950">${k * d} <span class="text-[10px] text-slate-400">(${k}·${d})</span></span>`);
+                }
+                const row = document.createElement('div');
+                row.className = 'p-3 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-1.5';
+                row.innerHTML = `
+                    <span class="px-3 py-1 rounded-xl bg-purple-600 text-white font-black text-xs sm:text-sm mr-1">:${d} osztó</span>
+                    ${mults.join('')}
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        // =====================================================
+        // FÜLVÁLTÁS ÉS INDÍTÁS
+        // =====================================================
+        function switchMainTab(tab) {
+            playSound('click');
+            ['setup', 'play', 'lab', 'study'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow-md';
+                } else {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:bg-purple-50';
+                }
+            });
+            if (tab === 'play' && !currentProblem) {
+                loadQuestion();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                totalStars = LauraApp.getStars('maradekos');
+                document.getElementById('totalStarsDisplay').textContent = totalStars;
+            }
+            renderDivisorGrid();
+            updateLabView();
+            renderStudyMultiples();
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

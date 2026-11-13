@@ -69,7 +69,7 @@
                 <div class="summary-stat-card theme-tint wide-mobile">
                     <span class="summary-stat-icon">🎯</span>
                     <div>
-                        <div class="summary-stat-value" id="summaryActiveModules">0 / 9</div>
+                        <div class="summary-stat-value" id="summaryActiveModules">0 / 10</div>
                         <div class="summary-stat-label">Kipróbált modul</div>
                     </div>
                 </div>
@@ -94,6 +94,13 @@
                     <span>⏱️ Szorzótábla és Bennfoglalás Felmérő (200-as Tudástérkép)</span>
                     <span class="app-btn-right">
                         <span class="lesson-star-badge green" id="badge-felmero">🟢 0/200</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+                <a href="./maradekos-osztas.html" class="app-btn">
+                    <span>🧺 Maradékos osztás és bennfoglalás gyakorló</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-maradekos">⭐ 0</span>
                         <span class="icon">👉</span>
                     </span>
                 </a>
@@ -381,7 +388,7 @@
             }
 
             // Lecke-jelvények frissítése
-            const lessonIds = ['szorzas', 'ketjegyu', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg'];
             let activeModules = felmeroStats.tested > 0 ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -400,10 +407,10 @@
                 felmeroBadge.className = felmeroStats.mastered > 0 ? 'lesson-star-badge green' : 'lesson-star-badge empty';
             }
 
-            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 9`;
+            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 10`;
 
             // Kategória összesítők
-            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('ketjegyu');
+            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu');
             const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet');
             const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg');
 
