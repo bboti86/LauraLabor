@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'hu.bboti86.lauralabor'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "hu.bboti86.lauralabor"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore/laura-release.jks")
+            storePassword "lauralabor123"
+            keyAlias "laura"
+            keyPassword "lauralabor123"
+            enableV1Signing true
+            enableV2Signing true
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.register('copyWebAssets', Copy) {
+    from('../../') {
+        include '*.html'
+        include '*.js'
+        include '*.css'
+        include '*.json'
+        include '*.png'
+        include '*.jpg'
+    }
+    into layout.projectDirectory.dir('src/main/assets/www')
+}
+
+preBuild.dependsOn(copyWebAssets)

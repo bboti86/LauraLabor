@@ -1,0 +1,53 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.5'
+
+      - name: Build Signed Release APK
+        working-directory: ./android
+        run: |
+          gradle assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk ../laura-tanulosarka.apk
+          ls -lh ../laura-tanulosarka.apk
+
+      - name: Upload APK as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: laura-tanulosarka-apk
+          path: laura-tanulosarka.apk
+
+      - name: Publish APK to GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            gh release upload v1.0.0 laura-tanulosarka.apk --clobber
+          else
+            gh release create v1.0.0 laura-tanulosarka.apk \
+              --title "Laura Tanulósarka – Android APK (Pixel Tablet & Kids Space)" \
+              --notes "Telepíthető Android alkalmazás (APK) telefonra és Google Pixel Tabletre (Google Kids Space támogatással). A leckék online automatikusan frissülnek, offline pedig a beépített csomagból működnek." \
+              --latest
+          fi
