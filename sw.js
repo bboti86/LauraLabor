@@ -1,4 +1,4 @@
-const CACHE_NAME = 'laura-tanulosarka-v26';
+const CACHE_NAME = 'laura-tanulosarka-v27';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -19,7 +19,10 @@ const ASSETS_TO_CACHE = [
   './maradekos-osztas.html',
   './ketjegyu-osszeadas-kivonas.html',
   './szoveges-feladatok.html',
-  './szovegertes.html'
+  './szovegertes.html',
+  './angol-szinek.html',
+  './angol-szamok.html',
+  './angol-iskola.html'
 ];
 
 self.addEventListener('install', (event) => {

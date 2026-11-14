@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎨 Angol színek (Colours) – Angol 3. osztály</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            color: #1e293b;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.92);
+            box-shadow: 0 14px 34px -10px rgba(15, 23, 42, 0.12);
+        }
+        .bouncy-btn {
+            transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+        }
+        .swatch-circle {
+            width: 54px;
+            height: 54px;
+            border-radius: 9999px;
+            border: 3px solid rgba(15, 23, 42, 0.18);
+            box-shadow: inset 0 -4px 8px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .paint-region {
+            cursor: pointer;
+            transition: filter 0.15s ease, stroke-width 0.15s ease;
+        }
+        .paint-region:hover {
+            filter: brightness(1.06);
+            stroke-width: 4px;
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- FELSŐ FEJLÉC -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-rose-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="./index.html" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-2xl transition shadow-xs">
+                    <span>⬅️</span>
+                    <span>Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-rose-500 via-amber-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                        🎨
+                    </div>
+                    <div>
+                        <h1 class="text-sm sm:text-xl font-black text-slate-800 leading-tight">
+                            Angol színek – Colours
+                        </h1>
+                        <p class="text-[11px] sm:text-xs font-bold text-rose-600 hidden sm:block">
+                            🇬🇧 Angol 3. osztály • Kiejtéssel, színkeverővel, kifestővel és kvízzel
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSound()" id="soundToggleBtn" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-base" title="Hang és angol kiejtés be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-300 px-3.5 py-1 rounded-2xl shadow-xs">
+                    <span class="text-lg">⭐</span>
+                    <span id="starCount" class="font-black text-amber-800 text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 4 FŐ FÜL -->
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 mt-4">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-rose-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button onclick="switchTab('cards')" id="tab-btn-cards" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow">
+                <span>🎨</span> <span>1. Színkártyák</span>
+            </button>
+            <button onclick="switchTab('painter')" id="tab-btn-painter" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50">
+                <span>🖌️</span> <span>2. Kifestő & Keverő</span>
+            </button>
+            <button onclick="switchTab('spell')" id="tab-btn-spell" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50">
+                <span>🔤</span> <span>3. Betűkirakó</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50">
+                <span>🏆</span> <span>4. Kvíz (12)</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-3 sm:px-6 mt-5 space-y-6">
+
+        <!-- =============================================================== -->
+        <!-- 1. FÜL: BESZÉLŐ SZÍNKÁRTYÁK ÉS MONDATOK                          -->
+        <!-- =============================================================== -->
+        <section id="view-cards" class="space-y-6">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span class="inline-block bg-rose-100 text-rose-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🔊 Kattints bármelyik kártyára a kiejtéshez!
+                        </span>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                            A legfontosabb angol színek (Colours)
+                        </h2>
+                    </div>
+                    <button onclick="speakEnglish('What colour is it?')" class="bouncy-btn px-3.5 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow">
+                        🔊 „What colour is it?” (Milyen színű ez?)
+                    </button>
+                </div>
+
+                <!-- Színkártyák rácsa -->
+                <div id="colourCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+            </div>
+
+            <!-- Világos (light) és Sötét (dark) + Hasznos mondatok -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-panel rounded-3xl p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-black text-slate-800 mb-2 flex items-center gap-2">
+                        <span>💡</span> <span>Világos és sötét árnyalatok: <strong>light</strong> & <strong>dark</strong></span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-bold text-slate-600 mb-3">
+                        Ha egy szín elé tesszük a <strong>light</strong> <span class="text-indigo-700">[lájt]</span> szót, <strong>világosat</strong> jelent; ha a <strong>dark</strong> <span class="text-indigo-700">[dárk]</span> szót, akkor <strong>sötétet</strong>!
+                    </p>
+                    <div class="grid grid-cols-2 gap-2.5 text-xs sm:text-sm font-black">
+                        <button onclick="speakEnglish('light blue')" class="bouncy-btn p-3 rounded-2xl bg-sky-200 text-sky-950 border-2 border-sky-300 flex items-center justify-between">
+                            <span>🩵 light blue [lájt blú]<br><span class="text-[11px] font-bold">világoskék</span></span>
+                            <span>🔊</span>
+                        </button>
+                        <button onclick="speakEnglish('dark blue')" class="bouncy-btn p-3 rounded-2xl bg-blue-900 text-white border-2 border-blue-950 flex items-center justify-between">
+                            <span>💙 dark blue [dárk blú]<br><span class="text-[11px] font-bold text-blue-200">sötétkék</span></span>
+                            <span>🔊</span>
+                        </button>
+                        <button onclick="speakEnglish('light green')" class="bouncy-btn p-3 rounded-2xl bg-lime-200 text-lime-950 border-2 border-lime-400 flex items-center justify-between">
+                            <span>🌱 light green [lájt grín]<br><span class="text-[11px] font-bold">világoszöld</span></span>
+                            <span>🔊</span>
+                        </button>
+                        <button onclick="speakEnglish('dark green')" class="bouncy-btn p-3 rounded-2xl bg-emerald-900 text-white border-2 border-emerald-950 flex items-center justify-between">
+                            <span>🌲 dark green [dárk grín]<br><span class="text-[11px] font-bold text-emerald-200">sötétzöld</span></span>
+                            <span>🔊</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-black text-slate-800 mb-2 flex items-center gap-2">
+                        <span>💬</span> <span>Fontos mondatok az angolórán</span>
+                    </h3>
+                    <div class="space-y-2 text-xs sm:text-sm">
+                        <div onclick="speakEnglish('What colour is it?')" class="p-2.5 rounded-2xl bg-rose-50 border border-rose-200 cursor-pointer hover:bg-rose-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-rose-950">What colour is it? <span class="text-rose-600 font-bold">[Vot kalör iz it?]</span></div>
+                                <div class="font-bold text-slate-600 text-xs">Milyen színű ez?</div>
+                            </div>
+                            <span class="text-lg">🔊</span>
+                        </div>
+                        <div onclick="speakEnglish('It is red.')" class="p-2.5 rounded-2xl bg-amber-50 border border-amber-200 cursor-pointer hover:bg-amber-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-amber-950">It is red. / It's red. <span class="text-amber-700 font-bold">[It iz red / Itc red]</span></div>
+                                <div class="font-bold text-slate-600 text-xs">Ez piros.</div>
+                            </div>
+                            <span class="text-lg">🔊</span>
+                        </div>
+                        <div onclick="speakEnglish('What is your favourite colour?')" class="p-2.5 rounded-2xl bg-indigo-50 border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-indigo-950">What's your favourite colour? <span class="text-indigo-600 font-bold">[Votc jór féjvrit kalör?]</span></div>
+                                <div class="font-bold text-slate-600 text-xs">Mi a kedvenc színed?</div>
+                            </div>
+                            <span class="text-lg">🔊</span>
+                        </div>
+                        <div onclick="speakEnglish('My favourite colour is purple.')" class="p-2.5 rounded-2xl bg-purple-50 border border-purple-200 cursor-pointer hover:bg-purple-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-purple-950">My favourite colour is purple. <span class="text-purple-600 font-bold">[Máj féjvrit kalör iz pörpöl]</span></div>
+                                <div class="font-bold text-slate-600 text-xs">A kedvenc színem a lila.</div>
+                            </div>
+                            <span class="text-lg">🔊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 2. FÜL: ANGOL KIFESTŐ (COLOUR BY COMMAND) ÉS SZÍNKEVERŐ          -->
+        <!-- =============================================================== -->
+        <section id="view-painter" class="hidden space-y-6">
+            <!-- 1. Játék: Színezd ki a képet az angol utasítás alapján! -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-amber-100 text-amber-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🖌️ 1. Játék: Angol Varázs-Kifestő
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-800">
+                            Olvasd el (vagy hallgasd meg) az angol kérést, és válaszd ki a megfelelő színt!
+                        </h2>
+                    </div>
+                    <button onclick="resetPainterGame()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                        🔄 Újrafestés
+                    </button>
+                </div>
+
+                <!-- Aktuális kifestő feladat -->
+                <div class="bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 border-2 border-rose-200 rounded-2xl p-3.5 mb-4 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                        <button onclick="speakCurrentPaintPrompt()" class="w-11 h-11 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xl flex items-center justify-center shadow shrink-0" title="Hallgasd meg angolul">
+                            🔊
+                        </button>
+                        <div>
+                            <div class="text-[11px] font-black uppercase text-rose-700" id="paintStepBadge">1 / 6. feladat</div>
+                            <div class="text-sm sm:text-xl font-black text-slate-900" id="paintPromptEn">
+                                Colour the sun YELLOW!
+                            </div>
+                            <div class="text-xs font-bold text-slate-600" id="paintPromptHu">
+                                (Színezd ki a napot: válaszd ki lent a megfelelő színt!)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <!-- Kifesthető Házikó és Kert SVG -->
+                    <div class="bg-white rounded-3xl border-2 border-slate-200 p-3 shadow-inner">
+                        <svg viewBox="0 0 420 270" class="w-full h-auto block">
+                            <!-- Égbolt -->
+                            <rect x="0" y="0" width="420" height="210" fill="#f0f9ff" />
+                            <!-- Fű -->
+                            <rect x="0" y="205" width="420" height="65" fill="#dcfce7" />
+
+                            <!-- 1. NAP (Sun) -->
+                            <g onclick="clickPaintRegion('sun')" class="paint-region">
+                                <circle id="svg-paint-sun" cx="68" cy="56" r="32" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                                <text x="68" y="61" text-anchor="middle" font-size="11" font-weight="900" fill="#334155">SUN</text>
+                            </g>
+
+                            <!-- 2. FELHŐ (Cloud / Sky) -->
+                            <g onclick="clickPaintRegion('cloud')" class="paint-region">
+                                <ellipse id="svg-paint-cloud" cx="315" cy="52" rx="52" ry="24" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                                <text x="315" y="56" text-anchor="middle" font-size="11" font-weight="900" fill="#334155">CLOUD</text>
+                            </g>
+
+                            <!-- 3. HÁZIKÓ FAL (House) -->
+                            <g onclick="clickPaintRegion('house')" class="paint-region">
+                                <rect id="svg-paint-house" x="125" y="115" width="130" height="95" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                                <text x="190" y="150" text-anchor="middle" font-size="11" font-weight="900" fill="#334155">HOUSE</text>
+                            </g>
+
+                            <!-- 4. TETŐ (Roof) -->
+                            <g onclick="clickPaintRegion('roof')" class="paint-region">
+                                <polygon id="svg-paint-roof" points="110,115 190,50 270,115" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                                <text x="190" y="102" text-anchor="middle" font-size="11" font-weight="900" fill="#334155">ROOF</text>
+                            </g>
+
+                            <!-- 5. AJTÓ (Door) -->
+                            <g onclick="clickPaintRegion('door')" class="paint-region">
+                                <rect id="svg-paint-door" x="172" y="160" width="36" height="50" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                                <text x="190" y="189" text-anchor="middle" font-size="9" font-weight="900" fill="#334155">DOOR</text>
+                            </g>
+
+                            <!-- 6. FA LOMBJA (Tree) -->
+                            <g onclick="clickPaintRegion('tree')" class="paint-region">
+                                <rect x="328" y="155" width="18" height="55" fill="#78350f" stroke="#334155" stroke-width="2" />
+                                <circle id="svg-paint-tree" cx="337" cy="132" r="38" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                                <text x="337" y="136" text-anchor="middle" font-size="11" font-weight="900" fill="#334155">TREE</text>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <!-- Festékpaletta gombok -->
+                    <div>
+                        <div class="text-xs font-black uppercase text-slate-500 mb-2">
+                            🎨 Kattints a kért színre a kifestéshez:
+                        </div>
+                        <div id="painterPalette" class="grid grid-cols-3 gap-2"></div>
+                        <div id="painterFeedback" class="hidden mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Játék: Angol Színkeverő (Colour Mixer) -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <span class="inline-block bg-purple-100 text-purple-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                    🧪 2. Játék: Angol Színkeverő (Colour Mixer)
+                </span>
+                <h3 class="text-base sm:text-xl font-black text-slate-800 mb-3">
+                    Milyen színt kapunk, ha összekeverjük ezt a két színt? Válaszd ki angolul!
+                </h3>
+
+                <div id="mixerBox" class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-center mb-3"></div>
+                <div id="mixerChoices" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2"></div>
+                <div id="mixerFeedback" class="hidden p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 3. FÜL: BETŰKIRAKÓ (SPELLING)                                    -->
+        <!-- =============================================================== -->
+        <section id="view-spell" class="hidden space-y-6">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6 max-w-2xl mx-auto">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-indigo-100 text-indigo-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🔤 Hogy írjuk angolul?
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-800">
+                            Rakd ki a szín angol nevét a betűkből!
+                        </h2>
+                    </div>
+                    <button onclick="speakCurrentSpellWord()" class="bouncy-btn px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs">
+                        🔊 Kiejtés
+                    </button>
+                </div>
+
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-center mb-4">
+                    <div id="spellSwatch" class="swatch-circle mx-auto mb-2"></div>
+                    <div class="text-xs font-extrabold text-slate-500 uppercase">Magyarul:</div>
+                    <div id="spellHuName" class="text-xl sm:text-2xl font-black text-slate-800">piros</div>
+                    <div id="spellPhonetic" class="text-xs font-bold text-indigo-600 mt-0.5">Kiejtés: [red]</div>
+                </div>
+
+                <!-- Kirakott betűk helye -->
+                <div id="spellSlots" class="flex flex-wrap justify-center gap-2 min-h-[52px] mb-4"></div>
+
+                <!-- Választható betűk -->
+                <div id="spellPool" class="flex flex-wrap justify-center gap-2 mb-4"></div>
+
+                <div class="flex justify-center gap-2">
+                    <button onclick="clearSpellAttempt()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                        🔙 Újrakezdés
+                    </button>
+                    <button onclick="nextSpellWord()" class="px-4 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-extrabold text-xs">
+                        ⏭️ Másik szín
+                    </button>
+                </div>
+
+                <div id="spellFeedback" class="hidden mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 4. FÜL: 12-KÉRDÉSES ANGOL SZÍNEK KVÍZ                            -->
+        <!-- =============================================================== -->
+        <section id="view-quiz" class="hidden max-w-2xl mx-auto">
+            <div class="glass-panel rounded-3xl p-5 sm:p-7" id="quizContainer"></div>
+        </section>
+
+    </main>
+
+    <script>
+        // =====================================================
+        // HANG ÉS ANGOL KIEJTÉS (Web Speech API + AudioContext)
+        // =====================================================
+        let stars = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.14, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [240, 190].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.13);
+                        gain.gain.setValueAtTime(0.1, now + i * 0.13);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.13 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.13);
+                        osc.stop(now + i * 0.13 + 0.24);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function speakEnglish(text) {
+            playTone('click');
+            if (!soundEnabled || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'en-GB';
+                utter.rate = 0.88;
+                utter.pitch = 1.05;
+                window.speechSynthesis.speak(utter);
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function addStars(amount) {
+            stars += amount;
+            const el = document.getElementById('starCount');
+            if (el) el.textContent = stars;
+            if (window.LauraApp) LauraApp.setStars('angol_szinek', stars);
+            playTone('win');
+        }
+
+        // =====================================================
+        // SZÍNEK ADATBÁZISA (12 SZÍN)
+        // =====================================================
+        const COLOURS = [
+            { en: 'red', pron: '[red]', hu: 'piros', hex: '#ef4444', textCls: 'text-white', exEn: 'a red apple', exHu: 'egy piros alma 🍎' },
+            { en: 'blue', pron: '[blú]', hu: 'kék', hex: '#2563eb', textCls: 'text-white', exEn: 'the blue sky', exHu: 'a kék ég ☁️' },
+            { en: 'yellow', pron: '[jeló]', hu: 'sárga (citromsárga)', hex: '#facc15', textCls: 'text-slate-900', exEn: 'a yellow lemon', exHu: 'egy sárga citrom 🍋' },
+            { en: 'green', pron: '[grín]', hu: 'zöld', hex: '#16a34a', textCls: 'text-white', exEn: 'a green frog', exHu: 'egy zöld béka 🐸' },
+            { en: 'orange', pron: '[orindzs]', hu: 'narancssárga', hex: '#f97316', textCls: 'text-white', exEn: 'an orange carrot', exHu: 'egy narancssárga répa 🥕' },
+            { en: 'purple', pron: '[pörpöl]', hu: 'lila', hex: '#9333ea', textCls: 'text-white', exEn: 'purple grapes', exHu: 'lila szőlő 🍇' },
+            { en: 'pink', pron: '[pink]', hu: 'rózsaszín', hex: '#ec4899', textCls: 'text-white', exEn: 'a pink flower', exHu: 'egy rózsaszín virág 🌸' },
+            { en: 'brown', pron: '[braun]', hu: 'barna', hex: '#78350f', textCls: 'text-white', exEn: 'a brown bear', exHu: 'egy barna medve 🐻' },
+            { en: 'black', pron: '[blek]', hu: 'fekete', hex: '#0f172a', textCls: 'text-white', exEn: 'a black cat', exHu: 'egy fekete macska 🐈‍⬛' },
+            { en: 'white', pron: '[vájt]', hu: 'fehér', hex: '#ffffff', textCls: 'text-slate-800', exEn: 'white snow', exHu: 'fehér hó ⛄' },
+            { en: 'grey', pron: '[gréj]', hu: 'szürke', hex: '#94a3b8', textCls: 'text-slate-900', exEn: 'a grey elephant', exHu: 'egy szürke elefánt 🐘' },
+            { en: 'gold', pron: '[góld]', hu: 'arany', hex: '#eab308', textCls: 'text-slate-900', exEn: 'a gold star', exHu: 'egy arany csillag ⭐' }
+        ];
+
+        let heardColours = new Set();
+
+        function renderColourCards() {
+            const grid = document.getElementById('colourCardsGrid');
+            grid.innerHTML = COLOURS.map((c, idx) => `
+                <div onclick="onCardClick(${idx})" class="bouncy-btn cursor-pointer rounded-3xl p-3.5 bg-white border-2 border-slate-200 hover:border-rose-300 shadow-xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="swatch-circle shrink-0" style="background:${c.hex};"></div>
+                        <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-black text-xs">🔊 Hallgasd</span>
+                    </div>
+                    <div>
+                        <div class="text-lg sm:text-xl font-black text-slate-900">${c.en}</div>
+                        <div class="text-xs font-extrabold text-indigo-600">${c.pron}</div>
+                        <div class="text-sm font-black text-rose-700 mt-0.5">${c.hu}</div>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-slate-100 text-[11px] font-bold text-slate-500">
+                        <strong>${c.exEn}</strong><br>${c.exHu}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function onCardClick(idx) {
+            const c = COLOURS[idx];
+            speakEnglish(`${c.en}. ${c.exEn}`);
+            if (!heardColours.has(c.en)) {
+                heardColours.add(c.en);
+                if (heardColours.size % 4 === 0) addStars(1);
+            }
+        }
+
+        // =====================================================
+        // 2. FÜL: KIFESTŐ (COLOUR BY COMMAND) ÉS SZÍNKEVERŐ
+        // =====================================================
+        const PAINT_STEPS = [
+            { region: 'sun', partNameEn: 'the sun', partNameHu: 'a napot', targetEn: 'yellow', hex: '#facc15' },
+            { region: 'roof', partNameEn: 'the roof', partNameHu: 'a háztetőt', targetEn: 'red', hex: '#ef4444' },
+            { region: 'tree', partNameEn: 'the tree', partNameHu: 'a fa lombját', targetEn: 'green', hex: '#22c55e' },
+            { region: 'door', partNameEn: 'the door', partNameHu: 'az ajtót', targetEn: 'brown', hex: '#854d0e' },
+            { region: 'house', partNameEn: 'the house', partNameHu: 'a ház falát', targetEn: 'pink', hex: '#f472b6' },
+            { region: 'cloud', partNameEn: 'the cloud', partNameHu: 'a felhőt', targetEn: 'blue', hex: '#60a5fa' }
+        ];
+        let paintStepIdx = 0;
+
+        function renderPainterStep() {
+            const palette = document.getElementById('painterPalette');
+            palette.innerHTML = COLOURS.slice(0, 9).map(c => `
+                <button onclick="selectPaletteColour('${c.en}')" class="bouncy-btn p-2.5 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-400 flex items-center gap-2 font-black text-xs sm:text-sm text-slate-800 shadow-xs">
+                    <span class="w-5 h-5 rounded-full border border-slate-300 shrink-0" style="background:${c.hex};"></span>
+                    <span>${c.en}</span>
+                </button>
+            `).join('');
+
+            if (paintStepIdx >= PAINT_STEPS.length) {
+                document.getElementById('paintStepBadge').textContent = '🎉 Kész a festmény!';
+                document.getElementById('paintPromptEn').textContent = 'Well done! The picture is ready!';
+                document.getElementById('paintPromptHu').textContent = 'Ügyes vagy! Az összes részletet kiszínezted angolul!';
+                return;
+            }
+
+            const cur = PAINT_STEPS[paintStepIdx];
+            document.getElementById('paintStepBadge').textContent = `${paintStepIdx + 1} / ${PAINT_STEPS.length}. feladat`;
+            document.getElementById('paintPromptEn').textContent = `Colour ${cur.partNameEn} ${cur.targetEn.toUpperCase()}!`;
+            document.getElementById('paintPromptHu').textContent = `(Kattints a palettán a megfelelő színre, amilyenre ${cur.partNameHu} kell festeni!)`;
+        }
+
+        function speakCurrentPaintPrompt() {
+            if (paintStepIdx < PAINT_STEPS.length) {
+                const cur = PAINT_STEPS[paintStepIdx];
+                speakEnglish(`Colour ${cur.partNameEn} ${cur.targetEn}!`);
+            }
+        }
+
+        function clickPaintRegion(region) {
+            speakCurrentPaintPrompt();
+        }
+
+        function selectPaletteColour(chosenEn) {
+            if (paintStepIdx >= PAINT_STEPS.length) return;
+            const cur = PAINT_STEPS[paintStepIdx];
+            const fb = document.getElementById('painterFeedback');
+            fb.classList.remove('hidden');
+
+            if (chosenEn === cur.targetEn) {
+                const svgEl = document.getElementById(`svg-paint-${cur.region}`);
+                if (svgEl) svgEl.setAttribute('fill', cur.hex);
+                speakEnglish(`${cur.targetEn}! Great job!`);
+                addStars(1);
+                fb.className = 'mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                fb.textContent = `✅ Szuper! ${cur.targetEn} = kiszínezve!`;
+                paintStepIdx++;
+                if (paintStepIdx >= PAINT_STEPS.length && typeof confetti === 'function') {
+                    confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+                }
+                renderPainterStep();
+            } else {
+                playTone('error');
+                fb.className = 'mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = `❌ Az a szín "${chosenEn}". Nézd meg újra a kérést: "${cur.targetEn.toUpperCase()}"!`;
+            }
+        }
+
+        function resetPainterGame() {
+            playTone('click');
+            paintStepIdx = 0;
+            PAINT_STEPS.forEach(s => {
+                const el = document.getElementById(`svg-paint-${s.region}`);
+                if (el) el.setAttribute('fill', '#f8fafc');
+            });
+            document.getElementById('painterFeedback').classList.add('hidden');
+            renderPainterStep();
+        }
+
+        // Színkeverő (Colour Mixer)
+        const MIX_QUESTIONS = [
+            { c1: 'red', hex1: '#ef4444', c2: 'yellow', hex2: '#facc15', ans: 'orange', hexAns: '#f97316', opts: ['orange', 'green', 'purple', 'pink'] },
+            { c1: 'blue', hex1: '#2563eb', c2: 'yellow', hex2: '#facc15', ans: 'green', hexAns: '#16a34a', opts: ['purple', 'green', 'brown', 'orange'] },
+            { c1: 'red', hex1: '#ef4444', c2: 'blue', hex2: '#2563eb', ans: 'purple', hexAns: '#9333ea', opts: ['yellow', 'pink', 'purple', 'grey'] },
+            { c1: 'red', hex1: '#ef4444', c2: 'white', hex2: '#ffffff', ans: 'pink', hexAns: '#ec4899', opts: ['pink', 'orange', 'brown', 'grey'] },
+            { c1: 'black', hex1: '#0f172a', c2: 'white', hex2: '#ffffff', ans: 'grey', hexAns: '#94a3b8', opts: ['brown', 'purple', 'grey', 'blue'] }
+        ];
+        let mixIdx = 0;
+
+        function renderMixer() {
+            const m = MIX_QUESTIONS[mixIdx];
+            document.getElementById('mixerBox').innerHTML = `
+                <div class="flex items-center justify-center gap-3 sm:gap-5 flex-wrap">
+                    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-xs">
+                        <span class="w-7 h-7 rounded-full border border-slate-300 inline-block" style="background:${m.hex1};"></span>
+                        <span class="font-black text-base sm:text-lg uppercase">${m.c1}</span>
+                    </div>
+                    <span class="text-2xl font-black text-slate-400">+</span>
+                    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-xs">
+                        <span class="w-7 h-7 rounded-full border border-slate-300 inline-block" style="background:${m.hex2};"></span>
+                        <span class="font-black text-base sm:text-lg uppercase">${m.c2}</span>
+                    </div>
+                    <span class="text-2xl font-black text-slate-400">=</span>
+                    <span class="text-2xl font-black text-rose-600">❓</span>
+                </div>
+            `;
+            document.getElementById('mixerChoices').innerHTML = m.opts.map(o => `
+                <button onclick="checkMixer('${o}')" class="bouncy-btn py-2.5 px-3 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 font-black text-slate-800 text-xs sm:text-sm">
+                    ${o}
+                </button>
+            `).join('');
+            document.getElementById('mixerFeedback').classList.add('hidden');
+        }
+
+        function checkMixer(choice) {
+            const m = MIX_QUESTIONS[mixIdx];
+            const fb = document.getElementById('mixerFeedback');
+            fb.classList.remove('hidden');
+            if (choice === m.ans) {
+                speakEnglish(`${m.c1} and ${m.c2} make ${m.ans}!`);
+                addStars(1);
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                fb.innerHTML = `✅ Pontosan! <strong>${m.c1} + ${m.c2} = ${m.ans}</strong>! <button onclick="nextMixer()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő ➡️</button>`;
+            } else {
+                playTone('error');
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = '❌ Próbáld újra! Milyen szín keletkezik, ha összekevered őket?';
+            }
+        }
+
+        function nextMixer() {
+            mixIdx = (mixIdx + 1) % MIX_QUESTIONS.length;
+            renderMixer();
+        }
+
+        // =====================================================
+        // 3. FÜL: BETŰKIRAKÓ (SPELLING)
+        // =====================================================
+        let spellIdx = 0;
+        let spellTyped = [];
+        let spellLetters = [];
+
+        function initSpellWord() {
+            const c = COLOURS[spellIdx];
+            spellTyped = [];
+            const wordUpper = c.en.toUpperCase();
+            spellLetters = wordUpper.split('').map((ch, i) => ({ ch, id: i, used: false }));
+            for (let i = spellLetters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [spellLetters[i], spellLetters[j]] = [spellLetters[j], spellLetters[i]];
+            }
+            document.getElementById('spellSwatch').style.background = c.hex;
+            document.getElementById('spellHuName').textContent = c.hu;
+            document.getElementById('spellPhonetic').textContent = `Kiejtés: ${c.pron}`;
+            document.getElementById('spellFeedback').classList.add('hidden');
+            renderSpellUI();
+        }
+
+        function renderSpellUI() {
+            const c = COLOURS[spellIdx];
+            const targetLen = c.en.length;
+            const slotsEl = document.getElementById('spellSlots');
+            let slotsHtml = '';
+            for (let i = 0; i < targetLen; i++) {
+                const ch = spellTyped[i] ? spellTyped[i].ch : '';
+                slotsHtml += `
+                    <div class="w-10 h-11 sm:w-11 sm:h-12 rounded-2xl border-2 ${ch ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-400 border-dashed border-slate-300'} font-black text-lg flex items-center justify-center shadow-xs">
+                        ${ch}
+                    </div>
+                `;
+            }
+            slotsEl.innerHTML = slotsHtml;
+
+            const poolEl = document.getElementById('spellPool');
+            poolEl.innerHTML = spellLetters.map((item, idx) => `
+                <button onclick="pickSpellLetter(${idx})" ${item.used ? 'disabled' : ''} class="bouncy-btn w-11 h-11 rounded-2xl font-black text-base border-2 ${item.used ? 'bg-slate-100 text-slate-300 border-slate-200' : 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 shadow-xs'}">
+                    ${item.ch}
+                </button>
+            `).join('');
+        }
+
+        function pickSpellLetter(poolIndex) {
+            const item = spellLetters[poolIndex];
+            if (!item || item.used) return;
+            playTone('click');
+            item.used = true;
+            spellTyped.push(item);
+            renderSpellUI();
+
+            const c = COLOURS[spellIdx];
+            if (spellTyped.length === c.en.length) {
+                const attempt = spellTyped.map(x => x.ch).join('').toLowerCase();
+                const fb = document.getElementById('spellFeedback');
+                fb.classList.remove('hidden');
+                if (attempt === c.en) {
+                    speakEnglish(c.en);
+                    addStars(1);
+                    fb.className = 'mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                    fb.innerHTML = `🌟 Hibátlan! <strong>${c.en.toUpperCase()}</strong> = ${c.hu}! <button onclick="nextSpellWord()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő szó ➡️</button>`;
+                } else {
+                    playTone('error');
+                    fb.className = 'mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                    fb.textContent = '❌ A betűk sorrendje még nem jó! Kattints az Újrakezdés gombra és próbáld újra!';
+                }
+            }
+        }
+
+        function clearSpellAttempt() {
+            playTone('click');
+            spellTyped = [];
+            spellLetters.forEach(l => { l.used = false; });
+            document.getElementById('spellFeedback').classList.add('hidden');
+            renderSpellUI();
+        }
+
+        function nextSpellWord() {
+            spellIdx = (spellIdx + 1) % COLOURS.length;
+            initSpellWord();
+        }
+
+        function speakCurrentSpellWord() {
+            speakEnglish(COLOURS[spellIdx].en);
+        }
+
+        // =====================================================
+        // 4. FÜL: 12-KÉRDÉSES KVÍZ
+        // =====================================================
+        const QUIZ_QUESTIONS = [
+            { q: 'Mit jelent magyarul a „purple” szó?', opts: ['piros', 'lila', 'rózsaszín', 'sárga'], ans: 1, exp: 'purple [pörpöl] = lila 🍇' },
+            { q: 'Hogy mondjuk angolul azt, hogy „citromsárga”?', opts: ['green', 'orange', 'yellow', 'white'], ans: 2, exp: 'yellow [jeló] = sárga 🍋' },
+            { q: 'Milyen színű a hó (snow) és a tej (milk)?', opts: ['black', 'brown', 'white', 'grey'], ans: 2, exp: 'white [vájt] = fehér ⛄' },
+            { q: 'Mit jelent a kérdés: „What colour is it?”', opts: ['Hány éves vagy?', 'Milyen színű ez?', 'Hogy hívnak?', 'Hol van a táskám?'], ans: 1, exp: 'What colour is it? = Milyen színű ez?' },
+            { q: 'Hogy mondjuk angolul: „világoskék”?', opts: ['dark blue', 'light blue', 'white blue', 'big blue'], ans: 1, exp: 'light = világos, tehát light blue = világoskék.' },
+            { q: 'Milyen színt kapunk: RED + YELLOW = ?', opts: ['green', 'purple', 'orange', 'brown'], ans: 2, exp: 'Piros (red) + sárga (yellow) = narancssárga (orange)!' },
+            { q: 'Milyen színt kapunk: BLUE + YELLOW = ?', opts: ['green', 'pink', 'black', 'red'], ans: 0, exp: 'Kék (blue) + sárga (yellow) = zöld (green)!' },
+            { q: 'Hogy mondjuk angolul azt, hogy „barna medve”?', opts: ['a black bear', 'a brown bear', 'a blue bear', 'a pink bear'], ans: 1, exp: 'brown [braun] = barna, tehát: a brown bear 🐻.' },
+            { q: 'Melyik szín a „grey”?', opts: ['zöld', 'szürke', 'arany', 'fekete'], ans: 1, exp: 'grey [gréj] = szürke 🐘 (a green a zöld!).' },
+            { q: 'Hogy mondjuk angolul: „sötétzöld”?', opts: ['light green', 'dark green', 'black green', 'yellow green'], ans: 1, exp: 'dark [dárk] = sötét, tehát dark green = sötétzöld 🌲.' },
+            { q: 'Melyik angol szín neve jelenti egyszerre a „narancs” gyümölcsöt is?', opts: ['pink', 'purple', 'orange', 'yellow'], ans: 2, exp: 'Az „orange” narancssárgát és narancsot is jelent! 🍊' },
+            { q: 'Mit jelent: „My favourite colour is pink.”?', opts: ['A kedvenc színem a rózsaszín.', 'Nem szeretem a rózsaszínt.', 'Ez egy piros virág.', 'A táskám lila.'], ans: 0, exp: 'My favourite colour is pink. = A kedvenc színem a rózsaszín. 🌸' }
+        ];
+
+        let qIdx = 0;
+        let qScore = 0;
+        let qSelected = null;
+
+        function renderQuiz() {
+            const box = document.getElementById('quizContainer');
+            if (qIdx >= QUIZ_QUESTIONS.length) {
+                box.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="text-6xl">🌈🏆</div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-800">Fantastic! Végigmentél a Színek Kvízen!</h2>
+                        <div class="inline-block bg-amber-50 border-2 border-amber-300 rounded-2xl px-6 py-3">
+                            <div class="text-xs font-extrabold text-amber-800 uppercase">Pontszámod</div>
+                            <div class="text-3xl font-black text-amber-600">${qScore} / ${QUIZ_QUESTIONS.length} ⭐</div>
+                        </div>
+                        <div>
+                            <button onclick="restartQuiz()" class="bouncy-btn px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm shadow-lg">
+                                🔄 Újra próbálom
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (typeof confetti === 'function') confetti({ particleCount: 80, spread: 75, origin: { y: 0.6 } });
+                return;
+            }
+
+            const cur = QUIZ_QUESTIONS[qIdx];
+            box.innerHTML = `
+                <div class="flex items-center justify-between gap-2 mb-4">
+                    <span class="text-xs font-black uppercase bg-rose-100 text-rose-800 px-3 py-1 rounded-full">${qIdx + 1} / ${QUIZ_QUESTIONS.length}. kérdés</span>
+                    <span class="text-xs font-extrabold text-amber-700">Helyes: ${qScore} ⭐</span>
+                </div>
+                <h3 class="text-base sm:text-xl font-black text-slate-800 mb-4">${cur.q}</h3>
+                <div class="space-y-2.5">
+                    ${cur.opts.map((opt, i) => {
+                        let cls = 'bg-white hover:bg-rose-50 border-slate-200 text-slate-800';
+                        if (qSelected !== null) {
+                            if (i === cur.ans) cls = 'bg-emerald-100 border-emerald-400 text-emerald-950';
+                            else if (i === qSelected) cls = 'bg-rose-100 border-rose-400 text-rose-950';
+                            else cls = 'bg-slate-50 border-slate-200 text-slate-400';
+                        }
+                        return `
+                            <button onclick="selectQuizOption(${i})" ${qSelected !== null ? 'disabled' : ''} class="w-full text-left p-3.5 rounded-2xl border-2 font-extrabold text-xs sm:text-sm transition flex items-center gap-3 ${cls}">
+                                <span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 font-black flex items-center justify-center shrink-0 text-xs">${String.fromCharCode(65 + i)}</span>
+                                <span>${opt}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                ${qSelected !== null ? `
+                    <div class="mt-4 p-3.5 rounded-2xl border-2 ${qSelected === cur.ans ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-rose-50 border-rose-300 text-rose-950'} text-xs sm:text-sm font-bold">
+                        <div class="font-black mb-1">${qSelected === cur.ans ? '✅ Great job! (+1 ⭐)' : '❌ Oops!'}</div>
+                        <div>${cur.exp}</div>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button onclick="nextQuizQuestion()" class="bouncy-btn px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs sm:text-sm shadow">
+                            ${qIdx + 1 < QUIZ_QUESTIONS.length ? 'Következő ➡️' : 'Eredmény 🏆'}
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function selectQuizOption(idx) {
+            if (qSelected !== null) return;
+            qSelected = idx;
+            if (idx === QUIZ_QUESTIONS[qIdx].ans) {
+                qScore++;
+                addStars(1);
+            } else {
+                playTone('error');
+            }
+            renderQuiz();
+        }
+
+        function nextQuizQuestion() {
+            playTone('click');
+            qIdx++;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            playTone('click');
+            qIdx = 0;
+            qScore = 0;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function switchTab(tab) {
+            playTone('click');
+            ['cards', 'painter', 'spell', 'quiz'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow';
+                } else {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                stars = LauraApp.getStars('angol_szinek');
+                const el = document.getElementById('starCount');
+                if (el) el.textContent = stars;
+            }
+            renderColourCards();
+            renderPainterStep();
+            renderMixer();
+            initSpellWord();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>

@@ -30,7 +30,10 @@
         'vizlabor',
         'legnemu',
         'suruseg',
-        'vizkorforgas'
+        'vizkorforgas',
+        'angol_szinek',
+        'angol_szamok',
+        'angol_iskola'
     ];
 
     function generateRandomCloudCode() {
@@ -66,7 +69,10 @@
                 vizlabor: 0,
                 legnemu: 0,
                 suruseg: 0,
-                vizkorforgas: 0
+                vizkorforgas: 0,
+                angol_szinek: 0,
+                angol_szamok: 0,
+                angol_iskola: 0
             },
             updatedAt: Date.now()
         };

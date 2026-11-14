@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎒 Iskolai dolgok angolul (School Things) – Angol 3. osztály</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            color: #1e293b;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.92);
+            box-shadow: 0 14px 34px -10px rgba(15, 23, 42, 0.12);
+        }
+        .bouncy-btn {
+            transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- FELSŐ FEJLÉC -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-emerald-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="./index.html" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-2xl transition shadow-xs">
+                    <span>⬅️</span>
+                    <span>Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                        🎒
+                    </div>
+                    <div>
+                        <h1 class="text-sm sm:text-xl font-black text-slate-800 leading-tight">
+                            Iskolai dolgok angolul – School Things
+                        </h1>
+                        <p class="text-[11px] sm:text-xs font-bold text-emerald-700 hidden sm:block">
+                            🇬🇧 Angol 3. osztály • Tanszerek, tantermi tárgyak, „a / an” és iskolatáska-pakoló
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSound()" id="soundToggleBtn" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-base" title="Hang és angol kiejtés be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-300 px-3.5 py-1 rounded-2xl shadow-xs">
+                    <span class="text-lg">⭐</span>
+                    <span id="starCount" class="font-black text-amber-800 text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 4 FŐ FÜL -->
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 mt-4">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-emerald-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button onclick="switchTab('cards')" id="tab-btn-cards" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow">
+                <span>🎒</span> <span>1. Szókártyák</span>
+            </button>
+            <button onclick="switchTab('pack')" id="tab-btn-pack" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-emerald-50">
+                <span>👝</span> <span>2. Táskapkoló & a/an</span>
+            </button>
+            <button onclick="switchTab('spell')" id="tab-btn-spell" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-emerald-50">
+                <span>🔤</span> <span>3. Betűkirakó</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-emerald-50">
+                <span>🏆</span> <span>4. Kvíz (12)</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-3 sm:px-6 mt-5 space-y-6">
+
+        <!-- =============================================================== -->
+        <!-- 1. FÜL: BESZÉLŐ SZÓKÁRTYÁK, OSZTÁLYTERMI MONDATOK ÉS A / AN      -->
+        <!-- =============================================================== -->
+        <section id="view-cards" class="space-y-6">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span class="inline-block bg-emerald-100 text-emerald-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🔊 Kattints a kártyákra az angol kiejtéshez!
+                        </span>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                            Mit használunk az iskolában? (School Things)
+                        </h2>
+                    </div>
+                    <button onclick="speakEnglish('What is this? It is a pencil case.')" class="bouncy-btn px-3.5 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow">
+                        🔊 „What's this?” (Mi ez?)
+                    </button>
+                </div>
+
+                <!-- 16 iskolai tárgy rácsa -->
+                <div id="schoolCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+            </div>
+
+            <!-- A / AN szabály + Osztálytermi kifejezések -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-panel rounded-3xl p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-black text-slate-800 mb-2 flex items-center gap-2">
+                        <span>💡</span> <span>Mikor mondunk <strong>„a”</strong> és mikor <strong>„an”</strong> szócskát? (egy)</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-bold text-slate-600 mb-3">
+                        Az angolban az <strong>„egy”</strong> szócska: <strong>a</strong> vagy <strong>an</strong>. A szabály pofonegyszerű:
+                    </p>
+                    <div class="space-y-2 text-xs sm:text-sm font-bold">
+                        <div class="p-3 rounded-2xl bg-sky-50 border-2 border-sky-200">
+                            <div class="font-black text-sky-900">🟦 „a” – mássalhangzóval kezdődő szó előtt:</div>
+                            <div class="text-slate-700 mt-1">
+                                • <strong>a</strong> pen (egy toll), <strong>a</strong> book (egy könyv), <strong>a</strong> ruler (egy vonalzó), <strong>a</strong> red pencil (egy piros ceruza)
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-amber-50 border-2 border-amber-300">
+                            <div class="font-black text-amber-950">🟧 „an” – magánhangzóval (a, e, i, o, u) kezdődő szó előtt:</div>
+                            <div class="text-slate-700 mt-1">
+                                • <strong>an</strong> <u>e</u>xercise book (egy füzet), <strong>an</strong> <u>e</u>raser (egy radír), <strong>an</strong> <u>o</u>range pen (egy narancssárga toll)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-black text-slate-800 mb-2 flex items-center gap-2">
+                        <span>🗣️</span> <span>Hasznos mondatok és tanári kérések</span>
+                    </h3>
+                    <div class="space-y-2 text-xs sm:text-sm">
+                        <div onclick="speakEnglish('What is this? It is a ruler.')" class="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-emerald-950">What's this? → It's a ruler.</div>
+                                <div class="font-bold text-slate-600 text-xs">Mi ez? → Ez egy vonalzó.</div>
+                            </div>
+                            <span>🔊</span>
+                        </div>
+                        <div onclick="speakEnglish('Have you got a pencil? Yes, I have.')" class="p-2.5 rounded-2xl bg-indigo-50 border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-indigo-950">Have you got a pencil? → Yes, I have.</div>
+                                <div class="font-bold text-slate-600 text-xs">Van ceruzád? → Igen, van.</div>
+                            </div>
+                            <span>🔊</span>
+                        </div>
+                        <div onclick="speakEnglish('Open your book! Close your book!')" class="p-2.5 rounded-2xl bg-amber-50 border border-amber-200 cursor-pointer hover:bg-amber-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-amber-950">Open your book! / Close your book!</div>
+                                <div class="font-bold text-slate-600 text-xs">Nyisd ki a könyved! / Csukd be a könyved!</div>
+                            </div>
+                            <span>🔊</span>
+                        </div>
+                        <div onclick="speakEnglish('Stand up! Sit down! Listen!')" class="p-2.5 rounded-2xl bg-rose-50 border border-rose-200 cursor-pointer hover:bg-rose-100 transition flex items-center justify-between">
+                            <div>
+                                <div class="font-black text-rose-950">Stand up! / Sit down! / Listen!</div>
+                                <div class="font-bold text-slate-600 text-xs">Állj fel! / Ülj le! / Figyelj!</div>
+                            </div>
+                            <span>🔊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 2. FÜL: ISKOLATÁSKA-PAKOLÓ ÉS „A / AN” VÁLASZTÓ JÁTÉK            -->
+        <!-- =============================================================== -->
+        <section id="view-pack" class="hidden space-y-6">
+            <!-- 1. Játék: Pakold be az iskolatáskát! -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-emerald-100 text-emerald-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🎒 1. Játék: Pack the Schoolbag! (Pakolj be a táskába!)
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-800">
+                            Kattints az angolul kért tárgyra, és tedd be a táskába!
+                        </h2>
+                    </div>
+                    <button onclick="speakCurrentPackTarget()" class="bouncy-btn px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-black text-xs">
+                        🔊 Hallgasd meg
+                    </button>
+                </div>
+
+                <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-300 rounded-2xl p-4 text-center mb-4">
+                    <div class="text-xs font-extrabold text-emerald-800 uppercase" id="packStepBadge">1 / 8. tárgy</div>
+                    <div class="text-lg sm:text-2xl font-black text-slate-900 mt-0.5" id="packPromptEn">
+                        Put the PENCIL CASE in your schoolbag!
+                    </div>
+                    <div class="text-xs font-bold text-slate-500 mt-0.5">
+                        (Keresd meg lent a megfelelő tárgyat és kattints rá!)
+                    </div>
+                </div>
+
+                <div id="packItemsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3"></div>
+                <div id="packFeedback" class="hidden p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+
+            <!-- 2. Játék: A vagy AN? -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <span class="inline-block bg-amber-100 text-amber-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                    🧩 2. Játék: „a” vagy „an” kerül elé?
+                </span>
+                <h3 class="text-base sm:text-xl font-black text-slate-800 mb-3">
+                    Figyeld meg a szó első betűjét (és hangját), majd válaszd ki: <strong>a</strong> vagy <strong>an</strong>!
+                </h3>
+
+                <div class="bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-4 text-center mb-4">
+                    <div id="articleEmoji" class="text-4xl mb-1">📓</div>
+                    <div class="text-xl sm:text-2xl font-black text-slate-900">
+                        <span class="text-rose-600 underline">___</span> <span id="articleWord">exercise book</span>
+                    </div>
+                    <div id="articleHu" class="text-xs font-bold text-slate-500 mt-1">(egy füzet)</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 max-w-sm mx-auto mb-3">
+                    <button onclick="checkArticle('a')" class="bouncy-btn py-3.5 px-4 rounded-2xl bg-sky-100 hover:bg-sky-200 border-2 border-sky-300 font-black text-xl text-sky-950">
+                        a
+                    </button>
+                    <button onclick="checkArticle('an')" class="bouncy-btn py-3.5 px-4 rounded-2xl bg-amber-100 hover:bg-amber-200 border-2 border-amber-400 font-black text-xl text-amber-950">
+                        an
+                    </button>
+                </div>
+                <div id="articleFeedback" class="hidden p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 3. FÜL: BETŰKIRAKÓ (SPELLING)                                    -->
+        <!-- =============================================================== -->
+        <section id="view-spell" class="hidden space-y-6">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6 max-w-2xl mx-auto">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-indigo-100 text-indigo-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🔤 Hogy írjuk angolul?
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-800">
+                            Rakd ki a tanszer angol nevét a betűkből!
+                        </h2>
+                    </div>
+                    <button onclick="speakCurrentSpellItem()" class="bouncy-btn px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-black text-xs">
+                        🔊 Kiejtés
+                    </button>
+                </div>
+
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-center mb-4">
+                    <div id="spellIcon" class="text-5xl mb-1">📏</div>
+                    <div id="spellHu" class="text-xl sm:text-2xl font-black text-slate-800">vonalzó</div>
+                    <div id="spellPron" class="text-xs font-bold text-emerald-700 mt-0.5">Kiejtés: [rúlör]</div>
+                </div>
+
+                <div id="spellSlots" class="flex flex-wrap justify-center gap-2 min-h-[50px] mb-4"></div>
+                <div id="spellPool" class="flex flex-wrap justify-center gap-2 mb-4"></div>
+
+                <div class="flex justify-center gap-2">
+                    <button onclick="clearSpellItem()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                        🔙 Újrakezdés
+                    </button>
+                    <button onclick="nextSpellItem()" class="px-4 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-extrabold text-xs">
+                        ⏭️ Másik tárgy
+                    </button>
+                </div>
+                <div id="spellFeedback" class="hidden mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 4. FÜL: 12-KÉRDÉSES KVÍZ                                         -->
+        <!-- =============================================================== -->
+        <section id="view-quiz" class="hidden max-w-2xl mx-auto">
+            <div class="glass-panel rounded-3xl p-5 sm:p-7" id="quizContainer"></div>
+        </section>
+
+    </main>
+
+    <script>
+        let stars = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.14, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [240, 190].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.13);
+                        gain.gain.setValueAtTime(0.1, now + i * 0.13);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.13 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.13);
+                        osc.stop(now + i * 0.13 + 0.24);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function speakEnglish(text) {
+            playTone('click');
+            if (!soundEnabled || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'en-GB';
+                utter.rate = 0.86;
+                window.speechSynthesis.speak(utter);
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function addStars(amount) {
+            stars += amount;
+            const el = document.getElementById('starCount');
+            if (el) el.textContent = stars;
+            if (window.LauraApp) LauraApp.setStars('angol_iskola', stars);
+            playTone('win');
+        }
+
+        // =====================================================
+        // 16 ISKOLAI TÁRGY ADATBÁZISA
+        // =====================================================
+        const SCHOOL_ITEMS = [
+            { en: 'schoolbag', pron: '[szkúlbeg]', hu: 'iskolatáska', icon: '🎒', note: 'Amerikai angolban: backpack' },
+            { en: 'pencil case', pron: '[penszöl kéjsz]', hu: 'tolltartó', icon: '👝', note: 'Ebben tartjuk a ceruzákat és tollakat' },
+            { en: 'pen', pron: '[pen]', hu: 'toll', icon: '🖊️', note: 'It is a blue pen.' },
+            { en: 'pencil', pron: '[penszöl]', hu: 'ceruza', icon: '✏️', note: 'It is a pencil.' },
+            { en: 'coloured pencil', pron: '[kalörd penszöl]', hu: 'színes ceruza', icon: '🖍️', note: 'Zsírkréta = crayon [kréjon]' },
+            { en: 'rubber', pron: '[rabör]', hu: 'radír', icon: '🧼', note: 'Másik gyakori neve: eraser [iréjzör]' },
+            { en: 'ruler', pron: '[rúlör]', hu: 'vonalzó', icon: '📏', note: 'Egyenes vonalak húzásához' },
+            { en: 'sharpener', pron: '[sárpönör]', hu: 'hegyező', icon: '⚙️', note: 'pencil sharpener = ceruzahegyező' },
+            { en: 'scissors', pron: '[szizörz]', hu: 'olló', icon: '✂️', note: 'Mindig többes számban áll (-s)!' },
+            { en: 'glue stick', pron: '[glú sztik]', hu: 'stiftes ragasztó', icon: '🧴', note: 'glue [glú] = ragasztó' },
+            { en: 'book', pron: '[buk]', hu: 'könyv (tankönyv)', icon: '📖', note: 'Open your book! = Nyisd ki a könyved!' },
+            { en: 'exercise book', pron: '[ekszöszájz buk]', hu: 'füzet', icon: '📓', note: 'Másik neve: notebook [nótbuk]' },
+            { en: 'desk', pron: '[deszk]', hu: 'iskolapad / íróasztal', icon: '🪑', note: 'Amiben az órán ülünk és írunk' },
+            { en: 'chair', pron: '[cser]', hu: 'szék', icon: '💺', note: 'Sit on your chair!' },
+            { en: 'board', pron: '[bórd]', hu: 'tábla', icon: '🖥️', note: 'blackboard (fekete) / whiteboard (fehér)' },
+            { en: 'paintbrush', pron: '[péjntbras]', hu: 'ecset', icon: '🖌️', note: 'Rajzórán használjuk festéshez' }
+        ];
+
+        let heardItems = new Set();
+
+        function renderSchoolCards() {
+            const grid = document.getElementById('schoolCardsGrid');
+            grid.innerHTML = SCHOOL_ITEMS.map((item, idx) => `
+                <div onclick="onSchoolCardClick(${idx})" class="bouncy-btn cursor-pointer rounded-3xl p-3.5 bg-white border-2 border-slate-200 hover:border-emerald-400 shadow-xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-3xl sm:text-4xl">${item.icon}</span>
+                        <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 font-black text-xs">🔊 Hallgasd</span>
+                    </div>
+                    <div>
+                        <div class="text-base sm:text-lg font-black text-slate-900">${item.en}</div>
+                        <div class="text-xs font-extrabold text-emerald-700">${item.pron}</div>
+                        <div class="text-sm font-black text-indigo-800 mt-0.5">${item.hu}</div>
+                    </div>
+                    <div class="mt-2 pt-1.5 border-t border-slate-100 text-[11px] font-bold text-slate-500">
+                        ${item.note}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function onSchoolCardClick(idx) {
+            const item = SCHOOL_ITEMS[idx];
+            speakEnglish(item.en);
+            if (!heardItems.has(item.en)) {
+                heardItems.add(item.en);
+                if (heardItems.size % 4 === 0) addStars(1);
+            }
+        }
+
+        // =====================================================
+        // 2. FÜL: ISKOLATÁSKA-PAKOLÓ ÉS A / AN JÁTÉK
+        // =====================================================
+        const PACK_TARGETS = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 15];
+        let packStep = 0;
+
+        function renderPackGame() {
+            const targetItem = SCHOOL_ITEMS[PACK_TARGETS[packStep]];
+            document.getElementById('packStepBadge').textContent = `${packStep + 1} / ${PACK_TARGETS.length}. küldetés`;
+            document.getElementById('packPromptEn').textContent = `Put the ${targetItem.en.toUpperCase()} in the schoolbag!`;
+
+            // 8 választási lehetőség (benne a helyes)
+            const pool = [targetItem];
+            const others = SCHOOL_ITEMS.filter(x => x.en !== targetItem.en);
+            for (let i = others.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [others[i], others[j]] = [others[j], others[i]];
+            }
+            pool.push(...others.slice(0, 7));
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            document.getElementById('packItemsGrid').innerHTML = pool.map(it => `
+                <button onclick="checkPackItem('${it.en}')" class="bouncy-btn p-3 rounded-2xl bg-white hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-300 flex flex-col items-center gap-1 shadow-xs">
+                    <span class="text-3xl">${it.icon}</span>
+                    <span class="text-xs font-black text-slate-700">${it.hu}</span>
+                </button>
+            `).join('');
+            document.getElementById('packFeedback').classList.add('hidden');
+        }
+
+        function speakCurrentPackTarget() {
+            const targetItem = SCHOOL_ITEMS[PACK_TARGETS[packStep]];
+            speakEnglish(`Put the ${targetItem.en} in the schoolbag!`);
+        }
+
+        function checkPackItem(chosenEn) {
+            const targetItem = SCHOOL_ITEMS[PACK_TARGETS[packStep]];
+            const fb = document.getElementById('packFeedback');
+            fb.classList.remove('hidden');
+            if (chosenEn === targetItem.en) {
+                speakEnglish(`${targetItem.en}! Well done!`);
+                addStars(1);
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                fb.innerHTML = `✅ Bepakolva! <strong>${targetItem.icon} ${targetItem.en} = ${targetItem.hu}</strong>! <button onclick="nextPackStep()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő ➡️</button>`;
+            } else {
+                playTone('error');
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = `❌ Nem ez volt az! Keresd meg: "${targetItem.en.toUpperCase()}"!`;
+            }
+        }
+
+        function nextPackStep() {
+            packStep = (packStep + 1) % PACK_TARGETS.length;
+            renderPackGame();
+        }
+
+        // A / AN játék
+        const ARTICLE_TASKS = [
+            { emoji: '📓', word: 'exercise book', hu: 'egy füzet', ans: 'an', explain: 'Az „exercise book” magánhangzóval (e) kezdődik, ezért „an” kerül elé!' },
+            { emoji: '📏', word: 'ruler', hu: 'egy vonalzó', ans: 'a', explain: 'A „ruler” mássalhangzóval (r) kezdődik, ezért „a” kerül elé!' },
+            { emoji: '🧼', word: 'eraser', hu: 'egy radír', ans: 'an', explain: 'Az „eraser” magánhangzóval (e) kezdődik → an eraser!' },
+            { emoji: '👝', word: 'pencil case', hu: 'egy tolltartó', ans: 'a', explain: 'A „pencil case” mássalhangzóval (p) kezdődik → a pencil case!' },
+            { emoji: '✏️', word: 'orange pencil', hu: 'egy narancssárga ceruza', ans: 'an', explain: 'Az „orange” magánhangzóval (o) kezdődik → an orange pencil!' },
+            { emoji: '📖', word: 'book', hu: 'egy könyv', ans: 'a', explain: 'A „book” mássalhangzóval (b) kezdődik → a book!' },
+            { emoji: '🍎', word: 'apple', hu: 'egy alma az uzsonnásdobozban', ans: 'an', explain: 'Az „apple” magánhangzóval (a) kezdődik → an apple!' },
+            { emoji: '🎒', word: 'schoolbag', hu: 'egy iskolatáska', ans: 'a', explain: 'A „schoolbag” mássalhangzóval (s) kezdődik → a schoolbag!' }
+        ];
+        let articleIdx = 0;
+
+        function renderArticleGame() {
+            const t = ARTICLE_TASKS[articleIdx];
+            document.getElementById('articleEmoji').textContent = t.emoji;
+            document.getElementById('articleWord').textContent = t.word;
+            document.getElementById('articleHu').textContent = `(${t.hu})`;
+            document.getElementById('articleFeedback').classList.add('hidden');
+        }
+
+        function checkArticle(choice) {
+            const t = ARTICLE_TASKS[articleIdx];
+            const fb = document.getElementById('articleFeedback');
+            fb.classList.remove('hidden');
+            if (choice === t.ans) {
+                speakEnglish(`${t.ans} ${t.word}`);
+                addStars(1);
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                fb.innerHTML = `✅ Szuper! <strong>${t.ans} ${t.word}</strong> – ${t.explain} <button onclick="nextArticleGame()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő ➡️</button>`;
+            } else {
+                playTone('error');
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = '❌ Nézd meg a szó legelső betűjét: magánhangzó (a, e, i, o, u) vagy mássalhangzó?';
+            }
+        }
+
+        function nextArticleGame() {
+            articleIdx = (articleIdx + 1) % ARTICLE_TASKS.length;
+            renderArticleGame();
+        }
+
+        // =====================================================
+        // 3. FÜL: BETŰKIRAKÓ (SPELLING)
+        // =====================================================
+        const SPELL_INDICES = [2, 3, 5, 6, 8, 10, 12, 13, 14];
+        let spellPtr = 0;
+        let spellTyped = [];
+        let spellLetters = [];
+
+        function initSpellItem() {
+            const it = SCHOOL_ITEMS[SPELL_INDICES[spellPtr]];
+            spellTyped = [];
+            spellLetters = it.en.toUpperCase().split('').map((ch, i) => ({ ch, id: i, used: false }));
+            for (let i = spellLetters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [spellLetters[i], spellLetters[j]] = [spellLetters[j], spellLetters[i]];
+            }
+            document.getElementById('spellIcon').textContent = it.icon;
+            document.getElementById('spellHu').textContent = it.hu;
+            document.getElementById('spellPron').textContent = `Kiejtés: ${it.pron}`;
+            document.getElementById('spellFeedback').classList.add('hidden');
+            renderSpellItemUI();
+        }
+
+        function renderSpellItemUI() {
+            const it = SCHOOL_ITEMS[SPELL_INDICES[spellPtr]];
+            const slotsEl = document.getElementById('spellSlots');
+            let html = '';
+            for (let i = 0; i < it.en.length; i++) {
+                const ch = spellTyped[i] ? spellTyped[i].ch : '';
+                html += `<div class="w-10 h-11 rounded-2xl border-2 ${ch ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-slate-400 border-dashed border-slate-300'} font-black text-lg flex items-center justify-center">${ch}</div>`;
+            }
+            slotsEl.innerHTML = html;
+
+            document.getElementById('spellPool').innerHTML = spellLetters.map((item, idx) => `
+                <button onclick="pickSpellItemLetter(${idx})" ${item.used ? 'disabled' : ''} class="bouncy-btn w-11 h-11 rounded-2xl font-black text-base border-2 ${item.used ? 'bg-slate-100 text-slate-300 border-slate-200' : 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300'}">
+                    ${item.ch}
+                </button>
+            `).join('');
+        }
+
+        function pickSpellItemLetter(idx) {
+            const item = spellLetters[idx];
+            if (!item || item.used) return;
+            playTone('click');
+            item.used = true;
+            spellTyped.push(item);
+            renderSpellItemUI();
+
+            const it = SCHOOL_ITEMS[SPELL_INDICES[spellPtr]];
+            if (spellTyped.length === it.en.length) {
+                const attempt = spellTyped.map(x => x.ch).join('').toLowerCase();
+                const fb = document.getElementById('spellFeedback');
+                fb.classList.remove('hidden');
+                if (attempt === it.en) {
+                    speakEnglish(it.en);
+                    addStars(1);
+                    fb.className = 'mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                    fb.innerHTML = `🌟 Hibátlan! <strong>${it.en.toUpperCase()} = ${it.hu}</strong>! <button onclick="nextSpellItem()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő ➡️</button>`;
+                } else {
+                    playTone('error');
+                    fb.className = 'mt-3 p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                    fb.textContent = '❌ A betűk sorrendje még nem jó! Kattints az Újrakezdés gombra!';
+                }
+            }
+        }
+
+        function clearSpellItem() {
+            playTone('click');
+            spellTyped = [];
+            spellLetters.forEach(l => { l.used = false; });
+            document.getElementById('spellFeedback').classList.add('hidden');
+            renderSpellItemUI();
+        }
+
+        function nextSpellItem() {
+            spellPtr = (spellPtr + 1) % SPELL_INDICES.length;
+            initSpellItem();
+        }
+
+        function speakCurrentSpellItem() {
+            speakEnglish(SCHOOL_ITEMS[SPELL_INDICES[spellPtr]].en);
+        }
+
+        // =====================================================
+        // 4. FÜL: 12-KÉRDÉSES KVÍZ
+        // =====================================================
+        const QUIZ_QUESTIONS = [
+            { q: 'Mit jelent magyarul a „pencil case”?', opts: ['iskolatáska', 'tolltartó', 'ceruzahegyező', 'színes ceruza'], ans: 1, exp: 'pencil case [penszöl kéjsz] = tolltartó 👝.' },
+            { q: 'Hogy mondjuk angolul azt, hogy „vonalzó”?', opts: ['rubber', 'ruler', 'pen', 'chair'], ans: 1, exp: 'ruler [rúlör] = vonalzó 📏 (a rubber a radír!).' },
+            { q: 'Mi a különbség a „book” és az „exercise book” között?', opts: ['A book könyv, az exercise book pedig füzet', 'Mindkettő radírt jelent', 'A book toll, az exercise book táska', 'Nincs különbség'], ans: 0, exp: 'book = könyv 📖, exercise book (vagy notebook) = füzet 📓.' },
+            { q: 'Mit jelent a „rubber” (vagy „eraser”) szó?', opts: ['vonalzó', 'radír', 'olló', 'ragasztó'], ans: 1, exp: 'rubber / eraser = radír 🧼.' },
+            { q: 'Hogy mondjuk angolul azt, hogy „olló”?', opts: ['sharpener', 'scissors', 'glue stick', 'paintbrush'], ans: 1, exp: 'scissors [szizörz] = olló ✂️.' },
+            { q: 'Melyik szócska illik az üres helyre: „It is ___ exercise book.”?', opts: ['a', 'an', 'two', 'are'], ans: 1, exp: 'Az „exercise book” magánhangzóval (e) kezdődik, ezért „an” kerül elé!' },
+            { q: 'Mit jelent a tanári kérés: „Open your book!”?', opts: ['Csukd be a könyved!', 'Nyisd ki a könyved!', 'Állj fel!', 'Rajzolj egy könyvet!'], ans: 1, exp: 'Open = nyisd ki, Close = csukd be. Open your book! = Nyisd ki a könyved!' },
+            { q: 'Hogy mondjuk angolul: „ceruzahegyező”?', opts: ['pencil case', 'sharpener', 'ruler', 'desk'], ans: 1, exp: 'sharpener [sárpönör] = hegyező ⚙️.' },
+            { q: 'Mit jelent a kérdés: „Have you got a blue pen?”', opts: ['Hol van a kék tollam?', 'Van egy kék tollad?', 'Milyen színű ez a toll?', 'Kérsz egy ceruzát?'], ans: 1, exp: 'Have you got ...? = Van neked ...? Tehát: Van egy kék tollad?' },
+            { q: 'Mi a „desk” és a „chair” magyarul?', opts: ['tábla és kréta', 'pad (íróasztal) és szék', 'könyv és füzet', 'táska és tolltartó'], ans: 1, exp: 'desk = pad / íróasztal, chair = szék 🪑.' },
+            { q: 'Mit jelent: „Stand up!” és „Sit down!”?', opts: ['Állj fel! és Ülj le!', 'Nyisd ki! és Csukd be!', 'Figyelj! és Írj!', 'Gyere ide! és Menj oda!'], ans: 0, exp: 'Stand up! = Állj fel!, Sit down! = Ülj le!' },
+            { q: 'Mivel festünk rajzórán? („paintbrush”)', opts: ['ollóval', 'ecsettel', 'radírral', 'vonalzóval'], ans: 1, exp: 'paintbrush [péjntbras] = ecset 🖌️.' }
+        ];
+
+        let qIdx = 0;
+        let qScore = 0;
+        let qSelected = null;
+
+        function renderQuiz() {
+            const box = document.getElementById('quizContainer');
+            if (qIdx >= QUIZ_QUESTIONS.length) {
+                box.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="text-6xl">🎒🏆</div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-800">Superstar! Végigmentél az Iskolai Dolgok Kvízen!</h2>
+                        <div class="inline-block bg-amber-50 border-2 border-amber-300 rounded-2xl px-6 py-3">
+                            <div class="text-xs font-extrabold text-amber-800 uppercase">Pontszámod</div>
+                            <div class="text-3xl font-black text-amber-600">${qScore} / ${QUIZ_QUESTIONS.length} ⭐</div>
+                        </div>
+                        <div>
+                            <button onclick="restartQuiz()" class="bouncy-btn px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-lg">
+                                🔄 Újra próbálom
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (typeof confetti === 'function') confetti({ particleCount: 80, spread: 75, origin: { y: 0.6 } });
+                return;
+            }
+
+            const cur = QUIZ_QUESTIONS[qIdx];
+            box.innerHTML = `
+                <div class="flex items-center justify-between gap-2 mb-4">
+                    <span class="text-xs font-black uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">${qIdx + 1} / ${QUIZ_QUESTIONS.length}. kérdés</span>
+                    <span class="text-xs font-extrabold text-amber-700">Helyes: ${qScore} ⭐</span>
+                </div>
+                <h3 class="text-base sm:text-xl font-black text-slate-800 mb-4">${cur.q}</h3>
+                <div class="space-y-2.5">
+                    ${cur.opts.map((opt, i) => {
+                        let cls = 'bg-white hover:bg-emerald-50 border-slate-200 text-slate-800';
+                        if (qSelected !== null) {
+                            if (i === cur.ans) cls = 'bg-emerald-100 border-emerald-400 text-emerald-950';
+                            else if (i === qSelected) cls = 'bg-rose-100 border-rose-400 text-rose-950';
+                            else cls = 'bg-slate-50 border-slate-200 text-slate-400';
+                        }
+                        return `
+                            <button onclick="selectQuizOption(${i})" ${qSelected !== null ? 'disabled' : ''} class="w-full text-left p-3.5 rounded-2xl border-2 font-extrabold text-xs sm:text-sm transition flex items-center gap-3 ${cls}">
+                                <span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 font-black flex items-center justify-center shrink-0 text-xs">${String.fromCharCode(65 + i)}</span>
+                                <span>${opt}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                ${qSelected !== null ? `
+                    <div class="mt-4 p-3.5 rounded-2xl border-2 ${qSelected === cur.ans ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-rose-50 border-rose-300 text-rose-950'} text-xs sm:text-sm font-bold">
+                        <div class="font-black mb-1">${qSelected === cur.ans ? '✅ Great job! (+1 ⭐)' : '❌ Oops!'}</div>
+                        <div>${cur.exp}</div>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button onclick="nextQuizQuestion()" class="bouncy-btn px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow">
+                            ${qIdx + 1 < QUIZ_QUESTIONS.length ? 'Következő ➡️' : 'Eredmény 🏆'}
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function selectQuizOption(idx) {
+            if (qSelected !== null) return;
+            qSelected = idx;
+            if (idx === QUIZ_QUESTIONS[qIdx].ans) {
+                qScore++;
+                addStars(1);
+            } else {
+                playTone('error');
+            }
+            renderQuiz();
+        }
+
+        function nextQuizQuestion() {
+            playTone('click');
+            qIdx++;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            playTone('click');
+            qIdx = 0;
+            qScore = 0;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function switchTab(tab) {
+            playTone('click');
+            ['cards', 'pack', 'spell', 'quiz'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow';
+                } else {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-emerald-50';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                stars = LauraApp.getStars('angol_iskola');
+                const el = document.getElementById('starCount');
+                if (el) el.textContent = stars;
+            }
+            renderSchoolCards();
+            renderPackGame();
+            renderArticleGame();
+            initSpellItem();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>

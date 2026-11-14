@@ -69,7 +69,7 @@
                 <div class="summary-stat-card theme-tint wide-mobile">
                     <span class="summary-stat-icon">🎯</span>
                     <div>
-                        <div class="summary-stat-value" id="summaryActiveModules">0 / 12</div>
+                        <div class="summary-stat-value" id="summaryActiveModules">0 / 16</div>
                         <div class="summary-stat-label">Kipróbált modul</div>
                     </div>
                 </div>
@@ -132,6 +132,37 @@
                     <span>🕵️‍♀️ Olvasási szövegértés és Szövegnyomozó (6 történet)</span>
                     <span class="app-btn-right">
                         <span class="lesson-star-badge empty" id="badge-szovegertes">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Angol nyelv -->
+        <div class="category">
+            <h2>
+                <span>🇬🇧 Angol</span>
+                <span class="category-stars-pill" id="cat-stars-english">⭐ 0</span>
+            </h2>
+            <div class="links-grid">
+                <a href="./angol-szinek.html" class="app-btn">
+                    <span>🎨 Angol színek – Colours</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-angol_szinek">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+                <a href="./angol-szamok.html" class="app-btn">
+                    <span>🔢 Angol számok – Numbers (0–100)</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-angol_szamok">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+                <a href="./angol-iskola.html" class="app-btn">
+                    <span>🎒 Iskolai dolgok angolul – School Things</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-angol_iskola">⭐ 0</span>
                         <span class="icon">👉</span>
                     </span>
                 </a>
@@ -432,7 +463,7 @@
             }
 
             // Lecke-jelvények frissítése
-            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola'];
             let activeModules = felmeroStats.tested > 0 ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -451,17 +482,20 @@
                 felmeroBadge.className = felmeroStats.mastered > 0 ? 'lesson-star-badge green' : 'lesson-star-badge empty';
             }
 
-            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 13`;
+            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 16`;
 
             // Kategória összesítők
             const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu') + LauraApp.getStars('szoveges');
             const readingStars = LauraApp.getStars('szovegertes');
+            const englishStars = LauraApp.getStars('angol_szinek') + LauraApp.getStars('angol_szamok') + LauraApp.getStars('angol_iskola');
             const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet');
             const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg') + LauraApp.getStars('vizkorforgas');
 
             document.getElementById('cat-stars-math').textContent = `⭐ ${mathStars}`;
             const readingEl = document.getElementById('cat-stars-reading');
             if (readingEl) readingEl.textContent = `⭐ ${readingStars}`;
+            const englishEl = document.getElementById('cat-stars-english');
+            if (englishEl) englishEl.textContent = `⭐ ${englishStars}`;
             document.getElementById('cat-stars-digital').textContent = `⭐ ${digiStars}`;
             document.getElementById('cat-stars-nature').textContent = `⭐ ${natureStars}`;
         }
