@@ -33,7 +33,8 @@
         'vizkorforgas',
         'angol_szinek',
         'angol_szamok',
-        'angol_iskola'
+        'angol_iskola',
+        'muveletisorrend'
     ];
 
     function generateRandomCloudCode() {
@@ -72,7 +73,8 @@
                 vizkorforgas: 0,
                 angol_szinek: 0,
                 angol_szamok: 0,
-                angol_iskola: 0
+                angol_iskola: 0,
+                muveletisorrend: 0
             },
             updatedAt: Date.now()
         };

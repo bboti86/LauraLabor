@@ -69,7 +69,7 @@
                 <div class="summary-stat-card theme-tint wide-mobile">
                     <span class="summary-stat-icon">🎯</span>
                     <div>
-                        <div class="summary-stat-value" id="summaryActiveModules">0 / 16</div>
+                        <div class="summary-stat-value" id="summaryActiveModules">0 / 17</div>
                         <div class="summary-stat-label">Kipróbált modul</div>
                     </div>
                 </div>
@@ -108,6 +108,13 @@
                     <span>🧮 Kétjegyű számok összeadása és kivonása</span>
                     <span class="app-btn-right">
                         <span class="lesson-star-badge empty" id="badge-ketjegyu">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+                <a href="./muveleti-sorrend.html" class="app-btn">
+                    <span>🪜 Műveleti sorrend varázslétra</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-muveletisorrend">⭐ 0</span>
                         <span class="icon">👉</span>
                     </span>
                 </a>
@@ -463,7 +470,7 @@
             }
 
             // Lecke-jelvények frissítése
-            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'muveletisorrend', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola'];
             let activeModules = felmeroStats.tested > 0 ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -482,10 +489,10 @@
                 felmeroBadge.className = felmeroStats.mastered > 0 ? 'lesson-star-badge green' : 'lesson-star-badge empty';
             }
 
-            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 16`;
+            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 17`;
 
             // Kategória összesítők
-            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu') + LauraApp.getStars('szoveges');
+            const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu') + LauraApp.getStars('muveletisorrend') + LauraApp.getStars('szoveges');
             const readingStars = LauraApp.getStars('szovegertes');
             const englishStars = LauraApp.getStars('angol_szinek') + LauraApp.getStars('angol_szamok') + LauraApp.getStars('angol_iskola');
             const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet');
