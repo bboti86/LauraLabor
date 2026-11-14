@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌧️ A víz körforgása és a halmazállapotok összefoglalása (3. osztály)</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            color: #1e293b;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.92);
+            box-shadow: 0 14px 34px -10px rgba(15, 23, 42, 0.12);
+        }
+
+        .bouncy-btn {
+            transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
+        }
+        .bouncy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .bouncy-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* Animációk a víz körforgása tájképhez */
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.8)); }
+            50% { transform: scale(1.09) rotate(8deg); filter: drop-shadow(0 0 22px rgba(245, 158, 11, 0.95)); }
+        }
+        .sun-anim {
+            animation: sunPulse 3.5s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85); opacity: 0.15; }
+            40% { opacity: 0.9; }
+            100% { transform: translateY(-85px) scale(1.15); opacity: 0; }
+        }
+        .vapor-anim-1 { animation: vaporRise 2.6s ease-in-out infinite; }
+        .vapor-anim-2 { animation: vaporRise 2.6s ease-in-out 0.8s infinite; }
+        .vapor-anim-3 { animation: vaporRise 2.6s ease-in-out 1.6s infinite; }
+
+        @keyframes cloudDrift {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(14px); }
+        }
+        .cloud-anim {
+            animation: cloudDrift 5s ease-in-out infinite;
+        }
+
+        @keyframes rainFall {
+            0% { transform: translateY(-10px); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translateY(85px); opacity: 0; }
+        }
+        .rain-anim-1 { animation: rainFall 1.3s linear infinite; }
+        .rain-anim-2 { animation: rainFall 1.3s linear 0.4s infinite; }
+        .rain-anim-3 { animation: rainFall 1.3s linear 0.8s infinite; }
+
+        @keyframes riverFlow {
+            0% { stroke-dashoffset: 40; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .river-flow-line {
+            stroke-dasharray: 10 10;
+            animation: riverFlow 1.4s linear infinite;
+        }
+
+        /* Részecske-animációk a 3 halmazállapothoz */
+        @keyframes vibrateSolid {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-1.5px, 1px); }
+            50% { transform: translate(1.5px, -1px); }
+            75% { transform: translate(-1px, -1.5px); }
+        }
+        .particle-solid {
+            animation: vibrateSolid 0.3s infinite;
+        }
+
+        @keyframes slideLiquid {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(8px, -4px); }
+            66% { transform: translate(-7px, 4px); }
+        }
+        .particle-liquid {
+            animation: slideLiquid 1.8s ease-in-out infinite;
+        }
+
+        @keyframes flyGas {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(16px, -14px); }
+            50% { transform: translate(-14px, -22px); }
+            75% { transform: translate(-16px, 12px); }
+            100% { transform: translate(0, 0); }
+        }
+        .particle-gas {
+            animation: flyGas 1.1s ease-in-out infinite;
+        }
+
+        .station-pin {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .station-pin:hover {
+            transform: scale(1.08);
+        }
+        .station-pin.active {
+            box-shadow: 0 0 0 4px #f59e0b, 0 8px 20px rgba(245, 158, 11, 0.45);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- FELSŐ NAVIGÁCIÓS FEJLÉC -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-sky-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="./index.html" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-2xl transition shadow-xs">
+                    <span>⬅️</span>
+                    <span>Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-teal-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                        🌧️
+                    </div>
+                    <div>
+                        <h1 class="text-sm sm:text-xl font-black text-slate-800 leading-tight">
+                            A víz körforgása és a halmazállapotok
+                        </h1>
+                        <p class="text-[11px] sm:text-xs font-bold text-sky-700 hidden sm:block">
+                            3. osztályos Környezetismeret • Összefoglaló és interaktív természet-labor
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSound()" id="soundToggleBtn" class="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-base" title="Hang be/ki">
+                    🔊
+                </button>
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-300 px-3.5 py-1 rounded-2xl shadow-xs">
+                    <span class="text-lg">⭐</span>
+                    <span id="starCount" class="font-black text-amber-800 text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 4 FŐ FÜL -->
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 mt-4">
+        <div class="bg-white/85 backdrop-blur p-1.5 rounded-3xl shadow-sm border border-sky-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button onclick="switchTab('cycle')" id="tab-btn-cycle" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-sky-600 text-white shadow">
+                <span>🌦️</span> <span>1. A víz körforgása</span>
+            </button>
+            <button onclick="switchTab('states')" id="tab-btn-states" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50">
+                <span>🧊</span> <span>2. Halmazállapotok</span>
+            </button>
+            <button onclick="switchTab('games')" id="tab-btn-games" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50">
+                <span>🎮</span> <span>3. Gyakorló Játékok</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50">
+                <span>🏆</span> <span>4. Nagy Kvíz (12)</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-3 sm:px-6 mt-5 space-y-6">
+
+        <!-- =============================================================== -->
+        <!-- 1. FÜL: A VÍZ KÖRFORGÁSA A TERMÉSZETBEN (INTERAKTÍV SZIMULÁTOR) -->
+        <!-- =============================================================== -->
+        <section id="view-cycle" class="space-y-6">
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <span class="inline-block bg-sky-100 text-sky-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🌍 Örök körforgás a természetben
+                        </span>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                            Kattints az állomásokra, és kövesd a vízcsepp útját!
+                        </h2>
+                    </div>
+
+                    <!-- Évszak / Időjárás kapcsoló a tájképen -->
+                    <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
+                        <button onclick="setWeatherMode('sunny')" id="weather-btn-sunny" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition bg-amber-400 text-slate-900 shadow-xs">
+                            ☀️ Napsütés & Eső
+                        </button>
+                        <button onclick="setWeatherMode('winter')" id="weather-btn-winter" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition text-slate-600 hover:bg-white">
+                            ❄️ Téli havazás (0 °C alatt)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6 Állomás Gyorsgombjai -->
+                <div id="cycleStationButtons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mb-4"></div>
+
+                <!-- INTERAKTÍV TÁJKÉP ILLUSZTRÁCIÓ (SVG + Animált rétegek) -->
+                <div class="relative rounded-3xl overflow-hidden border-4 border-sky-200 shadow-inner bg-gradient-to-b from-sky-300 via-sky-100 to-emerald-100">
+                    <svg id="waterCycleSvg" viewBox="0 0 800 390" class="w-full h-auto block">
+                        <defs>
+                            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#38bdf8" />
+                                <stop offset="65%" stop-color="#bae6fd" />
+                                <stop offset="100%" stop-color="#e0f2fe" />
+                            </linearGradient>
+                            <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#0284c7" />
+                                <stop offset="100%" stop-color="#0369a1" />
+                            </linearGradient>
+                            <linearGradient id="mountainGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#64748b" />
+                                <stop offset="100%" stop-color="#475569" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Égbolt -->
+                        <rect x="0" y="0" width="800" height="390" fill="url(#skyGrad)" />
+
+                        <!-- 1. NAP (Jobb felső sarok) -->
+                        <g class="sun-anim cursor-pointer" onclick="selectCycleStation(0)">
+                            <circle cx="115" cy="72" r="40" fill="#fde047" stroke="#f59e0b" stroke-width="4" />
+                            <text x="115" y="82" text-anchor="middle" font-size="30">☀️</text>
+                            <!-- Napsugarak a víz felé -->
+                            <line x1="145" y1="108" x2="205" y2="230" stroke="#facc15" stroke-width="3" stroke-dasharray="6 6" opacity="0.85" />
+                            <line x1="115" y1="118" x2="145" y2="245" stroke="#facc15" stroke-width="3" stroke-dasharray="6 6" opacity="0.85" />
+                        </g>
+
+                        <!-- Hegyek a jobb oldalon -->
+                        <polygon points="470,300 610,95 760,300" fill="url(#mountainGrad)" />
+                        <polygon points="580,300 705,120 820,300" fill="#475569" />
+                        <!-- Havas hegycsúcsok (5. állomás: Olvadás) -->
+                        <polygon points="610,95 572,150 595,145 610,160 628,145 648,150" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+                        <polygon points="705,120 672,168 692,162 705,175 720,163 738,168" fill="#f8fafc" />
+
+                        <!-- Zöld dombok és part -->
+                        <path d="M 310,290 Q 430,235 560,285 L 800,285 L 800,390 L 310,390 Z" fill="#22c55e" />
+                        <path d="M 350,315 Q 520,275 800,310 L 800,390 L 350,390 Z" fill="#16a34a" />
+
+                        <!-- Fák a domboldalon (Növények párologtatása) -->
+                        <g transform="translate(395, 238)">
+                            <rect x="12" y="28" width="8" height="18" fill="#78350f" />
+                            <circle cx="16" cy="20" r="16" fill="#15803d" />
+                            <circle cx="8" cy="25" r="12" fill="#166534" />
+                            <circle cx="24" cy="25" r="12" fill="#166534" />
+                        </g>
+                        <g transform="translate(445, 246)">
+                            <rect x="10" y="24" width="7" height="15" fill="#78350f" />
+                            <circle cx="13" cy="16" r="14" fill="#15803d" />
+                        </g>
+
+                        <!-- Tenger / Tó a bal oldalon -->
+                        <path d="M 0,275 Q 180,265 375,295 L 375,390 L 0,390 Z" fill="url(#seaGrad)" />
+                        <path d="M 20,310 Q 150,298 320,315" stroke="#7dd3fc" stroke-width="3" fill="none" opacity="0.6" />
+                        <path d="M 45,345 Q 180,335 300,350" stroke="#7dd3fc" stroke-width="3" fill="none" opacity="0.5" />
+
+                        <!-- Hegyi patak / Folyó (Lefolyás a tengerbe) -->
+                        <path d="M 612,155 Q 570,215 520,255 T 355,305" stroke="#0ea5e9" stroke-width="14" fill="none" stroke-linecap="round" />
+                        <path d="M 612,155 Q 570,215 520,255 T 355,305" stroke="#bae6fd" stroke-width="4" fill="none" class="river-flow-line" />
+
+                        <!-- Talajvíz (Beszivárgás réteg a föld alatt) -->
+                        <path d="M 375,355 Q 530,335 770,360" stroke="#38bdf8" stroke-width="5" stroke-dasharray="8 6" fill="none" />
+                        <text x="585" y="378" text-anchor="middle" fill="#f0f9ff" font-size="13" font-weight="900">💧 Talajvíz beszivárgása a mélyben ←</text>
+
+                        <!-- 2. PÁROLGÁS (Felszálló vízgőz nyilak a tóból és a növényekből) -->
+                        <g class="cursor-pointer" onclick="selectCycleStation(1)">
+                            <g class="vapor-anim-1">
+                                <path d="M 140,260 Q 130,230 145,200 T 140,150" stroke="#0284c7" stroke-width="4" fill="none" stroke-linecap="round" />
+                                <polygon points="140,142 133,155 147,155" fill="#0284c7" />
+                                <text x="118" y="210" font-size="18">💨</text>
+                            </g>
+                            <g class="vapor-anim-2">
+                                <path d="M 225,265 Q 215,235 230,205 T 225,155" stroke="#0284c7" stroke-width="4" fill="none" stroke-linecap="round" />
+                                <polygon points="225,147 218,160 232,160" fill="#0284c7" />
+                                <text x="245" y="215" font-size="18">💧</text>
+                            </g>
+                            <g class="vapor-anim-3">
+                                <path d="M 310,270 Q 300,240 315,210 T 310,160" stroke="#0284c7" stroke-width="4" fill="none" stroke-linecap="round" />
+                                <polygon points="310,152 303,165 317,165" fill="#0284c7" />
+                            </g>
+                        </g>
+
+                        <!-- Szél nyíl a magasban (balról jobbra viszi a felhőket) -->
+                        <path d="M 335,72 L 455,72" stroke="#0369a1" stroke-width="3.5" stroke-dasharray="7 5" />
+                        <polygon points="465,72 452,65 452,79" fill="#0369a1" />
+                        <text x="398" y="60" text-anchor="middle" fill="#0c4a6e" font-size="12" font-weight="900">🌬️ Szél tereli</text>
+
+                        <!-- 3. FELHŐKÉPZŐDÉS / LECSAPÓDÁS (Bal-középső fehér felhő) -->
+                        <g class="cloud-anim cursor-pointer" onclick="selectCycleStation(2)">
+                            <ellipse cx="250" cy="82" rx="68" ry="30" fill="#ffffff" stroke="#cbd5e1" stroke-width="3" />
+                            <circle cx="215" cy="70" r="28" fill="#ffffff" />
+                            <circle cx="255" cy="62" r="34" fill="#ffffff" />
+                            <circle cx="290" cy="74" r="25" fill="#ffffff" />
+                            <text x="252" y="88" text-anchor="middle" fill="#0f172a" font-size="13" font-weight="900">☁️ Lecsapódás</text>
+                        </g>
+
+                        <!-- 4. CSAPADÉK (Sötétebb esőfelhő / hófelhő a hegyek felett) -->
+                        <g class="cloud-anim cursor-pointer" onclick="selectCycleStation(3)">
+                            <ellipse cx="545" cy="80" rx="78" ry="32" fill="#94a3b8" stroke="#64748b" stroke-width="3" />
+                            <circle cx="505" cy="68" r="30" fill="#cbd5e1" />
+                            <circle cx="548" cy="58" r="36" fill="#94a3b8" />
+                            <circle cx="590" cy="70" r="28" fill="#94a3b8" />
+                            <text x="545" y="85" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">🌧️ Csapadék</text>
+                        </g>
+
+                        <!-- Esőcseppek vagy Hópelyhek -->
+                        <g id="precipLayer" class="cursor-pointer" onclick="selectCycleStation(3)">
+                            <text x="495" y="135" font-size="20" class="rain-anim-1" id="drop1">💧</text>
+                            <text x="530" y="145" font-size="20" class="rain-anim-2" id="drop2">💧</text>
+                            <text x="565" y="135" font-size="20" class="rain-anim-3" id="drop3">💧</text>
+                            <text x="595" y="148" font-size="20" class="rain-anim-1" id="drop4">❄️</text>
+                        </g>
+
+                        <!-- Számozott interaktív jelölők a tájon -->
+                        <g class="cursor-pointer" onclick="selectCycleStation(0)">
+                            <circle cx="62" cy="42" r="16" fill="#f59e0b" stroke="#fff" stroke-width="3" />
+                            <text x="62" y="47" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">1</text>
+                        </g>
+                        <g class="cursor-pointer" onclick="selectCycleStation(1)">
+                            <circle cx="185" cy="240" r="16" fill="#0284c7" stroke="#fff" stroke-width="3" />
+                            <text x="185" y="245" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">2</text>
+                        </g>
+                        <g class="cursor-pointer" onclick="selectCycleStation(2)">
+                            <circle cx="250" cy="36" r="16" fill="#0ea5e9" stroke="#fff" stroke-width="3" />
+                            <text x="250" y="41" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">3</text>
+                        </g>
+                        <g class="cursor-pointer" onclick="selectCycleStation(3)">
+                            <circle cx="545" cy="34" r="16" fill="#4f46e5" stroke="#fff" stroke-width="3" />
+                            <text x="545" y="39" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">4</text>
+                        </g>
+                        <g class="cursor-pointer" onclick="selectCycleStation(4)">
+                            <circle cx="645" cy="122" r="16" fill="#e11d48" stroke="#fff" stroke-width="3" />
+                            <text x="645" y="127" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">5</text>
+                        </g>
+                        <g class="cursor-pointer" onclick="selectCycleStation(5)">
+                            <circle cx="485" cy="285" r="16" fill="#059669" stroke="#fff" stroke-width="3" />
+                            <text x="485" y="290" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">6</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Kiválasztott állomás részletes magyarázó kártyája -->
+                <div id="stationDetailCard" class="mt-4 rounded-3xl p-4 sm:p-5 bg-gradient-to-r from-sky-50 via-white to-teal-50 border-2 border-sky-200 shadow-sm"></div>
+            </div>
+
+            <!-- Csapadékfajták a természetben (Folyékony vs. Szilárd, Felhőből vs. Talaj mentén) -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span class="inline-block bg-indigo-100 text-indigo-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🌧️❄️ Csapadékfajták kislexikona
+                        </span>
+                        <h3 class="text-base sm:text-xl font-black text-slate-800">
+                            Milyen formában találkozunk a kicsapódott vízzel?
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Folyékony csapadékok -->
+                    <div class="rounded-2xl bg-sky-50/90 border-2 border-sky-200 p-4">
+                        <div class="flex items-center gap-2 mb-2.5">
+                            <span class="text-2xl">💧</span>
+                            <h4 class="font-black text-sky-950 text-base">Folyékony halmazállapotú (0 °C felett)</h4>
+                        </div>
+                        <ul class="space-y-2 text-xs sm:text-sm font-bold text-slate-700">
+                            <li class="bg-white p-2.5 rounded-xl border border-sky-100">
+                                🌧️ <strong>Eső:</strong> A felhőkben lévő apró vízcseppek összeolvadnak, elnehezülnek és lehullanak.
+                            </li>
+                            <li class="bg-white p-2.5 rounded-xl border border-sky-100">
+                                🌫️ <strong>Köd:</strong> Közvetlenül a földfelszín felett lebegő felhő, amely apró vízcseppekből áll.
+                            </li>
+                            <li class="bg-white p-2.5 rounded-xl border border-sky-100">
+                                🌿 <strong>Harmat:</strong> Nyári/őszi hajnalon a lehűlt fűszálakon és leveleken kicsapódó apró vízcseppek (nem felhőből hullik!).
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Szilárd csapadékok -->
+                    <div class="rounded-2xl bg-indigo-50/90 border-2 border-indigo-200 p-4">
+                        <div class="flex items-center gap-2 mb-2.5">
+                            <span class="text-2xl">❄️</span>
+                            <h4 class="font-black text-indigo-950 text-base">Szilárd halmazállapotú (0 °C alatt)</h4>
+                        </div>
+                        <ul class="space-y-2 text-xs sm:text-sm font-bold text-slate-700">
+                            <li class="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                🌨️ <strong>Hó:</strong> Amikor a felhőben a hőmérséklet <strong>0 °C alá</strong> süllyed, a vízből hatszögletű jégkristályok (hópelyhek) lesznek.
+                            </li>
+                            <li class="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                🧊 <strong>Jégeső:</strong> Nyári zivatarfelhőkben a fel-le sodródó vízcseppek jéggolyókká fagynak össze.
+                            </li>
+                            <li class="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                🍂 <strong>Dér és Zúzmara:</strong> Fagypont (0 °C) alatt közvetlenül a hideg fűszálakra és faágakra ráfagyó jégkristályok (a harmat téli testvére!).
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 2. FÜL: HALMAZÁLLAPOTOK ÉS ÁTALAKULÁSOK NAGY ÖSSZEFOGLALÓJA     -->
+        <!-- =============================================================== -->
+        <section id="view-states" class="hidden space-y-6">
+            <!-- A 3 halmazállapot élő részecske-kártyái -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="mb-4">
+                    <span class="inline-block bg-purple-100 text-purple-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                        📚 Nagy Összefoglaló Táblázat
+                    </span>
+                    <h2 class="text-lg sm:text-2xl font-black text-slate-800">
+                        A 3 halmazállapot összehasonlítása (Alak, Térfogat, Összenyomhatóság)
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- 1. SZILÁRD -->
+                    <div class="rounded-3xl bg-amber-50/90 border-2 border-amber-300 p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-black uppercase bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full">0 °C alatt (jég)</span>
+                                <span class="text-2xl">🧱🧊</span>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800 mb-2">1. Szilárd halmazállapot</h3>
+
+                            <!-- Részecske doboz -->
+                            <div class="bg-white rounded-2xl p-3 border border-amber-200 mb-3 flex flex-col items-center">
+                                <div class="grid grid-cols-4 gap-1.5 py-1">
+                                    <span class="w-5 h-5 rounded-full bg-sky-500 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-500 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-500 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-500 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-600 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-600 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-600 inline-block particle-solid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-600 inline-block particle-solid"></span>
+                                </div>
+                                <span class="text-[11px] font-extrabold text-slate-500 mt-1">Szorosan kapaszkodnak, csak rezegnek</span>
+                            </div>
+
+                            <ul class="space-y-1.5 text-xs sm:text-sm font-bold text-slate-700">
+                                <li>✅ <strong>Saját alakja:</strong> <span class="text-emerald-700 font-black">VAN</span> (megtartja az alakját)</li>
+                                <li>✅ <strong>Saját térfogata:</strong> <span class="text-emerald-700 font-black">VAN</span> (állandó helyet foglal)</li>
+                                <li>❌ <strong>Összenyomható?</strong> <span class="text-rose-700 font-black">NEM</span> nyomható össze</li>
+                            </ul>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-amber-200 text-xs font-extrabold text-amber-950">
+                            🌟 <strong>Példák:</strong> jég, hó, kő, fa, vas, üveg, só, cukor
+                        </div>
+                    </div>
+
+                    <!-- 2. FOLYÉKONY -->
+                    <div class="rounded-3xl bg-sky-50/90 border-2 border-sky-300 p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-black uppercase bg-sky-200 text-sky-900 px-2.5 py-0.5 rounded-full">0 °C és 100 °C között</span>
+                                <span class="text-2xl">💧🥛</span>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800 mb-2">2. Folyékony halmazállapot</h3>
+
+                            <!-- Részecske doboz -->
+                            <div class="bg-white rounded-2xl p-3 border border-sky-200 mb-3 flex flex-col items-center">
+                                <div class="flex flex-wrap justify-center gap-2 py-1 max-w-[130px]">
+                                    <span class="w-5 h-5 rounded-full bg-sky-500 inline-block particle-liquid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-blue-500 inline-block particle-liquid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-500 inline-block particle-liquid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-blue-500 inline-block particle-liquid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-sky-600 inline-block particle-liquid"></span>
+                                    <span class="w-5 h-5 rounded-full bg-blue-600 inline-block particle-liquid"></span>
+                                </div>
+                                <span class="text-[11px] font-extrabold text-slate-500 mt-1">Elgördülnek egymáson (folyékony)</span>
+                            </div>
+
+                            <ul class="space-y-1.5 text-xs sm:text-sm font-bold text-slate-700">
+                                <li>❌ <strong>Saját alakja:</strong> <span class="text-rose-700 font-black">NINCS</span> (felveszi az edény alakját!)</li>
+                                <li>✅ <strong>Saját térfogata:</strong> <span class="text-emerald-700 font-black">VAN</span> (1 liter víz átöntve is 1 liter)</li>
+                                <li>❌ <strong>Összenyomható?</strong> <span class="text-rose-700 font-black">NEM</span> nyomható össze</li>
+                            </ul>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-sky-200 text-xs font-extrabold text-sky-950">
+                            🌟 <strong>Példák:</strong> folyékony víz, eső, tej, étolaj, méz, tea
+                        </div>
+                    </div>
+
+                    <!-- 3. LÉGNEMŰ -->
+                    <div class="rounded-3xl bg-purple-50/90 border-2 border-purple-300 p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-black uppercase bg-purple-200 text-purple-900 px-2.5 py-0.5 rounded-full">Vízgőz / Levegő</span>
+                                <span class="text-2xl">🎈💨</span>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800 mb-2">3. Légnemű halmazállapot</h3>
+
+                            <!-- Részecske doboz -->
+                            <div class="bg-white rounded-2xl p-3 border border-purple-200 mb-3 flex flex-col items-center">
+                                <div class="flex justify-around w-full py-1">
+                                    <span class="w-4 h-4 rounded-full bg-purple-500 inline-block particle-gas"></span>
+                                    <span class="w-4 h-4 rounded-full bg-indigo-500 inline-block particle-gas"></span>
+                                    <span class="w-4 h-4 rounded-full bg-purple-500 inline-block particle-gas"></span>
+                                    <span class="w-4 h-4 rounded-full bg-indigo-500 inline-block particle-gas"></span>
+                                </div>
+                                <span class="text-[11px] font-extrabold text-slate-500 mt-1">Szabadon száguldoznak, kitöltik a teret</span>
+                            </div>
+
+                            <ul class="space-y-1.5 text-xs sm:text-sm font-bold text-slate-700">
+                                <li>❌ <strong>Saját alakja:</strong> <span class="text-rose-700 font-black">NINCS</span></li>
+                                <li>❌ <strong>Saját térfogata:</strong> <span class="text-rose-700 font-black">NINCS</span> (kitölti az egész teret!)</li>
+                                <li>✅ <strong>Összenyomható?</strong> <span class="text-emerald-700 font-black">IGEN</span> (pl. biciklipumpában, lufiban)</li>
+                            </ul>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-purple-200 text-xs font-extrabold text-purple-950">
+                            🌟 <strong>Példák:</strong> levegő, láthatatlan vízgőz, oxigén, szén-dioxid
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERAKTÍV HALMAZÁLLAPOT-VÁLTOZÁSOK HŐMÉRŐVEL ÉS NYILAKKAL -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="mb-4">
+                    <span class="inline-block bg-rose-100 text-rose-800 font-black text-xs px-3 py-1 rounded-full mb-1">
+                        🔥 Melegítés vs. ❄️ Hűtés
+                    </span>
+                    <h3 class="text-lg sm:text-2xl font-black text-slate-800">
+                        A halmazállapot-változások térképe (Kattints az átalakulásokra!)
+                    </h3>
+                </div>
+
+                <!-- Vizuális átalakulási sáv: JÉG <-> VÍZ <-> VÍZGŐZ -->
+                <div class="bg-slate-50 rounded-3xl p-4 border-2 border-slate-200 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 items-center text-center">
+                        <!-- Szilárd -->
+                        <div class="bg-amber-100 border-2 border-amber-300 rounded-2xl p-3">
+                            <div class="text-3xl">🧊</div>
+                            <div class="font-black text-slate-800 text-sm sm:text-base">SZILÁRD (Jég)</div>
+                            <div class="text-xs font-bold text-amber-900">0 °C alatt</div>
+                        </div>
+
+                        <!-- Nyilak: Olvadás / Fagyás -->
+                        <div class="flex flex-col gap-2">
+                            <button onclick="selectTransition('olvadas')" id="trans-btn-olvadas" class="bouncy-btn px-3 py-2 rounded-xl bg-rose-500 text-white font-black text-xs shadow">
+                                🔥 Olvadás →<br><span class="text-[10px] font-bold opacity-90">(Melegítés, 0 °C)</span>
+                            </button>
+                            <button onclick="selectTransition('fagyas')" id="trans-btn-fagyas" class="bouncy-btn px-3 py-2 rounded-xl bg-sky-600 text-white font-black text-xs shadow">
+                                ← ❄️ Fagyás<br><span class="text-[10px] font-bold opacity-90">(Hűtés, 0 °C)</span>
+                            </button>
+                        </div>
+
+                        <!-- Folyékony -->
+                        <div class="bg-sky-100 border-2 border-sky-300 rounded-2xl p-3">
+                            <div class="text-3xl">💧</div>
+                            <div class="font-black text-slate-800 text-sm sm:text-base">FOLYÉKONY (Víz)</div>
+                            <div class="text-xs font-bold text-sky-900">0 °C – 100 °C</div>
+                        </div>
+
+                        <!-- Nyilak: Párolgás & Forrás / Lecsapódás -->
+                        <div class="flex flex-col gap-2">
+                            <button onclick="selectTransition('parolgas')" id="trans-btn-parolgas" class="bouncy-btn px-3 py-2 rounded-xl bg-orange-500 text-white font-black text-xs shadow">
+                                🔥 Párolgás / Forrás →<br><span class="text-[10px] font-bold opacity-90">(Minden hőfokon / 100 °C)</span>
+                            </button>
+                            <button onclick="selectTransition('lecsapodas')" id="trans-btn-lecsapodas" class="bouncy-btn px-3 py-2 rounded-xl bg-indigo-600 text-white font-black text-xs shadow">
+                                ← ❄️ Lecsapódás<br><span class="text-[10px] font-bold opacity-90">(Lehűlés hatására)</span>
+                            </button>
+                        </div>
+
+                        <!-- Légnemű -->
+                        <div class="bg-purple-100 border-2 border-purple-300 rounded-2xl p-3">
+                            <div class="text-3xl">💨</div>
+                            <div class="font-black text-slate-800 text-sm sm:text-base">LÉGNEMŰ (Vízgőz)</div>
+                            <div class="text-xs font-bold text-purple-900">Láthatatlan gáz</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kiválasztott átalakulás részletes kártyája -->
+                <div id="transitionDetailBox" class="rounded-2xl p-4 sm:p-5 bg-amber-50 border-2 border-amber-300"></div>
+
+                <!-- Kiemelt puska: Párolgás vs. Forrás különbsége + 0 °C és 100 °C -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="rounded-2xl bg-rose-50 border-2 border-rose-200 p-4">
+                        <h4 class="font-black text-rose-900 text-sm sm:text-base mb-1.5 flex items-center gap-1.5">
+                            <span>🌡️</span> <span>Két nevezetes hőmérséklet, amit tudni kell:</span>
+                        </h4>
+                        <ul class="space-y-1.5 text-xs sm:text-sm font-bold text-slate-700">
+                            <li>❄️ <strong>0 °C – Olvadáspont és Fagyáspont:</strong> A jég 0 °C-on olvad meg, és a tiszta víz 0 °C-on fagy jéggé. *(Vigyázat: a víz fagyáskor kitágul, ezért szétrepesztheti az üveget!)*</li>
+                            <li>🫧 <strong>100 °C – Forráspont:</strong> A víz 100 °C-on forr. Ilyenkor nemcsak a felszínen, hanem a víz belsejében is gőzbuborékok keletkeznek!</li>
+                        </ul>
+                    </div>
+
+                    <div class="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-4">
+                        <h4 class="font-black text-emerald-900 text-sm sm:text-base mb-1.5 flex items-center gap-1.5">
+                            <span>🤔</span> <span>Mi a különbség a párolgás és a forrás között?</span>
+                        </h4>
+                        <ul class="space-y-1.5 text-xs sm:text-sm font-bold text-slate-700">
+                            <li>☀️ <strong>Párolgás:</strong> <strong>Minden hőmérsékleten</strong> történik, de csak a folyadék <strong>felszínén</strong> (ezért szárad meg a pocsolya és a kiteregetett ruha!).</li>
+                            <li>🍲 <strong>Forrás:</strong> Csak egyetlen meghatározott hőmérsékleten (a víznél <strong>100 °C-on</strong>) történik, a folyadék <strong>egész belsejében</strong> egyszerre!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 3. FÜL: GYAKORLÓ JÁTÉKOK (ÁTALAKULÁS-FELISMERŐ + VÁLOGATÓ)      -->
+        <!-- =============================================================== -->
+        <section id="view-games" class="hidden space-y-6">
+            <!-- 1. Játék: Melyik halmazállapot-változás történik? -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-amber-100 text-amber-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🎯 1. Játék: Mi történik a példában?
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-800">
+                            Olvasd el a jelenséget, és válaszd ki a megfelelő halmazállapot-változást!
+                        </h2>
+                    </div>
+                    <div class="text-xs font-black bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl" id="transGameScoreBadge">
+                        Feladat: 1 / 10
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-sky-50 via-indigo-50 to-amber-50 border-2 border-sky-200 rounded-2xl p-4 sm:p-5 text-center mb-4">
+                    <div id="transGameEmoji" class="text-4xl mb-2">👕☀️</div>
+                    <div id="transGamePrompt" class="text-base sm:text-xl font-black text-slate-800">
+                        A kiteregetett vizes ruha megszárad a napon és a szélben.
+                    </div>
+                    <div id="transGameSub" class="text-xs font-bold text-slate-500 mt-1">
+                        Melyik halmazállapot-változás játszódik le?
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3" id="transGameChoices"></div>
+                <div id="transGameFeedback" class="hidden p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+
+            <!-- 2. Játék: Halmazállapot- és Tulajdonság-Válogató -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-block bg-emerald-100 text-emerald-900 font-black text-xs px-3 py-1 rounded-full mb-1">
+                            🧺 2. Játék: Halmazállapot-Válogató
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-800">
+                            Melyik halmazállapotra igaz az állítás vagy a példa?
+                        </h2>
+                    </div>
+                    <button onclick="nextSortItem()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
+                        🔄 Másik kártya
+                    </button>
+                </div>
+
+                <div class="bg-emerald-50/90 border-2 border-emerald-300 rounded-2xl p-4 text-center mb-4">
+                    <div class="text-xs font-extrabold uppercase text-emerald-800 mb-1">Hová tartozik ez a kártya?</div>
+                    <div id="sortCardText" class="text-lg sm:text-2xl font-black text-slate-800">
+                        🧊 Jégkocka és ❄️ Hópehely
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                    <button onclick="answerSortGame('szilard')" class="bouncy-btn py-3.5 px-4 rounded-2xl bg-amber-100 hover:bg-amber-200 border-2 border-amber-300 font-black text-amber-950 flex items-center justify-center gap-2 text-sm sm:text-base">
+                        <span>🧱</span> <span>Szilárd</span>
+                    </button>
+                    <button onclick="answerSortGame('folyekony')" class="bouncy-btn py-3.5 px-4 rounded-2xl bg-sky-100 hover:bg-sky-200 border-2 border-sky-300 font-black text-sky-950 flex items-center justify-center gap-2 text-sm sm:text-base">
+                        <span>💧</span> <span>Folyékony</span>
+                    </button>
+                    <button onclick="answerSortGame('legnemu')" class="bouncy-btn py-3.5 px-4 rounded-2xl bg-purple-100 hover:bg-purple-200 border-2 border-purple-300 font-black text-purple-950 flex items-center justify-center gap-2 text-sm sm:text-base">
+                        <span>🎈</span> <span>Légnemű</span>
+                    </button>
+                </div>
+                <div id="sortGameFeedback" class="hidden p-3 rounded-2xl text-center font-black text-xs sm:text-sm"></div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 4. FÜL: 12-KÉRDÉSES ÖSSZEFOGLALÓ KVÍZ                           -->
+        <!-- =============================================================== -->
+        <section id="view-quiz" class="hidden max-w-2xl mx-auto">
+            <div class="glass-panel rounded-3xl p-5 sm:p-7" id="quizContainer"></div>
+        </section>
+
+    </main>
+
+    <script>
+        // =====================================================
+        // HANG ÉS CSILLAGOK (LauraApp integrációval)
+        // =====================================================
+        let stars = 0;
+        let soundEnabled = true;
+        let sharedAudioCtx = null;
+
+        function getAudioCtx() {
+            if (!sharedAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) sharedAudioCtx = new AudioCtx();
+            }
+            if (sharedAudioCtx && (sharedAudioCtx.state === 'suspended' || sharedAudioCtx.state === 'interrupted')) {
+                sharedAudioCtx.resume();
+            }
+            return sharedAudioCtx;
+        }
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(560, now);
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.065);
+                        gain.gain.setValueAtTime(0.15, now + i * 0.065);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.065);
+                        osc.stop(now + i * 0.065 + 0.24);
+                    });
+                } else if (type === 'error') {
+                    [240, 190].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.13);
+                        gain.gain.setValueAtTime(0.11, now + i * 0.13);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.13 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.13);
+                        osc.stop(now + i * 0.13 + 0.24);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function addStars(amount) {
+            stars += amount;
+            const el = document.getElementById('starCount');
+            if (el) el.textContent = stars;
+            if (window.LauraApp) LauraApp.setStars('vizkorforgas', stars);
+            playTone('win');
+        }
+
+        // =====================================================
+        // 1. FÜL ADATOK: A VÍZ KÖRFORGÁSÁNAK 6 ÁLLOMÁSA
+        // =====================================================
+        const CYCLE_STATIONS = [
+            {
+                id: 0,
+                badge: '1. állomás',
+                title: '☀️ A Nap melege (A körforgás motorja)',
+                stateChange: 'Hőközlés (Melegítés 🔥)',
+                desc: 'A víz körforgását a **Nap melege** tartja mozgásban! A napsugarak felmelegítik a tengerek, tavak, folyók vizét, a nedves talajt és a növényeket.',
+                tip: '💡 Napfény és meleg nélkül a víz körforgása leállna!'
+            },
+            {
+                id: 1,
+                badge: '2. állomás',
+                title: '💨 Párolgás (Folyékony → Légnemű)',
+                stateChange: 'Folyékony vízből → láthatatlan vízgőz',
+                desc: 'A felmelegedett vizek felszínéről (és a növények leveleiből is!) a folyékony víz folyamatosan **elpárolog**: láthatatlan, **légnemű vízgőzzé** alakul, és a meleg levegővel felemelkedik a magasba.',
+                tip: '💡 A párolgás minden hőmérsékleten történik, de melegben és szélben sokkal gyorsabb!'
+            },
+            {
+                id: 2,
+                badge: '3. állomás',
+                title: '☁️ Lehűlés és Lecsapódás (Felhőképződés)',
+                stateChange: 'Légnemű vízgőzből → apró vízcseppek / jégkristályok',
+                desc: 'Magasan a levegőben hideg van. A felemelkedő vízgőz **lehűl**, és apró **folyékony vízcseppekké** (vagy nagy hidegben **jégkristályokká**) **csapódik le**. Ezekből a parányi cseppekből állnak össze az égen úszó **felhők** (a föld közelében pedig a **köd**)!',
+                tip: '💡 A felhő tehát NEM vízgőz, hanem már kicsapódott apró vízcseppek és jégkristályok sokasága!'
+            },
+            {
+                id: 3,
+                badge: '4. állomás',
+                title: '🌧️ Csapadék hullása (Eső, hó, jégeső)',
+                stateChange: 'Visszahullás a földre',
+                desc: 'A szél tovatereli a felhőket. Amikor a felhőkben a vízcseppek vagy jégkristályok összeolvadnak és túl nehézzé válnak, **csapadék** formájában lehullanak a földre: **0 °C felett esőként**, **0 °C alatt pedig hóként** (nyári zivatarban jégesőként).',
+                tip: '💡 Nem minden csapadék hullik felhőből: a **harmat** (folyékony) és a **dér / zúzmara** (szilárd) közvetlenül a lehűlt fűszálakon csapódik ki!'
+            },
+            {
+                id: 4,
+                badge: '5. állomás',
+                title: '🏔️ Hóolvadás a hegyekben (Szilárd → Folyékony)',
+                stateChange: 'Szilárd hóból és jégből → folyékony víz (0 °C felett)',
+                desc: 'A magas hegycsúcsokra lehullott fehér hó és jég tavasszal, amikor a hőmérséklet **0 °C fölé** emelkedik, a Nap melegétől **megolvad**, és friss hegyi patakokat táplál.',
+                tip: '💡 Olvadáskor a szilárd jég melegítés hatására újra folyékony vízzé alakul.'
+            },
+            {
+                id: 5,
+                badge: '6. állomás',
+                title: '🌊 Lefolyás és Beszivárgás (Újrakezdés)',
+                stateChange: 'Visszatérés a folyókba, tavakba, tengerekbe',
+                desc: 'A lehullott csapadék egy része a patakokba, folyókba, tavakba és tengerekbe folyik vissza. Másik része **beszivárog a talajba** (**talajvíz** lesz belőle, amit a növények gyökerei felszívnak, vagy forrásként tör a felszínre). Ezután a Nap melegére **minden kezdődik elölről**!',
+                tip: '💡 Ezért nevezzük **körforgásnak**: a Föld vízkészlete nem fogy el, hanem újra és újra körbejár!'
+            }
+        ];
+
+        let currentCycleStation = 0;
+        let visitedCycleStations = new Set([0]);
+
+        function renderCycleStationButtons() {
+            const bar = document.getElementById('cycleStationButtons');
+            bar.innerHTML = CYCLE_STATIONS.map((s, idx) => {
+                const isActive = idx === currentCycleStation;
+                return `
+                    <button onclick="selectCycleStation(${idx})" class="station-pin p-2.5 rounded-2xl text-left border-2 transition ${isActive ? 'bg-sky-600 text-white border-sky-700 active' : 'bg-white hover:bg-sky-50 text-slate-700 border-sky-100'}">
+                        <div class="text-[10px] font-black uppercase ${isActive ? 'text-sky-100' : 'text-sky-600'}">${s.badge}</div>
+                        <div class="text-xs font-black leading-tight mt-0.5">${s.title}</div>
+                    </button>
+                `;
+            }).join('');
+
+            const st = CYCLE_STATIONS[currentCycleStation];
+            const prevIdx = (currentCycleStation + CYCLE_STATIONS.length - 1) % CYCLE_STATIONS.length;
+            const nextIdx = (currentCycleStation + 1) % CYCLE_STATIONS.length;
+
+            document.getElementById('stationDetailCard').innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="bg-sky-600 text-white text-xs font-black px-3 py-1 rounded-full">${st.badge}</span>
+                        <h3 class="text-base sm:text-xl font-black text-slate-800">${st.title}</h3>
+                    </div>
+                    <span class="text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full">
+                        🔄 ${st.stateChange}
+                    </span>
+                </div>
+                <p class="text-xs sm:text-base font-bold text-slate-700 leading-relaxed mb-3">
+                    ${st.desc.replace(/\*\*(.*?)\*\*/g, '<strong class="text-sky-900 font-black">$1</strong>')}
+                </p>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl">
+                        ${st.tip.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="selectCycleStation(${prevIdx})" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 font-extrabold text-xs text-slate-700">
+                            ⬅️ Előző
+                        </button>
+                        <button onclick="selectCycleStation(${nextIdx})" class="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 font-extrabold text-xs text-white shadow">
+                            Következő lépés ➡️
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectCycleStation(idx) {
+            playTone('click');
+            currentCycleStation = idx;
+            if (!visitedCycleStations.has(idx)) {
+                visitedCycleStations.add(idx);
+                addStars(1);
+                if (visitedCycleStations.size === CYCLE_STATIONS.length && typeof confetti === 'function') {
+                    confetti({ particleCount: 55, spread: 65, origin: { y: 0.65 } });
+                }
+            }
+            renderCycleStationButtons();
+        }
+
+        function setWeatherMode(mode) {
+            playTone('click');
+            const sunnyBtn = document.getElementById('weather-btn-sunny');
+            const winterBtn = document.getElementById('weather-btn-winter');
+            const drops = [
+                document.getElementById('drop1'),
+                document.getElementById('drop2'),
+                document.getElementById('drop3'),
+                document.getElementById('drop4')
+            ];
+            if (mode === 'winter') {
+                winterBtn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition bg-indigo-600 text-white shadow-xs';
+                sunnyBtn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition text-slate-600 hover:bg-white';
+                drops.forEach(d => { if (d) d.textContent = '❄️'; });
+                selectCycleStation(3);
+            } else {
+                sunnyBtn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition bg-amber-400 text-slate-900 shadow-xs';
+                winterBtn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition text-slate-600 hover:bg-white';
+                if (drops[0]) drops[0].textContent = '💧';
+                if (drops[1]) drops[1].textContent = '💧';
+                if (drops[2]) drops[2].textContent = '💧';
+                if (drops[3]) drops[3].textContent = '❄️';
+            }
+        }
+
+        // =====================================================
+        // 2. FÜL ADATOK: HALMAZÁLLAPOT-VÁLTOZÁSOK RÉSZLETEI
+        // =====================================================
+        const TRANSITIONS = {
+            olvadas: {
+                title: '🔥 Olvadás (Szilárd → Folyékony)',
+                heat: '🔥 Melegítés (Hőközlés) szükséges hozzá!',
+                point: 'Olvadáspont a víznél (jégnél): 0 °C',
+                desc: 'Amikor egy **szilárd** anyagot melegítünk, és eléri az olvadáspontját, **folyékonnyá** válik. A jég és a hó **0 °C-on** kezd el olvadni.',
+                examples: [
+                    '⛄ Tavasszal a napsütésben elolvad a hóember és a jégcsap.',
+                    '🍦 A meleg szobában megolvad a fagylalt és a jégkocka.',
+                    '🧈 A forró serpenyőben elolvad a vaj, a gyertyalángnál pedig a viasz.'
+                ]
+            },
+            fagyas: {
+                title: '❄️ Fagyás (Folyékony → Szilárd)',
+                heat: '❄️ Hűtés (Hőelvonás / Lehűlés) szükséges hozzá!',
+                point: 'Fagyáspont a víznél: 0 °C',
+                desc: 'Amikor egy **folyékony** anyag lehűl a fagyáspontjára, **szilárddá** alakul. A tiszta víz **0 °C-on** fagy meg. **Fontos különlegesség:** a víz fagyáskor **kitágul** (nagyobb lesz a térfogata), a jég pedig úszik a víz tetején!',
+                examples: [
+                    '⛸️ Télen, 0 °C alatt befagy a tó felszíne.',
+                    '🧊 A mélyhűtőbe tett vízből jégkocka lesz.',
+                    '🕯️ A lecseppent folyékony gyertyaviasz kihűlve újra megszilárdul.'
+                ]
+            },
+            parolgas: {
+                title: '☀️ Párolgás és 🫧 Forrás (Folyékony → Légnemű)',
+                heat: '🔥 Melegítés gyorsítja (a forráshoz 100 °C kell!)',
+                point: 'Párolgás: minden hőmérsékleten • Forráspont: 100 °C',
+                desc: 'Mindkettő során a **folyékony** vízből **légnemű vízgőz** lesz! A **párolgás** minden hőmérsékleten, lassan, a víz **felszínén** történik. A **forrás** viszont csak **100 °C-on** indul meg, és ilyenkor a víz **egész belsejében** gőzbuborékok keletkeznek.',
+                examples: [
+                    '👕 Párolgás: A kiteregetett vizes ruha és a pocsolya megszárad.',
+                    '🌊 Párolgás: A tavak és tengerek vize folyamatosan párolog a Nap melegétől.',
+                    '🍵 Forrás: A teavíz 100 °C-on bugyogva forr a lábosban.'
+                ]
+            },
+            lecsapodas: {
+                title: '☁️ Lecsapódás (Légnemű → Folyékony)',
+                heat: '❄️ Hűtés (Lehűlés) szükséges hozzá!',
+                point: 'A párolgás ellentéte!',
+                desc: 'Amikor a levegőben lévő láthatatlan, **légnemű vízgőz** hideg levegővel vagy hideg tárggyal találkozik, **lehűl**, és apró **folyékony vízcseppekké** alakul vissza.',
+                examples: [
+                    '☁️ A magasban lehűlő vízgőzből **felhők** és **köd** keletkeznek.',
+                    '🌿 Hajnali lehűléskor **harmat** csapódik ki a fűszálakra.',
+                    '🪞 Fürdés után bepárásodik a hideg fürdőszobai tükör vagy a szemüveg.'
+                ]
+            }
+        };
+
+        function selectTransition(key) {
+            playTone('click');
+            const t = TRANSITIONS[key];
+            if (!t) return;
+            const box = document.getElementById('transitionDetailBox');
+            box.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <h4 class="text-base sm:text-xl font-black text-slate-800">${t.title}</h4>
+                    <span class="text-xs font-black px-3 py-1 rounded-full bg-white border border-amber-300 text-amber-900">${t.heat}</span>
+                </div>
+                <div class="text-xs font-extrabold text-indigo-800 mb-2">🌡️ ${t.point}</div>
+                <p class="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed mb-3">
+                    ${t.desc.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900 font-black">$1</strong>')}
+                </p>
+                <div class="bg-white/90 rounded-xl p-3 border border-amber-200">
+                    <div class="text-xs font-black text-slate-600 uppercase mb-1">Hétköznapi és természeti példák:</div>
+                    <ul class="space-y-1 text-xs sm:text-sm font-bold text-slate-700">
+                        ${t.examples.map(ex => `<li>${ex.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // =====================================================
+        // 3. FÜL JÁTÉKOK: 1) ÁTALAKULÁS-FELISMERŐ, 2) VÁLOGATÓ
+        // =====================================================
+        const TRANS_GAME_ITEMS = [
+            { emoji: '👕☀️', text: 'A kiteregetett vizes ruha megszárad az udvaron.', answer: 'Párolgás', explain: 'A vizes ruhából a folyékony víz a felszínen vízgőzzé alakul – ez a párolgás!' },
+            { emoji: '⛄🌷', text: 'Tavasszal a napsütésben elolvad a hóember.', answer: 'Olvadás', explain: 'A szilárd hó melegítés hatására 0 °C felett folyékony vízzé olvad.' },
+            { emoji: '🪞🚿', text: 'Meleg zuhanyzás után vizes, párás lesz a hideg fürdőszobai tükör.', answer: 'Lecsapódás', explain: 'A légnemű vízgőz a hideg tükrön lehűl, és apró vízcseppekké csapódik le!' },
+            { emoji: '🧊❄️', text: 'A mélyhűtőbe tett jégkockatartóban a vízből kemény jég lesz.', answer: 'Fagyás', explain: 'A folyékony víz 0 °C alatt lehűlve szilárd jéggé fagy.' },
+            { emoji: '🍲🫧', text: 'A tűzhelyen 100 °C-os víz bugyogva gőzbuborékokat vet.', answer: 'Forrás', explain: '100 °C-on a víz egész belsejében gőzbuborékok keletkeznek – ez a forrás!' },
+            { emoji: '☁️🏔️', text: 'A magasba emelkedő vízgőz lehűl, és felhő lesz belőle.', answer: 'Lecsapódás', explain: 'A felhőképződés a légnemű vízgőz lecsapódása apró vízcseppekké.' },
+            { emoji: '☀️🌊', text: 'Nyáron a Nap felmelegíti a Balatont, és a vízszint lassan csökken.', answer: 'Párolgás', explain: 'A tó felszínéről a víz folyamatosan párolog a levegőbe.' },
+            { emoji: '⛸️🥶', text: 'Télen a nagy hidegben jégpáncél alakul ki a tó tetején.', answer: 'Fagyás', explain: '0 °C alatt a folyékony víz szilárd jéggé fagy.' },
+            { emoji: '🌿🌅', text: 'Nyári hajnalon apró vízcseppek (harmat) jelennek meg a lehűlt fűszálakon.', answer: 'Lecsapódás', explain: 'A levegő vízgőze a hideg fűszálakon folyékony harmatcseppekké csapódik le.' },
+            { emoji: '🍦🌞', text: 'A tölcséres fagyi csöpögni kezd a nyári melegben.', answer: 'Olvadás', explain: 'Melegítés hatására a szilárd fagyi folyékonnyá olvad.' }
+        ];
+
+        const TRANS_CHOICES = ['Olvadás', 'Fagyás', 'Párolgás', 'Forrás', 'Lecsapódás'];
+        let transGameIdx = 0;
+        let transGameLocked = false;
+
+        function renderTransGame() {
+            const item = TRANS_GAME_ITEMS[transGameIdx];
+            document.getElementById('transGameScoreBadge').textContent = `Feladat: ${transGameIdx + 1} / ${TRANS_GAME_ITEMS.length}`;
+            document.getElementById('transGameEmoji').textContent = item.emoji;
+            document.getElementById('transGamePrompt').textContent = item.text;
+            const fb = document.getElementById('transGameFeedback');
+            fb.classList.add('hidden');
+            transGameLocked = false;
+
+            document.getElementById('transGameChoices').innerHTML = TRANS_CHOICES.map(ch => `
+                <button onclick="checkTransGame('${ch}')" class="bouncy-btn py-2.5 px-3 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-200 font-black text-slate-800 text-xs sm:text-sm shadow-xs">
+                    ${ch}
+                </button>
+            `).join('');
+        }
+
+        function checkTransGame(choice) {
+            if (transGameLocked) return;
+            const item = TRANS_GAME_ITEMS[transGameIdx];
+            const fb = document.getElementById('transGameFeedback');
+            fb.classList.remove('hidden');
+
+            if (choice === item.answer) {
+                transGameLocked = true;
+                addStars(1);
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                fb.innerHTML = `✅ Így van! <strong>${item.answer}</strong> – ${item.explain} <button onclick="nextTransGame()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő ➡️</button>`;
+            } else {
+                playTone('error');
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = `❌ Nem egészen! Gondold át: melegítés vagy hűtés történik, és milyen halmazállapotból mibe alakul?`;
+            }
+        }
+
+        function nextTransGame() {
+            transGameIdx = (transGameIdx + 1) % TRANS_GAME_ITEMS.length;
+            renderTransGame();
+        }
+
+        const SORT_CARDS = [
+            { text: '🧊 Jégkocka, ❄️ Hópehely és 🪨 Kő', cat: 'szilard', explain: 'A jég, a hó és a kő szilárd halmazállapotú: van saját alakjuk és saját térfogatuk.' },
+            { text: '💧 Esőcsepp, 🥛 Tej és 🍯 Méz', cat: 'folyekony', explain: 'A víz, a tej és a méz folyékony: felveszik az edény alakját, de van saját térfogatuk.' },
+            { text: '💨 Láthatatlan vízgőz és 🎈 Levegő', cat: 'legnemu', explain: 'A vízgőz és a levegő légnemű: nincs saját alakjuk és térfogatuk, kitöltik a teret és összenyomhatók.' },
+            { text: '📐 VAN saját alakja és VAN saját térfogata', cat: 'szilard', explain: 'Csak a szilárd anyagoknak van egyszerre saját alakjuk és saját térfogatuk!' },
+            { text: '🫗 NINCS saját alakja (felveszi az edény alakját), de VAN saját térfogata', cat: 'folyekony', explain: 'A folyadékok felveszik az edény alakját, de a térfogatuk állandó marad!' },
+            { text: '🎈 NINCS saját alakja, NINCS saját térfogata, és ÖSSZENYOMHATÓ', cat: 'legnemu', explain: 'A légnemű anyagok kitöltik a rendelkezésre álló teret és összenyomhatók!' },
+            { text: '🍂 Téli dér és zúzmara a faágakon (0 °C alatt)', cat: 'szilard', explain: 'A dér és a zúzmara apró jégkristályokból áll, tehát szilárd halmazállapotú!' },
+            { text: '🌿 Hajnali harmatcsepp a fűszálon', cat: 'folyekony', explain: 'A harmat folyékony vízcsepp, amely a lehűlt növényeken csapódik le.' }
+        ];
+        let sortCardIdx = 0;
+
+        function renderSortCard() {
+            document.getElementById('sortCardText').textContent = SORT_CARDS[sortCardIdx].text;
+            document.getElementById('sortGameFeedback').classList.add('hidden');
+        }
+
+        function answerSortGame(cat) {
+            const card = SORT_CARDS[sortCardIdx];
+            const fb = document.getElementById('sortGameFeedback');
+            fb.classList.remove('hidden');
+            if (cat === card.cat) {
+                addStars(1);
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-emerald-100 text-emerald-900 border-2 border-emerald-300';
+                fb.innerHTML = `🌟 Szuper! ${card.explain} <button onclick="nextSortItem()" class="ml-2 px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs">Következő kártya ➡️</button>`;
+            } else {
+                playTone('error');
+                fb.className = 'p-3 rounded-2xl text-center font-black text-xs sm:text-sm bg-rose-100 text-rose-900 border-2 border-rose-300';
+                fb.textContent = '❌ Próbáld újra! Nézd meg az alakját és a térfogatát!';
+            }
+        }
+
+        function nextSortItem() {
+            playTone('click');
+            sortCardIdx = (sortCardIdx + 1) % SORT_CARDS.length;
+            renderSortCard();
+        }
+
+        // =====================================================
+        // 4. FÜL: 12-KÉRDÉSES ÖSSZEFOGLALÓ KVÍZ
+        // =====================================================
+        const QUIZ_QUESTIONS = [
+            {
+                q: 'Mi tartja mozgásban a víz örök körforgását a természetben?',
+                opts: ['A Nap melege (és a szél)', 'A Hold világítása', 'A halak úszkálása a tengerekben', 'A pincék hidege'],
+                ans: 0,
+                exp: 'A Nap melege párologtatja el a vizeket, ezzel indítja el és tartja fenn a víz körforgását.'
+            },
+            {
+                q: 'Mi történik a tavak és tengerek vizével a Nap melegének hatására?',
+                opts: ['Megfagy', 'Elpárolog, vagyis láthatatlan vízgőzzé alakul és felemelkedik', 'Kövekké változik', 'Elsüllyed a föld közepébe'],
+                ans: 1,
+                exp: 'A folyékony víz a felszínen elpárolog (légnemű vízgőzzé alakul), és felemelkedik a levegőbe.'
+            },
+            {
+                q: 'Hogyan keletkeznek a felhők magasan a levegőben?',
+                opts: [
+                    'A füstből lesznek a kémények felett',
+                    'A felemelkedő vízgőz a magasban lehűl, és apró vízcseppekké vagy jégkristályokká csapódik le',
+                    'A szél felkapja a tenger hullámait',
+                    'A növények fújják fel őket'
+                ],
+                ans: 1,
+                exp: 'A magasban hidegebb a levegő, ezért a vízgőz lecsapódik apró vízcseppekké és jégkristályokká: ezek alkotják a felhőket.'
+            },
+            {
+                q: 'Miből áll az égen látható felhő és a földfelszín feletti köd?',
+                opts: [
+                    'Apró, kicsapódott vízcseppekből (és nagy hidegben jégkristályokból)',
+                    'Fehér vattából',
+                    'Csak száraz oxigénből',
+                    'Porból és homokból'
+                ],
+                ans: 0,
+                exp: 'A vízgőz önmagában láthatatlan; a felhőt és a ködöt már a kicsapódott apró vízcseppek (vagy jégkristályok) teszik láthatóvá!'
+            },
+            {
+                q: 'Melyik sorban szerepelnek KIZÁRÓLAG szilárd halmazállapotú csapadékok?',
+                opts: [
+                    'Eső, harmat, köd',
+                    'Hó, jégeső, dér, zúzmara',
+                    'Eső, hó, harmat',
+                    'Vízgőz, eső, szivárvány'
+                ],
+                ans: 1,
+                exp: '0 °C alatt keletkeznek a szilárd csapadékok: a felhőből hulló hó és jégeső, valamint a talaj mentén képződő dér és zúzmara.'
+            },
+            {
+                q: 'Hány fokon olvad a jég és fagy meg a tiszta víz (olvadáspont / fagyáspont)?',
+                opts: ['0 °C-on', '100 °C-on', '20 °C-on', '50 °C-on'],
+                ans: 0,
+                exp: 'A víz fagyáspontja és a jég olvadáspontja egyaránt 0 °C.'
+            },
+            {
+                q: 'Hány fokon forr a víz (forráspont)?',
+                opts: ['0 °C-on', '37 °C-on', '60 °C-on', '100 °C-on'],
+                ans: 3,
+                exp: 'A tiszta víz 100 °C-on forr: ilyenkor a folyadék egész belsejében gőzbuborékok keletkeznek.'
+            },
+            {
+                q: 'Mi a különbség a párolgás és a forrás között?',
+                opts: [
+                    'Nincs különbség, a kettő ugyanaz',
+                    'A párolgás minden hőmérsékleten a folyadék felszínén történik, a forrás pedig 100 °C-on a folyadék belsejében is',
+                    'A párolgás csak 100 °C-on történik, a forrás pedig 0 °C-on',
+                    'Párolgáskor jég keletkezik'
+                ],
+                ans: 1,
+                exp: 'A pocsolya 15–20 °C-on is elpárolog a felszínén, míg a forrás csak a forrásponton (100 °C) zajlik a víz teljes belsejében.'
+            },
+            {
+                q: 'Melyik halmazállapotú anyagnak VAN saját térfogata, de NINCS saját alakja (felveszi az edény alakját)?',
+                opts: ['Szilárd', 'Folyékony', 'Légnemű', 'Egyiknek sem'],
+                ans: 1,
+                exp: 'A folyékony anyagoknak (pl. víz, tej) van saját térfogatuk, de nincs saját alakjuk: mindig felveszik az edény alakját.'
+            },
+            {
+                q: 'Melyik halmazállapotú anyag nyomható össze könnyen, és tölti ki a rendelkezésre álló teret?',
+                opts: ['A szilárd anyagok (pl. kő)', 'A folyékony anyagok (pl. víz)', 'A légnemű anyagok (pl. levegő, vízgőz)', 'A jégkocka'],
+                ans: 2,
+                exp: 'Csak a légnemű anyagoknak nincs sem saját alakjuk, sem saját térfogatuk, és összenyomhatók.'
+            },
+            {
+                q: 'Miért nem szabad télen színültig töltött üvegpalackban vizet hagyni a fagyon?',
+                opts: [
+                    'Mert a víz fagyáskor kitágul (megnő a térfogata), és szétrepeszti az üveget',
+                    'Mert a víz 0 °C alatt elpárolog az üvegből',
+                    'Mert a hidegben összemegy a víz',
+                    'Mert a víz megsavanyodik'
+                ],
+                ans: 0,
+                exp: 'A víz különleges tulajdonsága, hogy amikor 0 °C-on jéggé fagy, kitágul (nagyobb helyet foglal), így szétfeszíti a zárt üveget.'
+            },
+            {
+                q: 'Hová lesz a földre lehullott esővíz és a megolvadt hólé?',
+                opts: [
+                    'Örökre eltűnik a világűrben',
+                    'Beszivárog a talajba (talajvíz lesz), felszívják a növények, vagy a patakokba, folyókba és tengerekbe folyik, majd újra elpárolog',
+                    'Mind kővé változik',
+                    'Csak a felhőkben marad'
+                ],
+                ans: 1,
+                exp: 'A lehullott csapadék beszivárog a talajba és visszafolyik a vizekbe, ahonnan újra elpárolog – így zárul be a víz körforgása!'
+            }
+        ];
+
+        let qIdx = 0;
+        let qScore = 0;
+        let qSelected = null;
+
+        function renderQuiz() {
+            const box = document.getElementById('quizContainer');
+            if (qIdx >= QUIZ_QUESTIONS.length) {
+                box.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="text-6xl">🏆🌦️</div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-800">
+                            Gratulálok! Végigmentél a Nagy Környezetismeret Kvízen!
+                        </h2>
+                        <div class="inline-block bg-amber-50 border-2 border-amber-300 rounded-2xl px-6 py-3">
+                            <div class="text-xs font-extrabold text-amber-800 uppercase">Eredményed</div>
+                            <div class="text-3xl font-black text-amber-600">${qScore} / ${QUIZ_QUESTIONS.length} helyes válasz ⭐</div>
+                        </div>
+                        <p class="text-sm font-bold text-slate-600 max-w-md mx-auto">
+                            Most már kívül-belül ismered a víz körforgását a természetben és a 3 halmazállapot minden titkát!
+                        </p>
+                        <div>
+                            <button onclick="restartQuiz()" class="bouncy-btn px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-black text-sm shadow-lg">
+                                🔄 Kvíz újrakezdése
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            const cur = QUIZ_QUESTIONS[qIdx];
+            box.innerHTML = `
+                <div class="flex items-center justify-between gap-2 mb-4">
+                    <span class="text-xs font-black uppercase bg-sky-100 text-sky-800 px-3 py-1 rounded-full">
+                        ${qIdx + 1} / ${QUIZ_QUESTIONS.length}. kérdés
+                    </span>
+                    <span class="text-xs font-extrabold text-amber-700">
+                        Helyes: ${qScore} ⭐
+                    </span>
+                </div>
+
+                <h3 class="text-base sm:text-xl font-black text-slate-800 mb-4 leading-snug">
+                    ${cur.q}
+                </h3>
+
+                <div class="space-y-2.5">
+                    ${cur.opts.map((opt, i) => {
+                        let cls = 'bg-white hover:bg-sky-50 border-slate-200 text-slate-800';
+                        if (qSelected !== null) {
+                            if (i === cur.ans) {
+                                cls = 'bg-emerald-100 border-emerald-400 text-emerald-950';
+                            } else if (i === qSelected) {
+                                cls = 'bg-rose-100 border-rose-400 text-rose-950';
+                            } else {
+                                cls = 'bg-slate-50 border-slate-200 text-slate-400';
+                            }
+                        }
+                        return `
+                            <button onclick="selectQuizOption(${i})" ${qSelected !== null ? 'disabled' : ''} class="w-full text-left p-3.5 rounded-2xl border-2 font-extrabold text-xs sm:text-sm transition flex items-center gap-3 ${cls}">
+                                <span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 font-black flex items-center justify-center shrink-0 text-xs">
+                                    ${String.fromCharCode(65 + i)}
+                                </span>
+                                <span>${opt}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+
+                ${qSelected !== null ? `
+                    <div class="mt-4 p-3.5 rounded-2xl border-2 ${qSelected === cur.ans ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-rose-50 border-rose-300 text-rose-950'} text-xs sm:text-sm font-bold">
+                        <div class="font-black mb-1">${qSelected === cur.ans ? '✅ Helyes válasz! (+1 ⭐)' : '❌ Most nem talált!'}</div>
+                        <div>${cur.exp}</div>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button onclick="nextQuizQuestion()" class="bouncy-btn px-5 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs sm:text-sm shadow">
+                            ${qIdx + 1 < QUIZ_QUESTIONS.length ? 'Következő kérdés ➡️' : 'Eredmény megtekintése 🏆'}
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function selectQuizOption(idx) {
+            if (qSelected !== null) return;
+            qSelected = idx;
+            const cur = QUIZ_QUESTIONS[qIdx];
+            if (idx === cur.ans) {
+                qScore++;
+                addStars(1);
+            } else {
+                playTone('error');
+            }
+            renderQuiz();
+        }
+
+        function nextQuizQuestion() {
+            playTone('click');
+            qIdx++;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            playTone('click');
+            qIdx = 0;
+            qScore = 0;
+            qSelected = null;
+            renderQuiz();
+        }
+
+        // =====================================================
+        // FÜLVÁLTÁS ÉS INDÍTÁS
+        // =====================================================
+        function switchTab(tab) {
+            playTone('click');
+            ['cycle', 'states', 'games', 'quiz'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-sky-600 text-white shadow';
+                } else {
+                    btn.className = 'py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.LauraApp) {
+                stars = LauraApp.getStars('vizkorforgas');
+                const el = document.getElementById('starCount');
+                if (el) el.textContent = stars;
+            }
+            renderCycleStationButtons();
+            selectTransition('olvadas');
+            renderTransGame();
+            renderSortCard();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>

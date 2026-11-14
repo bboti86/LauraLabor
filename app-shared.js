@@ -29,7 +29,8 @@
         'szilard',
         'vizlabor',
         'legnemu',
-        'suruseg'
+        'suruseg',
+        'vizkorforgas'
     ];
 
     function generateRandomCloudCode() {
@@ -64,7 +65,8 @@
                 szilard: 0,
                 vizlabor: 0,
                 legnemu: 0,
-                suruseg: 0
+                suruseg: 0,
+                vizkorforgas: 0
             },
             updatedAt: Date.now()
         };

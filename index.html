@@ -197,6 +197,13 @@
                         <span class="icon">👉</span>
                     </span>
                 </a>
+                <a href="./viz-korforgasa.html" class="app-btn">
+                    <span>🌧️ A víz körforgása és a halmazállapotok összefoglalása</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-vizkorforgas">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
             </div>
         </div>
     </div>
@@ -425,7 +432,7 @@
             }
 
             // Lecke-jelvények frissítése
-            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas'];
             let activeModules = felmeroStats.tested > 0 ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -444,13 +451,13 @@
                 felmeroBadge.className = felmeroStats.mastered > 0 ? 'lesson-star-badge green' : 'lesson-star-badge empty';
             }
 
-            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 12`;
+            document.getElementById('summaryActiveModules').textContent = `${activeModules} / 13`;
 
             // Kategória összesítők
             const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu') + LauraApp.getStars('szoveges');
             const readingStars = LauraApp.getStars('szovegertes');
             const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet');
-            const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg');
+            const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg') + LauraApp.getStars('vizkorforgas');
 
             document.getElementById('cat-stars-math').textContent = `⭐ ${mathStars}`;
             const readingEl = document.getElementById('cat-stars-reading');
