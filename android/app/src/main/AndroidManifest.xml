@@ -9,15 +9,19 @@
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
+        android:isGame="true"
         android:appCategory="game"
         android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
 
         <activity
             android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
             android:exported="true"
             android:resizeableActivity="true"
             android:screenOrientation="fullUser"
