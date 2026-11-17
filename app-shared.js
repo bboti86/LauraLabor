@@ -76,6 +76,8 @@
                 angol_iskola: 0,
                 muveletisorrend: 0
             },
+            hiddenLessons: [],
+            hiddenLessonsUpdatedAt: 0,
             updatedAt: Date.now()
         };
     }
@@ -235,6 +237,10 @@
         if (!state.cloudCode || state.cloudCode.length < 3) {
             state.cloudCode = generateRandomCloudCode();
         }
+        if (!Array.isArray(state.hiddenLessons)) {
+            state.hiddenLessons = [];
+        }
+        state.hiddenLessons = state.hiddenLessons.filter(k => LESSON_KEYS.includes(k));
 
         // Szinkronizáció a korábbi szorzótábla csillagokkal és a 200-as felmérővel
         try {
@@ -268,7 +274,9 @@
                 onboardingDone: state.onboardingDone,
                 cookieConsentExplicit: state.cookieConsentExplicit,
                 cloudCode: state.cloudCode,
-                stars: state.stars
+                stars: state.stars,
+                hiddenLessons: state.hiddenLessons,
+                hiddenLessonsUpdatedAt: state.hiddenLessonsUpdatedAt || 0
             }));
         }
 
@@ -363,7 +371,9 @@
             t: state.theme,
             c: state.cloudCode || '',
             s: state.stars,
-            f: fStats.compact || ''
+            f: fStats.compact || '',
+            h: state.hiddenLessons || [],
+            hu: state.hiddenLessonsUpdatedAt || 0
         };
         const json = JSON.stringify(payload);
         return btoa(unescape(encodeURIComponent(json)))
@@ -401,6 +411,14 @@
                     state.stars[k] = inc;
                 }
             });
+        }
+        if (Array.isArray(payload.h)) {
+            const incTs = parseInt(payload.hu, 10) || 0;
+            const localTs = parseInt(state.hiddenLessonsUpdatedAt, 10) || 0;
+            if (incTs > localTs) {
+                state.hiddenLessons = payload.h.filter(k => LESSON_KEYS.includes(k));
+                state.hiddenLessonsUpdatedAt = incTs;
+            }
         }
         if (payload.f && typeof payload.f === 'string' && payload.f.length === 200) {
             restoreFelmeroFromCompact(payload.f);
@@ -624,8 +642,22 @@
             if (typeof updates.cloudCode === 'string') {
                 state.cloudCode = normalizeCloudKey(updates.cloudCode);
             }
+            if (Array.isArray(updates.hiddenLessons)) {
+                state.hiddenLessons = Array.from(new Set(updates.hiddenLessons.filter(k => LESSON_KEYS.includes(k))));
+                state.hiddenLessonsUpdatedAt = Date.now();
+            }
             saveState();
             applyProfileToDOM();
+            notifyListeners();
+        },
+        getHiddenLessons: () => Array.isArray(state.hiddenLessons) ? state.hiddenLessons.slice() : [],
+        isLessonEnabled: (lessonKey) => !Array.isArray(state.hiddenLessons) || !state.hiddenLessons.includes(lessonKey),
+        setHiddenLessons: (hiddenArr) => {
+            state.hiddenLessons = Array.isArray(hiddenArr)
+                ? Array.from(new Set(hiddenArr.filter(k => LESSON_KEYS.includes(k))))
+                : [];
+            state.hiddenLessonsUpdatedAt = Date.now();
+            saveState();
             notifyListeners();
         },
         hasCookieConsent: () => !!state.cookieConsentExplicit,
