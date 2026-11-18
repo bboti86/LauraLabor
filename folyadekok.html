@@ -187,18 +187,18 @@
                     <span>🫗</span> 1. Önts folyadékot!
                 </h3>
                 <span id="layer-counter" class="text-[11px] font-extrabold px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-full">
-                    0 / 6 adag
+                    0 / 11 adag
                 </span>
             </div>
             <p class="text-xs text-slate-500 mb-3 font-semibold">
                 Kattints a folyadékokra! Automatikusan sűrűség szerint rétegződnek.
             </p>
-            <div id="liquid-buttons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+            <div id="liquid-buttons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 max-h-[420px] overflow-y-auto pr-1">
                 <!-- JS tölti fel -->
             </div>
             <div class="mt-3 pt-3 border-t border-slate-100">
                 <button onclick="fillRainbowTower()" class="w-full py-2 px-3 rounded-2xl font-extrabold text-xs bg-gradient-to-r from-amber-500 via-emerald-500 to-indigo-500 text-white shadow hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5">
-                    <span>🌈</span> Teljes Szivárvány Torony
+                    <span>🌈</span> Teljes 11-rétegű Szivárvány Torony
                 </button>
             </div>
         </div>
@@ -250,11 +250,11 @@
             <p class="text-xs text-slate-500 mb-3 font-semibold">
                 Kattints egy tárgyra a bedobáshoz! Ott áll meg, amilyen sűrűségű réteget talál.
             </p>
-            <div id="object-buttons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+            <div id="object-buttons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 max-h-[420px] overflow-y-auto pr-1">
                 <!-- JS tölti fel -->
             </div>
             <div class="mt-3 p-3 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-[11px] text-indigo-950">
-                <span class="font-extrabold">💡 Tipp:</span> A jégkocka (0.91) úszik a vízen (1.00), de elmerül az alkoholban (0.79).
+                <span class="font-extrabold">💡 Tipp:</span> A 🥚 nyers tojás (1.03) elsüllyed a tiszta vízben (1.00), de lebeg a 🧂 sós vízben (1.15)!
             </div>
         </div>
 
@@ -322,20 +322,31 @@
     <script>
         const LIQUIDS = [
             { id: 'honey', name: 'Méz', emoji: '🍯', density: 1.42, bgGradient: 'linear-gradient(90deg, #b45309 0%, #f59e0b 50%, #d97706 100%)', textColor: '#fff', desc: 'Nagyon sűrű, legalulra süllyed!' },
-            { id: 'syrup', name: 'Juharszirup', emoji: '🍁', density: 1.33, bgGradient: 'linear-gradient(90deg, #7c2d12 0%, #c2410c 50%, #9a3412 100%)', textColor: '#fff', desc: 'Sűrűbb a víznél, de a méznél könnyebb.' },
+            { id: 'molasses', name: 'Kukoricaszirup', emoji: '🍬', density: 1.38, bgGradient: 'linear-gradient(90deg, #78350f 0%, #b45309 50%, #92400e 100%)', textColor: '#fff', desc: 'Sűrű, édes szirup, közvetlenül a méz fölött!' },
+            { id: 'syrup', name: 'Juharszirup', emoji: '🍁', density: 1.33, bgGradient: 'linear-gradient(90deg, #7c2d12 0%, #c2410c 50%, #9a3412 100%)', textColor: '#fff', desc: 'Sűrűbb a sós víznél, de a méznél könnyebb.' },
+            { id: 'saltwater', name: 'Sós víz', emoji: '🧂', density: 1.15, bgGradient: 'linear-gradient(90deg, #0f766e 0%, #14b8a6 50%, #0d9488 100%)', textColor: '#fff', desc: 'A sótól sűrűbb lesz a víz – még a tojás is úszik rajta!' },
+            { id: 'dishsoap', name: 'Mosogatószer', emoji: '🫧', density: 1.06, bgGradient: 'linear-gradient(90deg, #047857 0%, #10b981 50%, #059669 100%)', textColor: '#fff', desc: 'Sűrűbb a tejnél és a víznél, szép zöld réteg!' },
             { id: 'milk', name: 'Tej', emoji: '🥛', density: 1.03, bgGradient: 'linear-gradient(90deg, #e2e8f0 0%, #ffffff 50%, #f1f5f9 100%)', textColor: '#1e293b', desc: 'Picivel sűrűbb a tiszta víznél.' },
             { id: 'water', name: 'Víz', emoji: '💧', density: 1.00, bgGradient: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #0ea5e9 100%)', textColor: '#fff', desc: 'Az alappont: pontosan 1.00 g/cm³.' },
             { id: 'oil', name: 'Étolaj', emoji: '🌻', density: 0.92, bgGradient: 'linear-gradient(90deg, #ca8a04 0%, #facc15 50%, #eab308 100%)', textColor: '#422006', desc: 'Könnyebb a víznél, a víz tetején úszik.' },
-            { id: 'alcohol', name: 'Alkohol', emoji: '🧪', density: 0.79, bgGradient: 'linear-gradient(90deg, #9333ea 0%, #d8b4fe 50%, #a855f7 100%)', textColor: '#fff', desc: 'A legkisebb sűrűségű folyadék.' }
+            { id: 'lampoil', name: 'Lámpaolaj', emoji: '🪔', density: 0.81, bgGradient: 'linear-gradient(90deg, #be185d 0%, #f472b6 50%, #ec4899 100%)', textColor: '#fff', desc: 'Nagyon könnyű, rózsaszín olajos réteg!' },
+            { id: 'alcohol', name: 'Alkohol', emoji: '🧪', density: 0.79, bgGradient: 'linear-gradient(90deg, #9333ea 0%, #d8b4fe 50%, #a855f7 100%)', textColor: '#fff', desc: 'Könnyebb a lámpaolajnál és az étolajnál is.' },
+            { id: 'gasoline', name: 'Benzin', emoji: '⛽', density: 0.73, bgGradient: 'linear-gradient(90deg, #ea580c 0%, #fb923c 50%, #f97316 100%)', textColor: '#fff', desc: 'A legkisebb sűrűségű folyadék, mindennek a tetején úszik!' }
         ];
 
         const OBJECTS = [
-            { id: 'nut', name: 'Vascsavar', emoji: '🔩', density: 7.80, horizontalOffset: 20, desc: 'Rendkívül sűrű, a méz aljára is lemerül.' },
-            { id: 'glass', name: 'Üveggyöngy', emoji: '🔮', density: 2.50, horizontalOffset: 50, desc: 'Sűrűbb a szirupnál, de a méz tetején lebeg.' },
-            { id: 'cube', name: 'Műanyag kocka', emoji: '🧊', density: 1.05, horizontalOffset: 75, desc: 'Sűrűbb a víznél, de a szirup megtartja.' },
-            { id: 'ice', name: 'Jégkocka', emoji: '🧊', density: 0.91, horizontalOffset: 30, desc: 'Úszik a vízen, de elmerül alkoholban.' },
-            { id: 'cork', name: 'Parafa', emoji: '🪵', density: 0.24, horizontalOffset: 65, desc: 'Könnyű, minden folyadék tetején úszik.' },
-            { id: 'ball', name: 'Pingponglabda', emoji: '🏓', density: 0.08, horizontalOffset: 42, desc: 'Levegős, a legfelső réteg tetején táncol.' }
+            { id: 'coin', name: 'Rézérme', emoji: '🪙', density: 8.90, horizontalOffset: 10, desc: 'Nagyon nehéz fém, minden folyadékon át a mélybe süllyed.' },
+            { id: 'nut', name: 'Vascsavar', emoji: '🔩', density: 7.80, horizontalOffset: 24, desc: 'Rendkívül sűrű, a méz aljára is lemerül.' },
+            { id: 'stone', name: 'Kavics', emoji: '🪨', density: 2.65, horizontalOffset: 38, desc: 'Nehéz kődarab, minden folyadék aljára lesüllyed.' },
+            { id: 'glass', name: 'Üveggyöngy', emoji: '🔮', density: 2.50, horizontalOffset: 54, desc: 'Sűrűbb a méznél is, ezért az aljára süllyed.' },
+            { id: 'grape', name: 'Szőlőszem', emoji: '🍇', density: 1.10, horizontalOffset: 70, desc: 'Sűrűbb a víznél és a mosogatószernél, de a sós víz megtartja!' },
+            { id: 'cube', name: 'Műanyag kocka', emoji: '🧱', density: 1.05, horizontalOffset: 82, desc: 'Sűrűbb a víznél (1.00), de a mosogatószer (1.06) megtartja!' },
+            { id: 'egg', name: 'Nyers tojás', emoji: '🥚', density: 1.03, horizontalOffset: 16, desc: 'Vízben elsüllyed, de a sós vízben (1.15) vidáman lebeg!' },
+            { id: 'ice', name: 'Jégkocka', emoji: '🧊', density: 0.91, horizontalOffset: 32, desc: 'Úszik a vízen (1.00), de elmerül az étolajban és az alkoholban.' },
+            { id: 'candle', name: 'Viaszgyertya', emoji: '🕯️', density: 0.90, horizontalOffset: 48, desc: 'Úszik a vízen, de az olaj alatt vagy tetején billeg!' },
+            { id: 'apple', name: 'Alma', emoji: '🍏', density: 0.82, horizontalOffset: 64, desc: 'Lédús, de sok levegőt tartalmaz, ezért úszik a vízen és az olajon!' },
+            { id: 'cork', name: 'Parafa', emoji: '🪵', density: 0.24, horizontalOffset: 78, desc: 'Nagyon könnyű, minden folyadék tetején úszik.' },
+            { id: 'ball', name: 'Pingponglabda', emoji: '🏓', density: 0.08, horizontalOffset: 42, desc: 'Levegővel teli, a legfelső réteg tetején táncol.' }
         ];
 
         const QUIZ_QUESTIONS = [
@@ -347,7 +358,7 @@
             },
             {
                 q: 'Melyik folyadék süllyed le a Sűrűségtorony LEGALJÁRA?',
-                options: ['🧪 Alkohol (0.79)', '💧 Víz (1.00)', '🍯 Méz (1.42)'],
+                options: ['⛽ Benzin (0.73)', '💧 Víz (1.00)', '🍯 Méz (1.42)'],
                 correct: 2,
                 explanation: 'A legmagasabb sűrűségű (1.42 g/cm³) méz kerül legalulra.'
             },
@@ -356,11 +367,32 @@
                 options: ['Fennmarad a vízen, mert kisebb a sűrűsége', 'Azonnal lesüllyed az aljára', 'Felrobban'],
                 correct: 0,
                 explanation: 'A jég sűrűsége kisebb a folyékony víznél, ezért úszik.'
+            },
+            {
+                q: 'Miért lebeg a 🥚 Nyers tojás (1.03) a 🧂 Sós vízben (1.15), ha sima vízben elsüllyed?',
+                options: ['Mert a sós víz sűrűsége nagyobb, mint a tojásé', 'Mert a só megeszi a tojást', 'Mert a tojás könnyebb lesz'],
+                correct: 0,
+                explanation: 'A só feloldásával megnő a víz sűrűsége (1.15 > 1.03), így már megtartja a tojást!'
+            },
+            {
+                q: 'Melyik tárgy úszik még a ⛽ Benzin (0.73) tetején is?',
+                options: ['🪙 Rézérme (8.90)', '🍏 Alma (0.82)', '🪵 Parafa (0.24)'],
+                correct: 2,
+                explanation: 'A parafa sűrűsége mindössze 0.24 g/cm³, ami még a benzinnél (0.73) is sokkal kisebb!'
+            },
+            {
+                q: 'Hová kerül a 🫧 Mosogatószer (1.06), ha 💧 Víz (1.00) és 🍁 Juharszirup (1.33) közé öntöd?',
+                options: ['A víz fölé', 'A víz alá és a juharszirup fölé', 'A juharszirup alá'],
+                correct: 1,
+                explanation: 'Mivel 1.00 < 1.06 < 1.33, pontosan a víz és a juharszirup közé ékelődik!'
             }
         ];
 
-        const MAX_PORTIONS = 6;
-        const LAYER_HEIGHT_PX = 48;
+        const MAX_PORTIONS = 11;
+        function getLayerHeightPx() {
+            const total = getTotalPortions();
+            return Math.min(48, Math.floor(330 / Math.max(1, total)));
+        }
         let beakerLiquids = [];
         let droppedObjectIds = [];
         let isShaking = false;
@@ -442,7 +474,7 @@
         function pourLiquid(liquidId) {
             if (isShaking) return;
             if (getTotalPortions() >= MAX_PORTIONS) {
-                setStatus('⚠️ A mérőhenger megtelt (6/6 adag)! Ürítsd ki a folytatáshoz.');
+                setStatus(`⚠️ A mérőhenger megtelt (${MAX_PORTIONS}/${MAX_PORTIONS} adag)! Ürítsd ki a folytatáshoz.`);
                 return;
             }
             const liq = LIQUIDS.find(l => l.id === liquidId);
@@ -465,7 +497,7 @@
             triggerPourStream('#38bdf8');
             renderBeaker();
             createBubbles();
-            setStatus('🌈 <strong>Teljes Szivárvány Torony!</strong> Mind a 6 folyadék tökéletes sorrendben.');
+            setStatus(`🌈 <strong>Teljes Szivárvány Torony!</strong> Mind a ${LIQUIDS.length} folyadék tökéletes sorrendben.`);
         }
 
         function sortLiquidsByDensity() {
@@ -505,6 +537,7 @@
             document.getElementById('layer-counter').textContent = `${getTotalPortions()} / ${MAX_PORTIONS} adag`;
             const container = document.getElementById('liquids-layer');
             sortLiquidsByDensity();
+            const layerH = getLayerHeightPx();
 
             if (beakerLiquids.length === 0) {
                 container.innerHTML = '';
@@ -512,7 +545,7 @@
                 container.innerHTML = beakerLiquids.map(item => {
                     const liq = LIQUIDS.find(l => l.id === item.liquidId);
                     return `
-                        <div class="liquid-layer" style="height: ${item.portions * LAYER_HEIGHT_PX}px; background: ${liq.bgGradient}; color: ${liq.textColor};">
+                        <div class="liquid-layer" style="height: ${item.portions * layerH}px; background: ${liq.bgGradient}; color: ${liq.textColor};">
                             <div class="pl-6 flex items-center gap-1 font-extrabold text-xs drop-shadow-xs">
                                 <span>${liq.emoji}</span><span>${liq.name}</span>
                             </div>
@@ -539,9 +572,10 @@
 
         function renderDroppedObjects() {
             const container = document.getElementById('objects-layer');
+            const layerH = getLayerHeightPx();
             const bottomUpLayers = [...beakerLiquids].reverse().map(item => ({
                 ...LIQUIDS.find(l => l.id === item.liquidId),
-                heightPx: item.portions * LAYER_HEIGHT_PX
+                heightPx: item.portions * layerH
             }));
 
             container.innerHTML = droppedObjectIds.map(objId => {
@@ -603,9 +637,8 @@
         }
 
         const ALL_MATERIALS = [
-            ...LIQUIDS.map(l => ({ id: l.id, name: `${l.emoji} ${l.name}`, density: l.density, color: l.bgGradient.includes('#b45309') ? '#d97706' : '#38bdf8' })),
-            { id: 'nut', name: '🔩 Vascsavar', density: 7.80, color: '#94a3b8' },
-            { id: 'ice', name: '🧊 Jégkocka', density: 0.91, color: '#7dd3fc' }
+            ...LIQUIDS.map(l => ({ id: l.id, name: `${l.emoji} ${l.name}`, density: l.density })),
+            ...OBJECTS.map(o => ({ id: o.id, name: `${o.emoji} ${o.name}`, density: o.density }))
         ];
 
         function initMicroscopeSelects() {
