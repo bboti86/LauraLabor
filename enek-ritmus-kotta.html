@@ -423,33 +423,48 @@
             }
         }
 
-        // 2. FÜL: Szolmizáció & Felső Dó
+        // 2. FÜL: Szolmizáció & Felső Dó (Kodály-kézjelek egyedi SVG-vel)
+        function getHandSignSvg(code) {
+            const svgs = {
+                d: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M58 46 L44 36 C34 38 20 38 14 33 C10 29 11 22 17 19 C22 14 34 12 45 15 C54 18 62 27 68 37 Z" fill="#fde047" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 22 C24 22 30 24 33 27 M22 28 C27 28 32 29 35 31 M16 33 L32 34" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+                r: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M64 48 L42 36 L14 19 C10 17 11 12 16 12 L42 23 L32 27 C28 29 30 34 35 33 L46 31 L68 38 Z" fill="#f9a8d4" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 15 L38 25" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+                m: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M68 42 L48 34 L12 31 C8 31 8 25 13 24 L46 21 C54 20 62 23 70 28 Z" fill="#7dd3fc" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 32 C26 37 33 38 38 35" fill="#7dd3fc" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/><path d="M16 27 L42 25" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+                f: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M64 42 L46 36 L34 38 L22 50 C18 53 13 49 16 44 L26 33 C17 31 14 24 19 19 C25 13 38 12 49 17 L68 28 Z" fill="#fdba74" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M21 23 L35 24 M22 29 L35 29" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+                s: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M68 40 L48 40 C36 42 20 41 14 37 C10 34 10 29 14 26 C11 23 12 18 17 17 L34 17 C33 13 37 11 43 13 L56 17 L68 17 Z" fill="#86efac" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M16 23 L37 23 M14 29 L37 29 M16 35 L36 35" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+                l: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M66 46 L52 34 C44 37 37 38 32 34 C29 37 22 40 16 38 C12 36 13 31 18 28 L26 23 C33 16 46 15 56 22 L70 36 Z" fill="#93c5fd" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M20 33 L32 26 M26 36 L37 29" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+                t: `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M66 45 L46 39 C38 42 30 40 27 34 L12 22 C8 19 11 14 16 16 L34 25 C40 22 48 24 54 28 L68 33 Z" fill="#fda4af" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 33 C37 32 42 34 44 37" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+                "d'": `<svg viewBox="0 0 80 60" class="w-full h-full"><path d="M56 50 L42 40 C32 42 18 42 12 37 C8 33 9 26 15 23 C20 18 32 16 43 19 C52 22 60 31 66 41 Z" fill="#fde047" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M16 26 C22 26 28 28 31 31 M20 32 C25 32 30 33 33 35" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/><path d="M64 18 L64 6 M59 11 L64 6 L69 11" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+            };
+            return svgs[code] || svgs.d;
+        }
+
         const SOLFEGE = [
-            { code: 'd', name: 'dó', freq: 261.63, hand: '✊', desc: 'Zárt ököl – az alaphang, stabil és nyugodt.', color: 'bg-rose-500' },
-            { code: 'r', name: 'ré', freq: 293.66, hand: '🫱', desc: 'Felfelé döntött nyitott tenyér – lépés felfelé.', color: 'bg-orange-500' },
-            { code: 'm', name: 'mi', freq: 329.63, hand: '🤚', desc: 'Vízszintes, lapos tenyér – nyugodt, békés hang.', color: 'bg-amber-500' },
-            { code: 'f', name: 'fá', freq: 349.23, hand: '👎', desc: 'Lefelé mutató hüvelykujj – szeretne a mi-re lépni.', color: 'bg-emerald-500' },
-            { code: 's', name: 'szó', freq: 392.00, hand: '✋', desc: 'Függőleges tenyér (élével) – fényes, nyitott hang.', color: 'bg-sky-500' },
-            { code: 'l', name: 'lá', freq: 440.00, hand: '👇', desc: 'Laza, lefelé hajlított kézfej – szomorkás, lágy hang.', color: 'bg-indigo-500' },
-            { code: 't', name: 'ti', freq: 493.88, hand: '☝️', desc: 'Felfelé mutató mutatóujj – nagyon vágyik a felső dó-ra!', color: 'bg-purple-500' },
-            { code: "d'", name: "felső dó", freq: 523.25, hand: '✊⬆️', desc: 'Magasabbra emelt zárt ököl – egy oktávval magasabban, mint az alsó dó!', color: 'bg-pink-600' }
+            { code: 'd', name: 'dó', freq: 261.63, desc: 'Zárt ököl – az alaphang, stabil és nyugodt.', color: 'bg-rose-500' },
+            { code: 'r', name: 'ré', freq: 293.66, desc: 'Felfelé döntött nyitott tenyér – lépés felfelé.', color: 'bg-orange-500' },
+            { code: 'm', name: 'mi', freq: 329.63, desc: 'Vízszintes, lapos tenyér – nyugodt, békés hang.', color: 'bg-amber-500' },
+            { code: 'f', name: 'fá', freq: 349.23, desc: 'Lefelé mutató hüvelykujj – szeretne a mi-re lépni.', color: 'bg-emerald-500' },
+            { code: 's', name: 'szó', freq: 392.00, desc: 'Függőleges tenyér (élével) – fényes, nyitott hang.', color: 'bg-sky-500' },
+            { code: 'l', name: 'lá', freq: 440.00, desc: 'Laza, lefelé hajlított kézfej – szomorkás, lágy hang.', color: 'bg-indigo-500' },
+            { code: 't', name: 'ti', freq: 493.88, desc: 'Felfelé mutató mutatóujj – nagyon vágyik a felső dó-ra!', color: 'bg-purple-500' },
+            { code: "d'", name: "felső dó", freq: 523.25, desc: 'Magasabbra emelt zárt ököl – egy oktávval magasabban, mint az alsó dó!', color: 'bg-pink-600' }
         ];
 
         function renderSolfege() {
             const box = document.getElementById('solfegeKeyboard');
             box.innerHTML = SOLFEGE.map((s, idx) => `
-                <button onclick="playSolfege(${idx}, this)" class="solfege-key p-3 rounded-2xl ${s.color} text-white font-black shadow flex flex-col items-center gap-1">
-                    <span class="text-2xl">${s.hand}</span>
-                    <span class="text-lg">${s.code}</span>
-                    <span class="text-[11px] opacity-90">${s.name}</span>
+                <button onclick="playSolfege(${idx}, this)" class="solfege-key p-2.5 rounded-2xl ${s.color} text-white font-black shadow flex flex-col items-center gap-1">
+                    <span class="w-14 h-11 bg-white/95 rounded-xl p-1 flex items-center justify-center shadow-inner">${getHandSignSvg(s.code)}</span>
+                    <span class="text-lg leading-none mt-0.5">${s.code}</span>
+                    <span class="text-[11px] opacity-95">${s.name}</span>
                 </button>
             `).join('');
+            document.getElementById('solfHand').innerHTML = `<div class="w-16 h-12 bg-white rounded-xl p-1 border border-rose-200">${getHandSignSvg('d')}</div>`;
         }
 
         function playSolfege(idx, btn) {
             const s = SOLFEGE[idx];
             playToneFreq(s.freq, 0.55, 0);
-            document.getElementById('solfHand').textContent = s.hand;
+            document.getElementById('solfHand').innerHTML = `<div class="w-16 h-12 bg-white rounded-xl p-1 border border-rose-200">${getHandSignSvg(s.code)}</div>`;
             document.getElementById('solfTitle').textContent = `${s.name} (jele: ${s.code})`;
             document.getElementById('solfDesc').textContent = s.desc;
         }
@@ -518,7 +533,10 @@
             { html: '<svg width="90" height="54" viewBox="0 0 90 54"><path d="M40 14 L52 24 L40 32 L50 42" fill="none" stroke="#be123c" stroke-width="4" stroke-linecap="round"/></svg>', opts: ['Negyed szünet (szün)', 'Nyolcad szünet (szü)', 'Fél hang (tá-á)', 'Egész hang'], ans: 0 },
             { html: '<svg width="90" height="54" viewBox="0 0 90 54"><circle cx="40" cy="20" r="4" fill="#be123c"/><path d="M40 20 Q47 22 51 16 L43 40" fill="none" stroke="#be123c" stroke-width="3.5" stroke-linecap="round"/></svg>', opts: ['Egész szünet', 'Negyed szünet (szün)', 'Önálló nyolcad szünet (szü)', 'Fél szünet'], ans: 2 },
             { html: '<span class="text-3xl font-black text-rose-700">ti – tá – ti</span>', opts: ['Szinkópa', 'Egész hang', 'Fél szünet', 'Ütemmutató'], ans: 0 },
-            { html: '<span class="text-4xl font-black text-rose-700">d\'</span>', opts: ['Alsó dó', 'Felső dó', 'Szó', 'Fá'], ans: 1 }
+            { html: '<span class="text-4xl font-black text-rose-700">d\'</span>', opts: ['Alsó dó', 'Felső dó', 'Szó', 'Fá'], ans: 1 },
+            { html: `<div class="w-24 h-18">${getHandSignSvg('m')}</div>`, opts: ['mi (m) – vízszintes tenyér', 'dó (d) – zárt ököl', 'fá (f) – lefelé mutató hüvelykujj', 'ti (t) – mutatóujj'], ans: 0 },
+            { html: `<div class="w-24 h-18">${getHandSignSvg('f')}</div>`, opts: ['szó (s)', 'ré (r)', 'fá (f) – lefelé mutató hüvelykujj', 'lá (l)'], ans: 2 },
+            { html: `<div class="w-24 h-18">${getHandSignSvg('t')}</div>`, opts: ['ti (t) – felfelé mutató ujj', 'dó (d)', 'mi (m)', 'szó (s)'], ans: 0 }
         ];
         let mIdx = 0, mLock = false;
         function renderMatch() {
