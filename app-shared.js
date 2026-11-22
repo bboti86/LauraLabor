@@ -36,7 +36,8 @@
         'angol_iskola',
         'muveletisorrend',
         'eger',
-        'windows'
+        'windows',
+        'enek_ritmus'
     ];
 
     function generateRandomCloudCode() {
@@ -78,7 +79,8 @@
                 angol_iskola: 0,
                 muveletisorrend: 0,
                 eger: 0,
-                windows: 0
+                windows: 0,
+                enek_ritmus: 0
             },
             hiddenLessons: [],
             hiddenLessonsUpdatedAt: 0,

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ének-zene: Ritmusok, Szünetek, Kézjelek & Felső Dó 🎵✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #FFF1F2 0%, #FCE7F3 45%, #F3E8FF 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bouncy-btn { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bouncy-btn:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+        .bouncy-btn:active:not(:disabled) { transform: translateY(1px) scale(0.97); }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop { animation: popIn 0.28s ease-out forwards; }
+        .solfege-key {
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .solfege-key:active, .solfege-key.playing {
+            transform: scale(0.94);
+            box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.35);
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-rose-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('rhythm')">
+                    <span class="text-3xl sm:text-4xl">🎵</span>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-black bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 bg-clip-text text-transparent leading-tight">
+                            Ritmusok, Szünetek, Kézjelek & Felső Dó
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">
+                            Ének-zene dolgozat-felkészítő hangos ritmusgéppel és szolmizálóval ✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white/80 backdrop-blur-sm p-2 rounded-3xl shadow-sm border border-rose-100">
+            <button onclick="switchTab('rhythm')" id="tab-rhythm" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow-md">
+                <span>🥁</span> <span>1. Ritmus & Szünet</span>
+            </button>
+            <button onclick="switchTab('solfege')" id="tab-solfege" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50">
+                <span>✋</span> <span>2. Kézjel & Felső Dó</span>
+            </button>
+            <button onclick="switchTab('match')" id="tab-match" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50">
+                <span>🧩</span> <span>3. Kotta-párosító</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50">
+                <span>🏆</span> <span>4. Dolgozat Kvíz</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- ================================================================== -->
+        <!-- 1. FÜL: RITMUSÉRTÉKEK, SZÜNETEK, SZINKÓPA ÉS ÜTEMMUTATÓ            -->
+        <!-- ================================================================== -->
+        <section id="section-rhythm" class="animate-pop space-y-6">
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-lg border-2 border-rose-100">
+                <h2 class="text-2xl font-black text-slate-800 mb-1 flex items-center gap-2">
+                    <span>🥁</span> Hangértékek, Ritmusnevek és Szünetjelek
+                </h2>
+                <p class="text-sm font-bold text-slate-500 mb-5">
+                    Kattints a <strong>🔊 Taps</strong> gombra, és hallgasd meg a ritmust! Figyeld meg jól a szünetek helyét az 5 vonalon!
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="rhythmCardsGrid"></div>
+
+                <!-- Szinkópa kiemelt kártya -->
+                <div class="mt-4 p-5 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <svg width="110" height="58" viewBox="0 0 110 58" class="bg-white rounded-2xl border border-amber-200 p-1 shrink-0">
+                            <!-- ti (nyolcad) -->
+                            <circle cx="20" cy="40" r="6" fill="#1e293b"/>
+                            <line x1="25" y1="40" x2="25" y2="12" stroke="#1e293b" stroke-width="2.5"/>
+                            <path d="M25 12 Q35 17 34 25" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                            <!-- tá (negyed) -->
+                            <circle cx="55" cy="40" r="6" fill="#1e293b"/>
+                            <line x1="60" y1="40" x2="60" y2="12" stroke="#1e293b" stroke-width="2.5"/>
+                            <!-- ti (nyolcad) -->
+                            <circle cx="90" cy="40" r="6" fill="#1e293b"/>
+                            <line x1="95" y1="40" x2="95" y2="12" stroke="#1e293b" stroke-width="2.5"/>
+                            <path d="M95 12 Q105 17 104 25" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                            <text x="20" y="9" font-size="10" font-weight="900" fill="#d97706" text-anchor="middle">&gt;</text>
+                        </svg>
+                        <div>
+                            <div class="text-lg font-black text-amber-950">Szinkópa: <span class="text-rose-600">ti – tá – ti</span></div>
+                            <div class="text-xs sm:text-sm font-bold text-amber-800">
+                                Egy nyolcad + egy negyed + egy nyolcad (összesen 2 negyed, vagyis egy `2/4`-es ütem!). Az első `ti` hangsúlyos (`>`).
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="playRhythm('syncopa')" class="bouncy-btn px-4 py-2.5 rounded-2xl bg-amber-500 text-white font-black text-sm shadow shrink-0">
+                        🔊 Szinkópa taps
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ütemmutató és 2/4-es ütemépítő -->
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-lg border-2 border-rose-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800 mb-2 flex items-center gap-2">
+                        <span>📏</span> Ütemjelző (Ütemmutató): <code class="bg-rose-100 text-rose-700 px-2 rounded-lg">2/4</code> és <code class="bg-purple-100 text-purple-700 px-2 rounded-lg">4/4</code>
+                    </h3>
+                    <div class="space-y-3 text-sm font-bold text-slate-700">
+                        <p>A kotta elején lévő két szám megmutatja, hány lépésnyi ritmus fér egy ütembe:</p>
+                        <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200">
+                            <div>🔼 <strong>Felső szám (2 vagy 4):</strong> megmutatja, <strong>hány</strong> mérőegység van egy ütemben.</div>
+                            <div class="mt-1">🔽 <strong>Alsó szám (4):</strong> a mérő alapértékét jelöli (a <strong>negyedet</strong>, vagyis a `tá`-t).</div>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            💡 Ne feledd: <strong>1 tá = 2 ti</strong> (két nyolcad)! Tehát egy `2/4`-es ütembe 2 negyednyi (`tá tá`, vagy `ti-ti tá`, vagy `ti-ti szün`) fér bele!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Interaktív 2/4 ütemépítő -->
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-4 sm:p-5">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-black text-slate-800 text-sm">🎼 Építs egy `2/4`-es ütemet!</span>
+                        <span id="barCounter" class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black text-xs">0 / 2 negyed</span>
+                    </div>
+                    <div id="barSlots" class="min-h-[54px] bg-white border-2 border-slate-200 rounded-2xl p-2.5 flex flex-wrap items-center gap-2 mb-3 text-sm font-black text-rose-700">
+                        <span class="text-slate-400 text-xs font-bold">Kattints lentre a ritmusokhoz...</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <button onclick="addToBar('tá', 1)" class="bouncy-btn px-3 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-900 font-black text-xs">+ tá (1)</button>
+                        <button onclick="addToBar('ti-ti', 1)" class="bouncy-btn px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-black text-xs">+ ti-ti (1)</button>
+                        <button onclick="addToBar('szün', 1)" class="bouncy-btn px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-black text-xs">+ szün (1)</button>
+                        <button onclick="addToBar('ti', 0.5)" class="bouncy-btn px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-xs">+ ti (½)</button>
+                        <button onclick="addToBar('szü', 0.5)" class="bouncy-btn px-3 py-1.5 rounded-xl bg-teal-100 hover:bg-teal-200 text-teal-900 font-black text-xs">+ szü (½)</button>
+                        <button onclick="addToBar('tá-á', 2)" class="bouncy-btn px-3 py-1.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-black text-xs">+ tá-á (2)</button>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div id="barStatus" class="text-xs font-extrabold text-slate-600"></div>
+                        <button onclick="clearBar()" class="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold text-xs">🗑️ Törlés</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- 2. FÜL: KÉZJELEK, SZOLMIZÁCIÓ ÉS FELSŐ DÓ (d')                      -->
+        <!-- ================================================================== -->
+        <section id="section-solfege" class="hidden animate-pop space-y-6">
+            <!-- Szolmizáló zongora és kézjelek -->
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-lg border-2 border-rose-100">
+                <h2 class="text-2xl font-black text-slate-800 mb-1 flex items-center gap-2">
+                    <span>✋</span> Szolmizációs Hangok & Kodály-kézjelek
+                </h2>
+                <p class="text-sm font-bold text-slate-500 mb-5">
+                    Kattints bármelyik hangra! Hallhatod a hangmagasságát és láthatod a kézjelét és betűjelét!
+                </p>
+
+                <div class="grid grid-cols-4 sm:grid-cols-8 gap-2.5 mb-5" id="solfegeKeyboard"></div>
+
+                <div id="solfegeDetailBox" class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 flex items-center gap-4">
+                    <div id="solfHand" class="text-4xl shrink-0">✊</div>
+                    <div>
+                        <div id="solfTitle" class="font-black text-rose-950 text-lg">dó (jele: d)</div>
+                        <div id="solfDesc" class="text-xs sm:text-sm font-bold text-rose-800">Zárt ököl – az alaphang, stabil és nyugodt.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Felső dó (d') a kottában + Szárak iránya -->
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-lg border-2 border-rose-100">
+                <h3 class="text-xl sm:text-2xl font-black text-slate-800 mb-2 flex items-center gap-2">
+                    <span>🎼</span> A Felső Dó (<code class="bg-rose-100 text-rose-700 px-2 rounded-lg">d'</code>) helye és a szárak iránya
+                </h3>
+                <p class="text-sm font-bold text-slate-600 mb-4">
+                    A felső dó jele: <strong>d'</strong> (kis vesszővel a tetején!). Nézd meg, hogyan helyezkedik el a <code class="font-black">d – s – d'</code> hármas az 5-vonalas kottában:
+                </p>
+
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button onclick="showHighDoVariant(0)" id="hdBtn-0" class="px-4 py-2 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm shadow">1. d = pótvonalon → d' = 3. vonalköz</button>
+                    <button onclick="showHighDoVariant(1)" id="hdBtn-1" class="px-4 py-2 rounded-2xl bg-slate-100 text-slate-700 font-extrabold text-xs sm:text-sm">2. d = 1. vonalköz → d' = 4. vonalköz</button>
+                    <button onclick="showHighDoVariant(2)" id="hdBtn-2" class="px-4 py-2 rounded-2xl bg-slate-100 text-slate-700 font-extrabold text-xs sm:text-sm">3. d = 2. vonalon → d' = 5. vonalon</button>
+                </div>
+
+                <div class="bg-amber-50 border-2 border-amber-200 rounded-3xl p-4 sm:p-6 flex flex-col items-center">
+                    <svg id="highDoSvg" viewBox="0 0 340 130" class="w-full max-w-md bg-white rounded-2xl border border-amber-200 p-2"></svg>
+                    <div id="highDoNote" class="mt-3 text-xs sm:text-sm font-extrabold text-amber-900 text-center"></div>
+                </div>
+
+                <div class="mt-4 p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-200 text-xs sm:text-sm font-bold text-indigo-950">
+                    ✏️ <strong>Szárirány szabály a kottázásnál:</strong> A <strong>3. vonaltól felfelé</strong> a hangjegyek szára <strong>lefelé</strong> áll (a fej bal oldalán), míg a 3. vonal alatt <strong>felfelé</strong> áll (a fej jobb oldalán)! A felső <code class="font-black">d'</code> szára ezért szinte mindig <strong>lefelé</strong> mutat!
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- 3. FÜL: KOTTA- ÉS RITMUSPÁROSÍTÓ                                   -->
+        <!-- ================================================================== -->
+        <section id="section-match" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-rose-100 max-w-2xl mx-auto text-center">
+                <h2 class="text-2xl font-black text-slate-800 mb-2">🧩 Melyik ritmus vagy szünet ez?</h2>
+                <div id="matchVisual" class="my-5 p-5 bg-rose-50 border-2 border-rose-200 rounded-3xl inline-flex items-center justify-center min-w-[160px] min-h-[100px]"></div>
+                <div id="matchOpts" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-left"></div>
+                <div id="matchFb" class="hidden rounded-2xl p-3 font-extrabold text-sm mb-3"></div>
+                <button onclick="nextMatch()" id="matchNextBtn" class="hidden bouncy-btn px-6 py-3 rounded-2xl bg-rose-600 text-white font-black text-sm">Következő ➡️</button>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- 4. FÜL: 12 KÉRDÉSES DOLGOZAT KVÍZ                                 -->
+        <!-- ================================================================== -->
+        <section id="section-quiz" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-rose-100 max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="quizProgress" class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-black text-xs">1 / 12</span>
+                    <span id="quizScore" class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs">Pont: 0</span>
+                </div>
+                <div id="quizBody"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const LESSON_KEY = 'enek_ritmus';
+        function refreshStars() {
+            document.getElementById('totalStarsDisplay').textContent = window.LauraApp ? LauraApp.getStars(LESSON_KEY) : 0;
+        }
+        function addStar() {
+            if (window.LauraApp) LauraApp.addStars(LESSON_KEY, 1);
+            refreshStars();
+            if (typeof confetti === 'function') confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
+        }
+
+        function switchTab(tab) {
+            ['rhythm', 'solfege', 'match', 'quiz'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-${t}`);
+                btn.className = t === tab
+                    ? 'tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-rose-600 text-white shadow-md'
+                    : 'tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-rose-50';
+            });
+        }
+
+        // Web Audio API (hangok és taps)
+        let audioCtx = null;
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playToneFreq(freq, duration = 0.45, delay = 0) {
+            try {
+                const ctx = getAudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+                gain.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + delay + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + delay);
+                osc.stop(ctx.currentTime + delay + duration + 0.02);
+            } catch (e) {}
+        }
+
+        function playWoodblock(delay = 0, accent = false) {
+            playToneFreq(accent ? 880 : 660, 0.12, delay);
+        }
+
+        function playRhythm(type) {
+            if (type === 'whole') { playWoodblock(0, true); playToneFreq(523.25, 1.8, 0); }
+            else if (type === 'half') { playWoodblock(0, true); playToneFreq(523.25, 0.9, 0); }
+            else if (type === 'quarter') { playWoodblock(0, true); playWoodblock(0.5, false); }
+            else if (type === 'eighth') { playWoodblock(0, true); playWoodblock(0.25, false); playWoodblock(0.5, true); playWoodblock(0.75, false); }
+            else if (type === 'syncopa') { playWoodblock(0, true); playWoodblock(0.25, true); playWoodblock(0.75, false); }
+        }
+
+        // 1. FÜL: Ritmuskártyák
+        const RHYTHM_DATA = [
+            {
+                id: 'whole',
+                name: 'Egész hang & Egész szünet',
+                syl: 'tá – á – á – á (4 negyed)',
+                restName: 'egész szünet (4. vonal ALATT lóg!)',
+                noteSvg: `<svg width="64" height="54" viewBox="0 0 64 54"><ellipse cx="32" cy="30" rx="10" ry="7" fill="none" stroke="#be123c" stroke-width="3"/></svg>`,
+                restSvg: `<svg width="90" height="54" viewBox="0 0 90 54">
+                    <line x1="8" y1="12" x2="82" y2="12" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="20" x2="82" y2="20" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="28" x2="82" y2="28" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="36" x2="82" y2="36" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="44" x2="82" y2="44" stroke="#94a3b8" stroke-width="1.3"/>
+                    <rect x="35" y="20" width="20" height="6" fill="#be123c"/>
+                </svg>`
+            },
+            {
+                id: 'half',
+                name: 'Fél hang & Fél szünet',
+                syl: 'tá – á (2 negyed)',
+                restName: 'fél szünet (3. vonal FELETT ül!)',
+                noteSvg: `<svg width="64" height="54" viewBox="0 0 64 54"><ellipse cx="28" cy="38" rx="8" ry="6" fill="none" stroke="#be123c" stroke-width="3"/><line x1="35" y1="38" x2="35" y2="10" stroke="#be123c" stroke-width="3"/></svg>`,
+                restSvg: `<svg width="90" height="54" viewBox="0 0 90 54">
+                    <line x1="8" y1="12" x2="82" y2="12" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="20" x2="82" y2="20" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="28" x2="82" y2="28" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="36" x2="82" y2="36" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="44" x2="82" y2="44" stroke="#94a3b8" stroke-width="1.3"/>
+                    <rect x="35" y="22" width="20" height="6" fill="#be123c"/>
+                </svg>`
+            },
+            {
+                id: 'quarter',
+                name: 'Negyed hang & Negyed szünet',
+                syl: 'tá (1 negyed)',
+                restName: 'szün (villám / Z jel)',
+                noteSvg: `<svg width="64" height="54" viewBox="0 0 64 54"><ellipse cx="28" cy="38" rx="8" ry="6" fill="#be123c"/><line x1="35" y1="38" x2="35" y2="10" stroke="#be123c" stroke-width="3"/></svg>`,
+                restSvg: `<svg width="90" height="54" viewBox="0 0 90 54">
+                    <line x1="8" y1="12" x2="82" y2="12" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="20" x2="82" y2="20" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="28" x2="82" y2="28" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="36" x2="82" y2="36" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="44" x2="82" y2="44" stroke="#94a3b8" stroke-width="1.3"/>
+                    <path d="M40 16 L50 24 L40 31 L48 39" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 'eighth',
+                name: 'Nyolcad hang & Nyolcad szünet',
+                syl: 'ti / ti-ti (½ negyed, 1 tá = 2 ti)',
+                restName: 'szü (önálló nyolcad szünet)',
+                noteSvg: `<svg width="78" height="54" viewBox="0 0 78 54"><ellipse cx="18" cy="40" rx="6" ry="5" fill="#be123c"/><line x1="23" y1="40" x2="23" y2="12" stroke="#be123c" stroke-width="2.5"/><ellipse cx="44" cy="40" rx="6" ry="5" fill="#be123c"/><line x1="49" y1="40" x2="49" y2="12" stroke="#be123c" stroke-width="2.5"/><line x1="23" y1="12" x2="49" y2="12" stroke="#be123c" stroke-width="4"/></svg>`,
+                restSvg: `<svg width="90" height="54" viewBox="0 0 90 54">
+                    <line x1="8" y1="12" x2="82" y2="12" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="20" x2="82" y2="20" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="28" x2="82" y2="28" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="36" x2="82" y2="36" stroke="#94a3b8" stroke-width="1.3"/>
+                    <line x1="8" y1="44" x2="82" y2="44" stroke="#94a3b8" stroke-width="1.3"/>
+                    <circle cx="40" cy="23" r="3" fill="#be123c"/>
+                    <path d="M40 23 Q46 25 49 20 L43 38" fill="none" stroke="#be123c" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>`
+            }
+        ];
+
+        function renderRhythmCards() {
+            document.getElementById('rhythmCardsGrid').innerHTML = RHYTHM_DATA.map(r => `
+                <div class="p-4 rounded-3xl bg-rose-50/70 border-2 border-rose-200 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="font-black text-rose-950 text-base">${r.name}</div>
+                        <button onclick="playRhythm('${r.id}')" class="bouncy-btn px-3 py-1.5 rounded-xl bg-rose-600 text-white font-black text-xs shadow">🔊 Taps</button>
+                    </div>
+                    <div class="flex items-center justify-around bg-white rounded-2xl p-2 border border-rose-100">
+                        <div class="text-center">${r.noteSvg}<div class="text-[11px] font-black text-rose-700">${r.syl}</div></div>
+                        <div class="h-10 w-px bg-rose-100"></div>
+                        <div class="text-center">${r.restSvg}<div class="text-[11px] font-black text-slate-600">${r.restName}</div></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Ütemépítő
+        let barItems = [];
+        function addToBar(label, beats) {
+            const sum = barItems.reduce((s, x) => s + x.beats, 0);
+            if (sum + beats > 2) {
+                document.getElementById('barStatus').textContent = '⚠️ Ez már nem fér bele a 2/4-es ütembe!';
+                document.getElementById('barStatus').className = 'text-xs font-extrabold text-rose-600';
+                return;
+            }
+            barItems.push({ label, beats });
+            playWoodblock(0, true);
+            renderBar();
+        }
+        function clearBar() {
+            barItems = [];
+            renderBar();
+        }
+        function renderBar() {
+            const sum = barItems.reduce((s, x) => s + x.beats, 0);
+            document.getElementById('barCounter').textContent = `${sum} / 2 negyed`;
+            const slots = document.getElementById('barSlots');
+            if (barItems.length === 0) {
+                slots.innerHTML = '<span class="text-slate-400 text-xs font-bold">Kattints lentre a ritmusokhoz...</span>';
+                document.getElementById('barStatus').textContent = '';
+            } else {
+                slots.innerHTML = barItems.map(i => `<span class="px-3 py-1 rounded-xl bg-rose-100 text-rose-900">${i.label}</span>`).join('');
+                if (sum === 2) {
+                    document.getElementById('barStatus').textContent = '✅ Tökéletes 2/4-es ütem!';
+                    document.getElementById('barStatus').className = 'text-xs font-extrabold text-emerald-600';
+                } else {
+                    document.getElementById('barStatus').textContent = `Még ${2 - sum} negyednyi hely van.`;
+                    document.getElementById('barStatus').className = 'text-xs font-extrabold text-slate-600';
+                }
+            }
+        }
+
+        // 2. FÜL: Szolmizáció & Felső Dó
+        const SOLFEGE = [
+            { code: 'd', name: 'dó', freq: 261.63, hand: '✊', desc: 'Zárt ököl – az alaphang, stabil és nyugodt.', color: 'bg-rose-500' },
+            { code: 'r', name: 'ré', freq: 293.66, hand: '🫱', desc: 'Felfelé döntött nyitott tenyér – lépés felfelé.', color: 'bg-orange-500' },
+            { code: 'm', name: 'mi', freq: 329.63, hand: '🤚', desc: 'Vízszintes, lapos tenyér – nyugodt, békés hang.', color: 'bg-amber-500' },
+            { code: 'f', name: 'fá', freq: 349.23, hand: '👎', desc: 'Lefelé mutató hüvelykujj – szeretne a mi-re lépni.', color: 'bg-emerald-500' },
+            { code: 's', name: 'szó', freq: 392.00, hand: '✋', desc: 'Függőleges tenyér (élével) – fényes, nyitott hang.', color: 'bg-sky-500' },
+            { code: 'l', name: 'lá', freq: 440.00, hand: '👇', desc: 'Laza, lefelé hajlított kézfej – szomorkás, lágy hang.', color: 'bg-indigo-500' },
+            { code: 't', name: 'ti', freq: 493.88, hand: '☝️', desc: 'Felfelé mutató mutatóujj – nagyon vágyik a felső dó-ra!', color: 'bg-purple-500' },
+            { code: "d'", name: "felső dó", freq: 523.25, hand: '✊⬆️', desc: 'Magasabbra emelt zárt ököl – egy oktávval magasabban, mint az alsó dó!', color: 'bg-pink-600' }
+        ];
+
+        function renderSolfege() {
+            const box = document.getElementById('solfegeKeyboard');
+            box.innerHTML = SOLFEGE.map((s, idx) => `
+                <button onclick="playSolfege(${idx}, this)" class="solfege-key p-3 rounded-2xl ${s.color} text-white font-black shadow flex flex-col items-center gap-1">
+                    <span class="text-2xl">${s.hand}</span>
+                    <span class="text-lg">${s.code}</span>
+                    <span class="text-[11px] opacity-90">${s.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function playSolfege(idx, btn) {
+            const s = SOLFEGE[idx];
+            playToneFreq(s.freq, 0.55, 0);
+            document.getElementById('solfHand').textContent = s.hand;
+            document.getElementById('solfTitle').textContent = `${s.name} (jele: ${s.code})`;
+            document.getElementById('solfDesc').textContent = s.desc;
+        }
+
+        // Felső dó az 5-vonalas kottán (3 változat a tankönyvből)
+        const HIGH_DO_VARIANTS = [
+            {
+                dY: 100, sY: 80, d2Y: 50, ledger: true,
+                note: 'Ha az alsó dó (d) az alsó pótvonalon van → a szó (s) a 2. vonalon → a felső dó (d\') a 3. vonalközben van! (Szára lefelé áll!)'
+            },
+            {
+                dY: 90, sY: 70, d2Y: 40, ledger: false,
+                note: 'Ha az alsó dó (d) az 1. vonalközben van → a szó (s) a 3. vonalon → a felső dó (d\') a 4. vonalközben van! (Szára lefelé áll!)'
+            },
+            {
+                dY: 80, sY: 60, d2Y: 30, ledger: false,
+                note: 'Ha az alsó dó (d) a 2. vonalon van → a szó (s) a 4. vonalon → a felső dó (d\') az 5. vonalon van! (Szára lefelé áll!)'
+            }
+        ];
+
+        function showHighDoVariant(idx) {
+            [0, 1, 2].forEach(i => {
+                document.getElementById(`hdBtn-${i}`).className = i === idx
+                    ? 'px-4 py-2 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm shadow'
+                    : 'px-4 py-2 rounded-2xl bg-slate-100 text-slate-700 font-extrabold text-xs sm:text-sm';
+            });
+            const v = HIGH_DO_VARIANTS[idx];
+            const lines = [30, 50, 70, 90].map(y => `<line x1="20" y1="${y}" x2="320" y2="${y}" stroke="#64748b" stroke-width="1.5"/>`).join('');
+            const line1 = `<line x1="20" y1="30" x2="320" y2="30" stroke="#64748b" stroke-width="1.5"/>
+                           <line x1="20" y1="45" x2="320" y2="45" stroke="#64748b" stroke-width="1.5"/>
+                           <line x1="20" y1="60" x2="320" y2="60" stroke="#64748b" stroke-width="1.5"/>
+                           <line x1="20" y1="75" x2="320" y2="75" stroke="#64748b" stroke-width="1.5"/>
+                           <line x1="20" y1="90" x2="320" y2="90" stroke="#64748b" stroke-width="1.5"/>`;
+            // 5 vonal: y = 30 (5.), 45 (4.), 60 (3.), 75 (2.), 90 (1.), pótvonal = 105
+            const mapY = [
+                { dY: 105, sY: 75, d2Y: 52.5, ledger: true },
+                { dY: 82.5, sY: 60, d2Y: 37.5, ledger: false },
+                { dY: 75, sY: 45, d2Y: 30, ledger: false }
+            ][idx];
+
+            const svg = `
+                ${line1}
+                <text x="30" y="78" font-size="48" fill="#1e293b">𝄞</text>
+                ${mapY.ledger ? `<line x1="100" y1="105" x2="132" y2="105" stroke="#1e293b" stroke-width="2"/>` : ''}
+                <!-- d -->
+                <circle cx="116" cy="${mapY.dY}" r="7" fill="#1e293b"/>
+                <line x1="122.5" y1="${mapY.dY}" x2="122.5" y2="${mapY.dY - 32}" stroke="#1e293b" stroke-width="2.5"/>
+                <text x="116" y="124" font-size="14" font-weight="900" fill="#1e293b" text-anchor="middle">d</text>
+                <!-- s -->
+                <circle cx="190" cy="${mapY.sY}" r="7" fill="#1e293b"/>
+                <line x1="${mapY.sY <= 60 ? 183.5 : 196.5}" y1="${mapY.sY}" x2="${mapY.sY <= 60 ? 183.5 : 196.5}" y2="${mapY.sY <= 60 ? mapY.sY + 32 : mapY.sY - 32}" stroke="#1e293b" stroke-width="2.5"/>
+                <text x="190" y="124" font-size="14" font-weight="900" fill="#1e293b" text-anchor="middle">s</text>
+                <!-- d' (szár lefelé!) -->
+                <ellipse cx="264" cy="${mapY.d2Y}" rx="7.5" ry="6" fill="none" stroke="#e11d48" stroke-width="3"/>
+                <line x1="257" y1="${mapY.d2Y}" x2="257" y2="${mapY.d2Y + 34}" stroke="#e11d48" stroke-width="2.8"/>
+                <text x="264" y="124" font-size="15" font-weight="900" fill="#e11d48" text-anchor="middle">d'</text>
+            `;
+            document.getElementById('highDoSvg').innerHTML = svg;
+            document.getElementById('highDoNote').textContent = v.note;
+        }
+
+        // 3. FÜL: Kotta-párosító
+        const MATCH_DATA = [
+            { html: '<svg width="90" height="54" viewBox="0 0 90 54"><line x1="8" y1="12" x2="82" y2="12" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="20" x2="82" y2="20" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="28" x2="82" y2="28" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="36" x2="82" y2="36" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="44" x2="82" y2="44" stroke="#94a3b8" stroke-width="1.3"/><rect x="35" y="20" width="20" height="6" fill="#be123c"/></svg>', opts: ['Egész szünet (4. vonal alatt)', 'Fél szünet (3. vonal felett)', 'Negyed szünet (szün)', 'Nyolcad szünet (szü)'], ans: 0 },
+            { html: '<svg width="90" height="54" viewBox="0 0 90 54"><line x1="8" y1="12" x2="82" y2="12" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="20" x2="82" y2="20" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="28" x2="82" y2="28" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="36" x2="82" y2="36" stroke="#94a3b8" stroke-width="1.3"/><line x1="8" y1="44" x2="82" y2="44" stroke="#94a3b8" stroke-width="1.3"/><rect x="35" y="22" width="20" height="6" fill="#be123c"/></svg>', opts: ['Egész szünet', 'Fél szünet (3. vonal felett)', 'Negyed szünet', 'Szinkópa'], ans: 1 },
+            { html: '<svg width="90" height="54" viewBox="0 0 90 54"><path d="M40 14 L52 24 L40 32 L50 42" fill="none" stroke="#be123c" stroke-width="4" stroke-linecap="round"/></svg>', opts: ['Negyed szünet (szün)', 'Nyolcad szünet (szü)', 'Fél hang (tá-á)', 'Egész hang'], ans: 0 },
+            { html: '<svg width="90" height="54" viewBox="0 0 90 54"><circle cx="40" cy="20" r="4" fill="#be123c"/><path d="M40 20 Q47 22 51 16 L43 40" fill="none" stroke="#be123c" stroke-width="3.5" stroke-linecap="round"/></svg>', opts: ['Egész szünet', 'Negyed szünet (szün)', 'Önálló nyolcad szünet (szü)', 'Fél szünet'], ans: 2 },
+            { html: '<span class="text-3xl font-black text-rose-700">ti – tá – ti</span>', opts: ['Szinkópa', 'Egész hang', 'Fél szünet', 'Ütemmutató'], ans: 0 },
+            { html: '<span class="text-4xl font-black text-rose-700">d\'</span>', opts: ['Alsó dó', 'Felső dó', 'Szó', 'Fá'], ans: 1 }
+        ];
+        let mIdx = 0, mLock = false;
+        function renderMatch() {
+            mLock = false;
+            const item = MATCH_DATA[mIdx];
+            document.getElementById('matchVisual').innerHTML = item.html;
+            document.getElementById('matchFb').classList.add('hidden');
+            document.getElementById('matchNextBtn').classList.add('hidden');
+            const box = document.getElementById('matchOpts');
+            box.innerHTML = '';
+            item.opts.forEach((o, i) => {
+                const b = document.createElement('button');
+                b.textContent = o;
+                b.className = 'bouncy-btn p-3.5 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-rose-50 font-extrabold text-sm';
+                b.onclick = () => {
+                    if (mLock) return;
+                    const fb = document.getElementById('matchFb');
+                    fb.classList.remove('hidden');
+                    if (i === item.ans) {
+                        mLock = true;
+                        b.className = 'p-3.5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black text-sm text-emerald-900';
+                        fb.className = 'rounded-2xl p-3 font-extrabold text-sm mb-3 bg-emerald-100 text-emerald-900';
+                        fb.textContent = '✅ Helyes! (+1 ⭐)';
+                        addStar();
+                        document.getElementById('matchNextBtn').classList.remove('hidden');
+                    } else {
+                        b.className = 'p-3.5 rounded-2xl border-2 border-rose-400 bg-rose-50 font-bold text-sm text-rose-900';
+                        fb.className = 'rounded-2xl p-3 font-extrabold text-sm mb-3 bg-rose-100 text-rose-900';
+                        fb.textContent = '❌ Nézd meg figyelmesebben, próbáld újra!';
+                    }
+                };
+                box.appendChild(b);
+            });
+        }
+        function nextMatch() { mIdx = (mIdx + 1) % MATCH_DATA.length; renderMatch(); }
+
+        // 4. FÜL: 12 kérdéses Dolgozat Kvíz
+        const QUIZ = [
+            { q: 'Mi az egész hang ritmusneve és hány negyedig tart?', opts: ['tá-á (2 negyed)', 'tá-á-á-á (4 negyed)', 'tá (1 negyed)'], ans: 1 },
+            { q: 'Hol helyezkedik el az EGÉSZ szünet a kottavonalakon?', opts: ['A 4. vonal ALATT lóg', 'A 3. vonal FELETT ül', 'Az 1. vonal alatt'], ans: 0 },
+            { q: 'Hol helyezkedik el a FÉL szünet a kottavonalakon?', opts: ['A 4. vonal ALATT lóg', 'A 3. vonal FELETT ül', 'Az 5. vonal felett'], ans: 1 },
+            { q: 'Hány „ti” (nyolcad) ér fel egy „tá”-val (negyeddel)?', opts: ['1 ti', '2 ti', '4 ti'], ans: 1 },
+            { q: 'Mi az önálló nyolcad szünet (kis 7-es alakú jel) elnevezése?', opts: ['szün', 'szü', 'tá'], ans: 1 },
+            { q: 'Mi a neve a „ti – tá – ti” ritmusképletnek?', opts: ['Szinkópa', 'Ütemmutató', 'Fél szünet'], ans: 0 },
+            { q: 'Mit jelent a 2/4-es ütemmutatóban az ALSÓ szám (a 4-es)?', opts: ['Hány ütem van a dalban', 'A mérő alapértékét jelöli (a negyedet)', 'Hány szünet van benne'], ans: 1 },
+            { q: 'Mit jelent a 4/4-es ütemmutatóban a FELSŐ szám (a 4-es)?', opts: ['4 negyednyi mérőegység van egy ütemben', 'Csak 4 hang lehet a dalban', '4-szer kell elénekelni'], ans: 0 },
+            { q: 'Mi a FELSŐ DÓ betűjele?', opts: ['d', "d'", 's'], ans: 1 },
+            { q: 'Ha a d az alsó pótvonalon van és s a 2. vonalon, hol van a felső dó (d\')?', opts: ['A 3. vonalközben', 'Az 1. vonalon', 'A 2. vonalközben'], ans: 0 },
+            { q: 'Merre áll a kottafej szára a 3. vonaltól felfelé (például a felső d\'-nál)?', opts: ['Felfelé, a fej jobb oldalán', 'Lefelé, a fej bal oldalán', 'Nincs szára'], ans: 1 },
+            { q: 'Milyen kézjele van a „mi” (m) hangnak?', opts: ['Zárt ököl', 'Vízszintes, lapos tenyér', 'Felfelé mutató mutatóujj'], ans: 1 }
+        ];
+        let qIdx = 0, qScore = 0, qLock = false;
+        function renderQuiz() {
+            document.getElementById('quizProgress').textContent = `${Math.min(qIdx + 1, QUIZ.length)} / ${QUIZ.length}`;
+            document.getElementById('quizScore').textContent = `Pont: ${qScore}`;
+            const body = document.getElementById('quizBody');
+            if (qIdx >= QUIZ.length) {
+                body.innerHTML = `<div class="text-center py-6"><div class="text-5xl mb-3">🏆</div><div class="text-2xl font-black mb-2">Dolgozat Kvíz kész!</div><p class="font-bold text-slate-600 mb-4">${QUIZ.length} kérdésből ${qScore} lett helyes!</p><button onclick="qIdx=0;qScore=0;renderQuiz()" class="bouncy-btn px-6 py-3 rounded-2xl bg-rose-600 text-white font-black">🔄 Újra gyakorlom</button></div>`;
+                return;
+            }
+            qLock = false;
+            const item = QUIZ[qIdx];
+            body.innerHTML = `<h3 class="text-lg sm:text-xl font-black text-slate-800 mb-4">${item.q}</h3><div class="space-y-2.5" id="qOpts"></div><div id="qNextWrap" class="hidden mt-4 text-right"><button onclick="qIdx++;renderQuiz()" class="bouncy-btn px-5 py-2.5 rounded-2xl bg-rose-600 text-white font-black text-sm">Következő ➡️</button></div>`;
+            const opts = document.getElementById('qOpts');
+            item.opts.forEach((o, i) => {
+                const b = document.createElement('button');
+                b.textContent = o;
+                b.className = 'w-full text-left p-3.5 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-rose-50 font-extrabold text-sm';
+                b.onclick = () => {
+                    if (qLock) return;
+                    qLock = true;
+                    if (i === item.ans) {
+                        qScore++;
+                        b.className = 'w-full text-left p-3.5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black text-sm text-emerald-900';
+                        addStar();
+                    } else {
+                        b.className = 'w-full text-left p-3.5 rounded-2xl border-2 border-rose-400 bg-rose-50 font-bold text-sm text-rose-900';
+                        opts.children[item.ans].className = 'w-full text-left p-3.5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black text-sm text-emerald-900';
+                    }
+                    document.getElementById('quizScore').textContent = `Pont: ${qScore}`;
+                    document.getElementById('qNextWrap').classList.remove('hidden');
+                };
+                opts.appendChild(b);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshStars();
+            renderRhythmCards();
+            renderSolfege();
+            showHighDoVariant(0);
+            renderMatch();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>

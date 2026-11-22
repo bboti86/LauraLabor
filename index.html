@@ -259,6 +259,23 @@
             </div>
         </div>
 
+        <!-- Ének-zene -->
+        <div class="category" data-category-id="music">
+            <h2>
+                <span>🎵 Ének-zene</span>
+                <span class="category-stars-pill" id="cat-stars-music">⭐ 0</span>
+            </h2>
+            <div class="links-grid">
+                <a href="./enek-ritmus-kotta.html" class="app-btn" data-lesson-id="enek_ritmus">
+                    <span>🥁 Ritmusok, szünetek, kézjelek és felső dó</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-enek_ritmus">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+
         <div id="allLessonsHiddenNotice" style="display:none;background:rgba(255,255,255,0.92);border:2px dashed #cbd5e1;border-radius:24px;padding:28px;text-align:center;margin-top:16px;">
             <div style="font-size:2.4rem;margin-bottom:8px;">🙈</div>
             <div style="font-weight:900;font-size:1.1rem;color:#1e293b;margin-bottom:6px;">Jelenleg minden lecke ki van kapcsolva</div>
@@ -542,6 +559,13 @@
                     { id: 'suruseg', label: '🧪 Sűrűség és kísérletek' },
                     { id: 'vizkorforgas', label: '🌧️ A víz körforgása és halmazállapotok' }
                 ]
+            },
+            {
+                id: 'music',
+                label: '🎵 Ének-zene',
+                lessons: [
+                    { id: 'enek_ritmus', label: '🥁 Ritmusok, szünetek, kézjelek, felső dó' }
+                ]
             }
         ];
 
@@ -566,7 +590,7 @@
             }
 
             // Lecke-jelvények és láthatóság frissítése
-            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'muveletisorrend', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'eger', 'windows', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'muveletisorrend', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'eger', 'windows', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola', 'enek_ritmus'];
             let activeModules = (felmeroStats.tested > 0 && !hiddenSet.has('felmero')) ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -619,6 +643,7 @@
             const englishStars = LauraApp.getStars('angol_szinek') + LauraApp.getStars('angol_szamok') + LauraApp.getStars('angol_iskola');
             const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet') + LauraApp.getStars('eger') + LauraApp.getStars('windows');
             const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg') + LauraApp.getStars('vizkorforgas');
+            const musicStars = LauraApp.getStars('enek_ritmus');
 
             document.getElementById('cat-stars-math').textContent = `⭐ ${mathStars}`;
             const readingEl = document.getElementById('cat-stars-reading');
@@ -627,6 +652,8 @@
             if (englishEl) englishEl.textContent = `⭐ ${englishStars}`;
             document.getElementById('cat-stars-digital').textContent = `⭐ ${digiStars}`;
             document.getElementById('cat-stars-nature').textContent = `⭐ ${natureStars}`;
+            const musicEl = document.getElementById('cat-stars-music');
+            if (musicEl) musicEl.textContent = `⭐ ${musicStars}`;
         }
 
         function renderLessonVisibilityControls() {
