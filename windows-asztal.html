@@ -139,8 +139,12 @@
                                     <span>🎨</span> <span>Rajzoló (Ablak)</span>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <button onclick="explainWin('min', event)" class="w-6 h-6 rounded-md bg-slate-200 hover:bg-amber-200 font-black text-xs flex items-center justify-center" title="Kis méret">🗕</button>
-                                    <button onclick="explainWin('max', event)" class="w-6 h-6 rounded-md bg-slate-200 hover:bg-sky-200 font-black text-xs flex items-center justify-center" title="Teljes képernyő">🗖</button>
+                                    <button onclick="explainWin('min', event)" class="w-6 h-6 rounded-md bg-slate-200 hover:bg-amber-200 font-black text-xs flex items-center justify-center text-slate-800" title="Kis méret">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="13" y2="12"/></svg>
+                                    </button>
+                                    <button onclick="explainWin('max', event)" class="w-6 h-6 rounded-md bg-slate-200 hover:bg-sky-200 font-black text-xs flex items-center justify-center text-slate-800" title="Teljes képernyő">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg>
+                                    </button>
                                     <button onclick="explainWin('close', event)" class="w-6 h-6 rounded-md bg-rose-100 hover:bg-rose-500 hover:text-white font-black text-xs flex items-center justify-center text-rose-700" title="Bezárás">✕</button>
                                 </div>
                             </div>
@@ -210,9 +214,13 @@
                             <div class="bg-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200">
                                 <span class="text-xs font-black text-slate-700">📝 Jegyzetek</span>
                                 <div class="flex gap-1">
-                                    <button onclick="checkHunt('min', event)" class="w-6 h-6 rounded bg-slate-200 font-black text-xs">🗕</button>
-                                    <button onclick="checkHunt('max', event)" class="w-6 h-6 rounded bg-slate-200 font-black text-xs">🗖</button>
-                                    <button onclick="checkHunt('close', event)" class="w-6 h-6 rounded bg-rose-100 text-rose-700 font-black text-xs">✕</button>
+                                    <button onclick="checkHunt('min', event)" class="w-6 h-6 rounded bg-slate-200 font-black text-xs flex items-center justify-center text-slate-800">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="13" y2="12"/></svg>
+                                    </button>
+                                    <button onclick="checkHunt('max', event)" class="w-6 h-6 rounded bg-slate-200 font-black text-xs flex items-center justify-center text-slate-800">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg>
+                                    </button>
+                                    <button onclick="checkHunt('close', event)" class="w-6 h-6 rounded bg-rose-100 text-rose-700 font-black text-xs flex items-center justify-center">✕</button>
                                 </div>
                             </div>
                             <div class="p-4 text-center text-xs font-bold text-slate-500">Minta ablak</div>
@@ -284,8 +292,8 @@
             pinned: { icon: '📌', title: 'Rögzített és futó programok', desc: 'Egy kattintással elindíthatod a kedvenc programjaidat, és látod, mely ablakok vannak épp megnyitva.' },
             tray: { icon: '🔔', title: 'Értesítési terület (Óra, Wi-Fi, Hangerő)', desc: 'A tálca jobb szélén látod a pontos időt, a dátumot, a hangerőt és az internet (Wi-Fi) állapotát.' },
             titlebar: { icon: '🪟', title: 'Ablak címsora', desc: 'Megmutatja a nyitott program nevét, és ennél fogva tudod az egérrel arrébb húzni az ablakot.' },
-            min: { icon: '🗕', title: 'Kis méret (Tálcára helyezés)', desc: 'Nem zárja be a programot, csak lekicsinyíti a Tálcára! Bármikor visszakattinthatsz rá.' },
-            max: { icon: '🗖', title: 'Teljes képernyő / Visszaállítás', desc: 'Kinagyítja az ablakot a teljes képernyőre, vagy visszaállítja kisebb méretűre.' },
+            min: { icon: '<span class="inline-flex w-9 h-9 rounded-lg bg-slate-200 items-center justify-center text-slate-800"><svg class="w-5 h-5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="13" y2="12"/></svg></span>', title: 'Kis méret (Tálcára helyezés)', desc: 'Nem zárja be a programot, csak lekicsinyíti a Tálcára! Bármikor visszakattinthatsz rá.' },
+            max: { icon: '<span class="inline-flex w-9 h-9 rounded-lg bg-slate-200 items-center justify-center text-slate-800"><svg class="w-5 h-5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg></span>', title: 'Teljes képernyő / Visszaállítás', desc: 'Kinagyítja az ablakot a teljes képernyőre, vagy visszaállítja kisebb méretűre.' },
             close: { icon: '✕', title: 'Bezárás gomb', desc: 'Bezárja az ablakot és kilép a programból.' }
         };
 
@@ -293,7 +301,7 @@
             if (e) e.stopPropagation();
             const p = WIN_PARTS[key];
             if (!p) return;
-            document.getElementById('expIcon').textContent = p.icon;
+            document.getElementById('expIcon').innerHTML = p.icon;
             document.getElementById('expTitle').textContent = p.title;
             document.getElementById('expDesc').textContent = p.desc;
         }
@@ -341,8 +349,8 @@
         // Match game
         const MATCH_ITEMS = [
             { sym: '🗑️', opts: ['Lomtár (törölt fájlok helye)', 'Start menü', 'Böngésző', 'Hangerő'], ans: 0 },
-            { sym: '🗕', opts: ['Bezárja a programot', 'Kis méret (lerakja a Tálcára)', 'Teljes képernyő', 'Új mappa'], ans: 1 },
-            { sym: '🗖', opts: ['Törlés', 'Teljes képernyőre nagyítás', 'Keresés', 'Kikapcsolás'], ans: 1 },
+            { sym: '<span class="inline-flex w-14 h-14 rounded-2xl bg-slate-200 items-center justify-center text-slate-800"><svg class="w-8 h-8" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="13" y2="12"/></svg></span>', opts: ['Bezárja a programot', 'Kis méret (lerakja a Tálcára)', 'Teljes képernyő', 'Új mappa'], ans: 1 },
+            { sym: '<span class="inline-flex w-14 h-14 rounded-2xl bg-slate-200 items-center justify-center text-slate-800"><svg class="w-8 h-8" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg></span>', opts: ['Törlés', 'Teljes képernyőre nagyítás', 'Keresés', 'Kikapcsolás'], ans: 1 },
             { sym: '✕', opts: ['Ablak bezárása', 'Tálcára tétel', 'Mentés', 'Másolás'], ans: 0 },
             { sym: '🪟', opts: ['Lomtár', 'Start menü gomb', 'Wi-Fi', 'Jegyzettömb'], ans: 1 },
             { sym: '📁', opts: ['Mappa (fájlok rendszerezésére)', 'Kikapcsolás', 'Óra', 'Nyomtató'], ans: 0 }
@@ -351,7 +359,7 @@
         function renderMatch() {
             mLock = false;
             const item = MATCH_ITEMS[mIdx];
-            document.getElementById('matchSymbol').textContent = item.sym;
+            document.getElementById('matchSymbol').innerHTML = item.sym;
             document.getElementById('matchFb').classList.add('hidden');
             document.getElementById('matchNextBtn').classList.add('hidden');
             const box = document.getElementById('matchOpts');
@@ -388,7 +396,7 @@
             { q: 'Hol található általában a Tálca (Taskbar)?', opts: ['A képernyő legtetején', 'A képernyő legalján', 'A számítógép hátulján'], ans: 1 },
             { q: 'Mire való a 🪟 Start menü?', opts: ['Programok indítására, beállításokra és a gép kikapcsolására', 'Csak rajzolásra', 'Internetes játékra'], ans: 0 },
             { q: 'Mi történik, ha véletlenül törölsz egy fájlt az Asztalról?', opts: ['Azonnal eltűnik örökre', 'Először a Lomtárba (🗑️) kerül, ahonnan visszaállítható', 'Átmegy a böngészőbe'], ans: 1 },
-            { q: 'Mit csinál az ablak jobb felső sarkában a 🗕 (Kis méret) gomb?', opts: ['Bezárja a programot', 'Lekicsinyíti az ablakot a Tálcára, de a program nyitva marad', 'Kikapcsolja a monitort'], ans: 1 },
+            { q: 'Mit csinál az ablak jobb felső sarkában a Kis méret (alsó vonal: _) gomb?', opts: ['Bezárja a programot', 'Lekicsinyíti az ablakot a Tálcára, de a program nyitva marad', 'Kikapcsolja a monitort'], ans: 1 },
             { q: 'Mit csinál a ✕ gomb az ablak jobb felső sarkában?', opts: ['Bezárja az ablakot', 'Kinagyítja a képernyőre', 'Új mappát hoz létre'], ans: 0 },
             { q: 'Hol találod az órát, a hangerőt és a Wi-Fi ikont?', opts: ['A Start menü közepén', 'A Tálca jobb szélén (Értesítési terület)', 'A Lomtárban'], ans: 1 },
             { q: 'Mire használjuk a 📁 Mappákat?', opts: ['Fájlok és képek rendszerezett tárolására', 'Zenehallgatásra', 'Kikapcsolásra'], ans: 0 },
