@@ -197,6 +197,20 @@
                         <span class="icon">👉</span>
                     </span>
                 </a>
+                <a href="./eger.html" class="app-btn" data-lesson-id="eger">
+                    <span>🖱️ Az egér és használata</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-eger">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
+                <a href="./windows-asztal.html" class="app-btn" data-lesson-id="windows">
+                    <span>🪟 Windows asztal, tálca, ikonok és Start menü</span>
+                    <span class="app-btn-right">
+                        <span class="lesson-star-badge empty" id="badge-windows">⭐ 0</span>
+                        <span class="icon">👉</span>
+                    </span>
+                </a>
             </div>
         </div>
 
@@ -513,7 +527,9 @@
                 label: '💻 Digitális kultúra',
                 lessons: [
                     { id: 'pcreszek', label: '🖥️ A számítógép részei és teremrend' },
-                    { id: 'billentyuzet', label: '⌨️ A billentyűzet részei és használata' }
+                    { id: 'billentyuzet', label: '⌨️ A billentyűzet részei és használata' },
+                    { id: 'eger', label: '🖱️ Az egér és használata' },
+                    { id: 'windows', label: '🪟 Windows asztal, tálca, ikonok, Start' }
                 ]
             },
             {
@@ -550,7 +566,7 @@
             }
 
             // Lecke-jelvények és láthatóság frissítése
-            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'muveletisorrend', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola'];
+            const lessonIds = ['szorzas', 'maradekos', 'ketjegyu', 'muveletisorrend', 'szoveges', 'szovegertes', 'pcreszek', 'billentyuzet', 'eger', 'windows', 'szilard', 'vizlabor', 'legnemu', 'suruseg', 'vizkorforgas', 'angol_szinek', 'angol_szamok', 'angol_iskola'];
             let activeModules = (felmeroStats.tested > 0 && !hiddenSet.has('felmero')) ? 1 : 0;
 
             lessonIds.forEach(id => {
@@ -601,7 +617,7 @@
             const mathStars = LauraApp.getStars('szorzas') + LauraApp.getStars('felmero') + LauraApp.getStars('maradekos') + LauraApp.getStars('ketjegyu') + LauraApp.getStars('muveletisorrend') + LauraApp.getStars('szoveges');
             const readingStars = LauraApp.getStars('szovegertes');
             const englishStars = LauraApp.getStars('angol_szinek') + LauraApp.getStars('angol_szamok') + LauraApp.getStars('angol_iskola');
-            const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet');
+            const digiStars = LauraApp.getStars('pcreszek') + LauraApp.getStars('billentyuzet') + LauraApp.getStars('eger') + LauraApp.getStars('windows');
             const natureStars = LauraApp.getStars('szilard') + LauraApp.getStars('vizlabor') + LauraApp.getStars('legnemu') + LauraApp.getStars('suruseg') + LauraApp.getStars('vizkorforgas');
 
             document.getElementById('cat-stars-math').textContent = `⭐ ${mathStars}`;

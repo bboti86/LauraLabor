@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Asztal, Tálca, Ikonok és Start Menü 🪟✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app-shared.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #EFF6FF 0%, #E0E7FF 50%, #F3E8FF 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bouncy-btn { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bouncy-btn:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+        .bouncy-btn:active:not(:disabled) { transform: translateY(1px) scale(0.97); }
+        .win-desktop {
+            background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 45%, #6366f1 100%);
+            position: relative;
+            border-radius: 22px;
+            overflow: hidden;
+            border: 4px solid #1e293b;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+        }
+        .win-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+            width: 82px;
+        }
+        .win-icon:hover { background: rgba(255, 255, 255, 0.22); transform: scale(1.04); }
+        .win-hotspot { cursor: pointer; transition: all 0.15s ease; }
+        .win-hotspot:hover { filter: brightness(1.1); }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.92); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop { animation: popIn 0.25s ease-out forwards; }
+    </style>
+</head>
+<body class="text-slate-800 pb-14">
+
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-sky-100">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="./index.html" class="px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-xs shrink-0">
+                    <span>⬅️</span> <span class="hidden sm:inline">Főoldal</span>
+                </a>
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('explore')">
+                    <span class="text-3xl sm:text-4xl">🪟</span>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-black bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
+                            Windows Asztal, Tálca, Ikonok & Start Menü
+                        </h1>
+                        <p class="text-xs font-bold text-slate-400 hidden sm:block">
+                            Interaktív Windows képernyő, ablakgombok és tájékozódás a gépen ✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-200 px-3 py-1.5 rounded-2xl shadow-sm">
+                    <span class="text-xl">⭐</span>
+                    <span id="totalStarsDisplay" class="font-black text-amber-600 text-base sm:text-lg">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto px-4 mt-5">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white/80 backdrop-blur-sm p-2 rounded-3xl shadow-sm border border-sky-100">
+            <button onclick="switchTab('explore')" id="tab-explore" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-sky-600 text-white shadow-md">
+                <span>🪟</span> <span>1. Windows Szimulátor</span>
+            </button>
+            <button onclick="switchTab('hunt')" id="tab-hunt" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50">
+                <span>🔍</span> <span>2. Kattints rá!</span>
+            </button>
+            <button onclick="switchTab('match')" id="tab-match" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50">
+                <span>🧩</span> <span>3. Ikon-párosító</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50">
+                <span>🏆</span> <span>4. Kvíz</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+
+        <!-- 1. FÜL: INTERAKTÍV WINDOWS SZIMULÁTOR -->
+        <section id="section-explore" class="animate-pop space-y-5">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-sky-100">
+                <div id="exploreInfoBox" class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
+                    <span id="expIcon" class="text-3xl shrink-0">🪟</span>
+                    <div>
+                        <div id="expTitle" class="font-black text-sky-950 text-base">Kattints bármire a Windows képernyőn!</div>
+                        <div id="expDesc" class="text-xs sm:text-sm font-bold text-sky-800">Fedezd fel az Asztalt, az Ikonokat, a Tálcát, a Start menüt és az ablak gombjait!</div>
+                    </div>
+                </div>
+
+                <!-- Mini Windows Asztal -->
+                <div class="win-desktop h-[390px] sm:h-[420px] flex flex-col justify-between" onclick="explainWin('desktop', event)">
+                    <!-- Asztal terület (ikonok + minta ablak) -->
+                    <div class="relative flex-1 p-3 sm:p-4 flex gap-4">
+                        <!-- Ikonok bal oldalon -->
+                        <div class="flex flex-col gap-2 z-10">
+                            <div class="win-icon" onclick="explainWin('thispc', event)">
+                                <span class="text-3xl drop-shadow">💻</span>
+                                <span class="text-[11px] font-extrabold text-white text-center drop-shadow">Ez a gép</span>
+                            </div>
+                            <div class="win-icon" onclick="explainWin('trash', event)">
+                                <span class="text-3xl drop-shadow">🗑️</span>
+                                <span class="text-[11px] font-extrabold text-white text-center drop-shadow">Lomtár</span>
+                            </div>
+                            <div class="win-icon" onclick="explainWin('folder', event)">
+                                <span class="text-3xl drop-shadow">📁</span>
+                                <span class="text-[11px] font-extrabold text-white text-center drop-shadow">Mappám</span>
+                            </div>
+                            <div class="win-icon" onclick="explainWin('browser', event)">
+                                <span class="text-3xl drop-shadow">🌐</span>
+                                <span class="text-[11px] font-extrabold text-white text-center drop-shadow">Böngésző</span>
+                            </div>
+                        </div>
+
+                        <!-- Minta ablak -->
+                        <div id="sampleWindow" class="ml-auto my-auto mr-2 sm:mr-6 w-60 sm:w-80 bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden z-10" onclick="event.stopPropagation()">
+                            <div class="bg-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200">
+                                <div class="flex items-center gap-1.5 text-xs font-black text-slate-700" onclick="explainWin('titlebar', event)">
+                                    <span>🎨</span> <span>Rajzoló (Ablak)</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="explainWin('min', event)" class="w-6 h-6 rounded-md bg-slate-200 hover:bg-amber-200 font-black text-xs flex items-center justify-center" title="Kis méret">🗕</button>
+                                    <button onclick="explainWin('max', event)" class="w-6 h-6 rounded-md bg-slate-200 hover:bg-sky-200 font-black text-xs flex items-center justify-center" title="Teljes képernyő">🗖</button>
+                                    <button onclick="explainWin('close', event)" class="w-6 h-6 rounded-md bg-rose-100 hover:bg-rose-500 hover:text-white font-black text-xs flex items-center justify-center text-rose-700" title="Bezárás">✕</button>
+                                </div>
+                            </div>
+                            <div class="p-4 text-center bg-gradient-to-b from-white to-sky-50">
+                                <div class="text-4xl mb-1">🦋</div>
+                                <div class="text-xs font-extrabold text-slate-600">Próbáld ki a jobb felső sarokban a 3 ablakgombot!</div>
+                            </div>
+                        </div>
+
+                        <!-- Felnyíló Start Menü -->
+                        <div id="startMenuPopup" class="hidden absolute bottom-2 left-2 w-64 sm:w-72 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-4 shadow-2xl border border-slate-700 z-30 animate-pop" onclick="event.stopPropagation()">
+                            <div class="text-xs font-black text-sky-300 uppercase tracking-wider mb-2">Start Menü</div>
+                            <div class="grid grid-cols-3 gap-2 mb-3 text-center text-[11px] font-bold">
+                                <div class="p-2 rounded-xl bg-white/10">🌐<br>Böngésző</div>
+                                <div class="p-2 rounded-xl bg-white/10">📝<br>Jegyzettömb</div>
+                                <div class="p-2 rounded-xl bg-white/10">🎨<br>Paint</div>
+                                <div class="p-2 rounded-xl bg-white/10">🧮<br>Számológép</div>
+                                <div class="p-2 rounded-xl bg-white/10">🖼️<br>Képek</div>
+                                <div class="p-2 rounded-xl bg-white/10">⚙️<br>Beállítások</div>
+                            </div>
+                            <div class="pt-2 border-t border-slate-700 flex justify-between items-center text-xs font-extrabold">
+                                <span>👤 Laura</span>
+                                <span class="px-2 py-1 rounded-lg bg-rose-600/80">⏻ Kikapcsolás</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tálca (Taskbar) -->
+                    <div class="h-12 bg-slate-900/90 backdrop-blur-md px-3 flex items-center justify-between text-white z-20" onclick="explainWin('taskbar', event)">
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleStartMenu(event)" class="win-hotspot px-2.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 font-black text-xs flex items-center gap-1 shadow">
+                                <span>🪟</span> <span class="hidden sm:inline">Start</span>
+                            </button>
+                            <button onclick="explainWin('search', event)" class="win-hotspot px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold flex items-center gap-1">
+                                <span>🔍</span> <span class="hidden sm:inline text-slate-300">Keresés</span>
+                            </button>
+                            <div onclick="explainWin('pinned', event)" class="win-hotspot flex items-center gap-1.5 pl-2 border-l border-white/15 text-lg">
+                                <span>📁</span><span>🌐</span><span>🎨</span>
+                            </div>
+                        </div>
+                        <div onclick="explainWin('tray', event)" class="win-hotspot flex items-center gap-2 bg-white/10 px-2.5 py-1 rounded-xl text-xs font-bold">
+                            <span>📶</span><span>🔊</span><span>10:30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. FÜL: KATTINTS RÁ! (KERESŐJÁTÉK A SZIMULÁTORON) -->
+        <section id="section-hunt" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-2 border-sky-100">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+                    <h2 class="text-xl font-black text-slate-800">🔍 Kattints a kért elemre a Windows képernyőn!</h2>
+                    <span id="huntCounter" class="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-black text-xs">1 / 7</span>
+                </div>
+                <div id="huntPrompt" class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 text-center font-black text-amber-950 text-base sm:text-lg mb-4"></div>
+                <div id="huntFeedback" class="hidden rounded-2xl p-3 font-extrabold text-sm text-center mb-3"></div>
+
+                <div class="win-desktop h-[350px] flex flex-col justify-between" onclick="checkHunt('desktop', event)">
+                    <div class="relative flex-1 p-3 flex gap-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="win-icon" onclick="checkHunt('thispc', event)"><span class="text-3xl">💻</span><span class="text-[11px] font-extrabold text-white">Ez a gép</span></div>
+                            <div class="win-icon" onclick="checkHunt('trash', event)"><span class="text-3xl">🗑️</span><span class="text-[11px] font-extrabold text-white">Lomtár</span></div>
+                            <div class="win-icon" onclick="checkHunt('folder', event)"><span class="text-3xl">📁</span><span class="text-[11px] font-extrabold text-white">Mappám</span></div>
+                        </div>
+                        <div class="ml-auto my-auto mr-3 w-56 sm:w-72 bg-white rounded-2xl shadow-xl border-2 border-slate-200 overflow-hidden" onclick="event.stopPropagation()">
+                            <div class="bg-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200">
+                                <span class="text-xs font-black text-slate-700">📝 Jegyzetek</span>
+                                <div class="flex gap-1">
+                                    <button onclick="checkHunt('min', event)" class="w-6 h-6 rounded bg-slate-200 font-black text-xs">🗕</button>
+                                    <button onclick="checkHunt('max', event)" class="w-6 h-6 rounded bg-slate-200 font-black text-xs">🗖</button>
+                                    <button onclick="checkHunt('close', event)" class="w-6 h-6 rounded bg-rose-100 text-rose-700 font-black text-xs">✕</button>
+                                </div>
+                            </div>
+                            <div class="p-4 text-center text-xs font-bold text-slate-500">Minta ablak</div>
+                        </div>
+                    </div>
+                    <div class="h-12 bg-slate-900/90 px-3 flex items-center justify-between text-white" onclick="checkHunt('taskbar', event)">
+                        <div class="flex items-center gap-2">
+                            <button onclick="checkHunt('start', event)" class="px-2.5 py-1.5 rounded-xl bg-sky-500 font-black text-xs">🪟 Start</button>
+                            <button onclick="checkHunt('search', event)" class="px-2.5 py-1.5 rounded-xl bg-white/15 text-xs font-bold">🔍 Keresés</button>
+                        </div>
+                        <div onclick="checkHunt('tray', event)" class="bg-white/10 px-2.5 py-1 rounded-xl text-xs font-bold">📶 🔊 10:30</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. FÜL: IKON-PÁROSÍTÓ -->
+        <section id="section-match" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-sky-100 max-w-2xl mx-auto text-center">
+                <h2 class="text-2xl font-black text-slate-800 mb-2">🧩 Mit jelent ez a Windows jel vagy ikon?</h2>
+                <div id="matchSymbol" class="text-6xl my-5 p-5 bg-sky-50 border-2 border-sky-200 rounded-3xl inline-block"></div>
+                <div id="matchOpts" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-left"></div>
+                <div id="matchFb" class="hidden rounded-2xl p-3 font-extrabold text-sm mb-3"></div>
+                <button onclick="nextMatch()" id="matchNextBtn" class="hidden bouncy-btn px-6 py-3 rounded-2xl bg-sky-600 text-white font-black text-sm">Következő ➡️</button>
+            </div>
+        </section>
+
+        <!-- 4. FÜL: KVÍZ -->
+        <section id="section-quiz" class="hidden animate-pop">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-sky-100 max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="quizProgress" class="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-black text-xs">1 / 10</span>
+                    <span id="quizScore" class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs">Pont: 0</span>
+                </div>
+                <div id="quizBody"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const LESSON_KEY = 'windows';
+        function refreshStars() {
+            document.getElementById('totalStarsDisplay').textContent = window.LauraApp ? LauraApp.getStars(LESSON_KEY) : 0;
+        }
+        function addStar() {
+            if (window.LauraApp) LauraApp.addStars(LESSON_KEY, 1);
+            refreshStars();
+            if (typeof confetti === 'function') confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
+        }
+
+        function switchTab(tab) {
+            ['explore', 'hunt', 'match', 'quiz'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-${t}`);
+                btn.className = t === tab
+                    ? 'tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-sky-600 text-white shadow-md'
+                    : 'tab-btn py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-sky-50';
+            });
+        }
+
+        const WIN_PARTS = {
+            desktop: { icon: '🖼️', title: 'Az Asztal (Desktop)', desc: 'A nagy háttérképes munkaterület. Ide teheted ki a leggyakrabban használt programok és mappák ikonjait!' },
+            thispc: { icon: '💻', title: 'Ez a gép ikon', desc: 'Itt találod a számítógép meghajtóit (pl. C: lemez), a pendrive-ot és a fő mappákat (Dokumentumok, Képek).' },
+            trash: { icon: '🗑️', title: 'Lomtár', desc: 'A törölt fájlok először ide kerülnek! Ha véletlenül töröltél valamit, innen még vissza tudod állítani.' },
+            folder: { icon: '📁', title: 'Mappa ikon', desc: 'A mappákban rendszerezve tárolhatod a fájljaidat, képeidet és feladataidat, mint egy igazi dossziéban.' },
+            browser: { icon: '🌐', title: 'Böngésző ikon', desc: 'Ezzel tudsz internetezni (pl. Chrome, Edge), megnézni a Tanulósarkot vagy keresni a weben.' },
+            taskbar: { icon: '➖', title: 'Tálca (Taskbar)', desc: 'A képernyő alján futó sáv. Itt van a Start gomb, a Kereső, a rögzített és épp nyitott programok, valamint az óra.' },
+            search: { icon: '🔍', title: 'Keresés a Tálcán', desc: 'Ha nem találod valamelyik programot vagy fájlt, csak írd be ide a nevét!' },
+            pinned: { icon: '📌', title: 'Rögzített és futó programok', desc: 'Egy kattintással elindíthatod a kedvenc programjaidat, és látod, mely ablakok vannak épp megnyitva.' },
+            tray: { icon: '🔔', title: 'Értesítési terület (Óra, Wi-Fi, Hangerő)', desc: 'A tálca jobb szélén látod a pontos időt, a dátumot, a hangerőt és az internet (Wi-Fi) állapotát.' },
+            titlebar: { icon: '🪟', title: 'Ablak címsora', desc: 'Megmutatja a nyitott program nevét, és ennél fogva tudod az egérrel arrébb húzni az ablakot.' },
+            min: { icon: '🗕', title: 'Kis méret (Tálcára helyezés)', desc: 'Nem zárja be a programot, csak lekicsinyíti a Tálcára! Bármikor visszakattinthatsz rá.' },
+            max: { icon: '🗖', title: 'Teljes képernyő / Visszaállítás', desc: 'Kinagyítja az ablakot a teljes képernyőre, vagy visszaállítja kisebb méretűre.' },
+            close: { icon: '✕', title: 'Bezárás gomb', desc: 'Bezárja az ablakot és kilép a programból.' }
+        };
+
+        function explainWin(key, e) {
+            if (e) e.stopPropagation();
+            const p = WIN_PARTS[key];
+            if (!p) return;
+            document.getElementById('expIcon').textContent = p.icon;
+            document.getElementById('expTitle').textContent = p.title;
+            document.getElementById('expDesc').textContent = p.desc;
+        }
+
+        function toggleStartMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('startMenuPopup');
+            menu.classList.toggle('hidden');
+            document.getElementById('expIcon').textContent = '🪟';
+            document.getElementById('expTitle').textContent = 'Start gomb és Start menü';
+            document.getElementById('expDesc').textContent = 'A Tálca bal oldalán található Windows gomb. Innen indíthatsz el minden programot, nyithatod meg a Beállításokat, vagy kapcsolhatod ki a gépet!';
+        }
+
+        // Hunt game
+        const HUNT_TASKS = [
+            { target: 'start', text: 'Kattints a Start gombra a Tálcán!' },
+            { target: 'trash', text: 'Hol van a Lomtár, ahová a törölt fájlok kerülnek?' },
+            { target: 'tray', text: 'Kattints a jobb alsó sarokban az Órára / Értesítési területre!' },
+            { target: 'close', text: 'Melyik gombbal zárjuk be végleg az ablakot?' },
+            { target: 'min', text: 'Melyik gombbal tesszük le az ablakot a Tálcára (Kis méret)?' },
+            { target: 'search', text: 'Kattints a Kereső ikonra a Tálcán!' },
+            { target: 'folder', text: 'Kattints a Mappára az Asztalon!' }
+        ];
+        let huntIdx = 0;
+        function renderHunt() {
+            document.getElementById('huntCounter').textContent = `${huntIdx + 1} / ${HUNT_TASKS.length}`;
+            document.getElementById('huntPrompt').textContent = HUNT_TASKS[huntIdx].text;
+        }
+        function checkHunt(clicked, e) {
+            if (e) e.stopPropagation();
+            const fb = document.getElementById('huntFeedback');
+            fb.classList.remove('hidden');
+            if (clicked === HUNT_TASKS[huntIdx].target) {
+                fb.className = 'rounded-2xl p-3 font-extrabold text-sm text-center mb-3 bg-emerald-100 text-emerald-900';
+                fb.textContent = '✅ Szuper! Megtaláltad! (+1 ⭐)';
+                addStar();
+                huntIdx = (huntIdx + 1) % HUNT_TASKS.length;
+                setTimeout(() => { fb.classList.add('hidden'); renderHunt(); }, 900);
+            } else {
+                fb.className = 'rounded-2xl p-3 font-extrabold text-sm text-center mb-3 bg-rose-100 text-rose-900';
+                fb.textContent = '❌ Nem egészen! Próbáld újra!';
+            }
+        }
+
+        // Match game
+        const MATCH_ITEMS = [
+            { sym: '🗑️', opts: ['Lomtár (törölt fájlok helye)', 'Start menü', 'Böngésző', 'Hangerő'], ans: 0 },
+            { sym: '🗕', opts: ['Bezárja a programot', 'Kis méret (lerakja a Tálcára)', 'Teljes képernyő', 'Új mappa'], ans: 1 },
+            { sym: '🗖', opts: ['Törlés', 'Teljes képernyőre nagyítás', 'Keresés', 'Kikapcsolás'], ans: 1 },
+            { sym: '✕', opts: ['Ablak bezárása', 'Tálcára tétel', 'Mentés', 'Másolás'], ans: 0 },
+            { sym: '🪟', opts: ['Lomtár', 'Start menü gomb', 'Wi-Fi', 'Jegyzettömb'], ans: 1 },
+            { sym: '📁', opts: ['Mappa (fájlok rendszerezésére)', 'Kikapcsolás', 'Óra', 'Nyomtató'], ans: 0 }
+        ];
+        let mIdx = 0, mLock = false;
+        function renderMatch() {
+            mLock = false;
+            const item = MATCH_ITEMS[mIdx];
+            document.getElementById('matchSymbol').textContent = item.sym;
+            document.getElementById('matchFb').classList.add('hidden');
+            document.getElementById('matchNextBtn').classList.add('hidden');
+            const box = document.getElementById('matchOpts');
+            box.innerHTML = '';
+            item.opts.forEach((o, i) => {
+                const b = document.createElement('button');
+                b.textContent = o;
+                b.className = 'bouncy-btn p-3.5 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-sky-50 font-extrabold text-sm';
+                b.onclick = () => {
+                    if (mLock) return;
+                    const fb = document.getElementById('matchFb');
+                    fb.classList.remove('hidden');
+                    if (i === item.ans) {
+                        mLock = true;
+                        b.className = 'p-3.5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black text-sm text-emerald-900';
+                        fb.className = 'rounded-2xl p-3 font-extrabold text-sm mb-3 bg-emerald-100 text-emerald-900';
+                        fb.textContent = '✅ Helyes! (+1 ⭐)';
+                        addStar();
+                        document.getElementById('matchNextBtn').classList.remove('hidden');
+                    } else {
+                        b.className = 'p-3.5 rounded-2xl border-2 border-rose-400 bg-rose-50 font-bold text-sm text-rose-900';
+                        fb.className = 'rounded-2xl p-3 font-extrabold text-sm mb-3 bg-rose-100 text-rose-900';
+                        fb.textContent = '❌ Próbáld újra!';
+                    }
+                };
+                box.appendChild(b);
+            });
+        }
+        function nextMatch() { mIdx = (mIdx + 1) % MATCH_ITEMS.length; renderMatch(); }
+
+        // Quiz
+        const QUIZ = [
+            { q: 'Mi a Windows Asztal (Desktop)?', opts: ['A képernyő nagy, háttérképes munkaterülete az ikonokkal', 'Egy fadarab az egér alatt', 'A kikapcsoló gomb'], ans: 0 },
+            { q: 'Hol található általában a Tálca (Taskbar)?', opts: ['A képernyő legtetején', 'A képernyő legalján', 'A számítógép hátulján'], ans: 1 },
+            { q: 'Mire való a 🪟 Start menü?', opts: ['Programok indítására, beállításokra és a gép kikapcsolására', 'Csak rajzolásra', 'Internetes játékra'], ans: 0 },
+            { q: 'Mi történik, ha véletlenül törölsz egy fájlt az Asztalról?', opts: ['Azonnal eltűnik örökre', 'Először a Lomtárba (🗑️) kerül, ahonnan visszaállítható', 'Átmegy a böngészőbe'], ans: 1 },
+            { q: 'Mit csinál az ablak jobb felső sarkában a 🗕 (Kis méret) gomb?', opts: ['Bezárja a programot', 'Lekicsinyíti az ablakot a Tálcára, de a program nyitva marad', 'Kikapcsolja a monitort'], ans: 1 },
+            { q: 'Mit csinál a ✕ gomb az ablak jobb felső sarkában?', opts: ['Bezárja az ablakot', 'Kinagyítja a képernyőre', 'Új mappát hoz létre'], ans: 0 },
+            { q: 'Hol találod az órát, a hangerőt és a Wi-Fi ikont?', opts: ['A Start menü közepén', 'A Tálca jobb szélén (Értesítési terület)', 'A Lomtárban'], ans: 1 },
+            { q: 'Mire használjuk a 📁 Mappákat?', opts: ['Fájlok és képek rendszerezett tárolására', 'Zenehallgatásra', 'Kikapcsolásra'], ans: 0 },
+            { q: 'Hogyan tudsz egy ablakot arrébb húzni a képernyőn?', opts: ['A címsoránál fogva bal gombbal húzzuk', 'A Lomtárra kattintva', 'A görgővel'], ans: 0 },
+            { q: 'Mire való a 🔍 Keresés a Tálcán?', opts: ['Gyorsan megtalálhatod vele a programokat és fájlokat', 'Megváltoztatja a háttérképet', 'Növeli a hangerőt'], ans: 0 }
+        ];
+        let qIdx = 0, qScore = 0, qLock = false;
+        function renderQuiz() {
+            document.getElementById('quizProgress').textContent = `${Math.min(qIdx + 1, QUIZ.length)} / ${QUIZ.length}`;
+            document.getElementById('quizScore').textContent = `Pont: ${qScore}`;
+            const body = document.getElementById('quizBody');
+            if (qIdx >= QUIZ.length) {
+                body.innerHTML = `<div class="text-center py-6"><div class="text-5xl mb-3">🏆</div><div class="text-2xl font-black mb-2">Kvíz kész!</div><p class="font-bold text-slate-600 mb-4">${QUIZ.length} kérdésből ${qScore} helyes!</p><button onclick="qIdx=0;qScore=0;renderQuiz()" class="bouncy-btn px-6 py-3 rounded-2xl bg-sky-600 text-white font-black">🔄 Újra</button></div>`;
+                return;
+            }
+            qLock = false;
+            const item = QUIZ[qIdx];
+            body.innerHTML = `<h3 class="text-lg sm:text-xl font-black text-slate-800 mb-4">${item.q}</h3><div class="space-y-2.5" id="qOpts"></div><div id="qNextWrap" class="hidden mt-4 text-right"><button onclick="qIdx++;renderQuiz()" class="bouncy-btn px-5 py-2.5 rounded-2xl bg-sky-600 text-white font-black text-sm">Következő ➡️</button></div>`;
+            const opts = document.getElementById('qOpts');
+            item.opts.forEach((o, i) => {
+                const b = document.createElement('button');
+                b.textContent = o;
+                b.className = 'w-full text-left p-3.5 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-sky-50 font-extrabold text-sm';
+                b.onclick = () => {
+                    if (qLock) return;
+                    qLock = true;
+                    if (i === item.ans) {
+                        qScore++;
+                        b.className = 'w-full text-left p-3.5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black text-sm text-emerald-900';
+                        addStar();
+                    } else {
+                        b.className = 'w-full text-left p-3.5 rounded-2xl border-2 border-rose-400 bg-rose-50 font-bold text-sm text-rose-900';
+                        opts.children[item.ans].className = 'w-full text-left p-3.5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black text-sm text-emerald-900';
+                    }
+                    document.getElementById('quizScore').textContent = `Pont: ${qScore}`;
+                    document.getElementById('qNextWrap').classList.remove('hidden');
+                };
+                opts.appendChild(b);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshStars();
+            renderHunt();
+            renderMatch();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>

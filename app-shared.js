@@ -34,7 +34,9 @@
         'angol_szinek',
         'angol_szamok',
         'angol_iskola',
-        'muveletisorrend'
+        'muveletisorrend',
+        'eger',
+        'windows'
     ];
 
     function generateRandomCloudCode() {
@@ -74,7 +76,9 @@
                 angol_szinek: 0,
                 angol_szamok: 0,
                 angol_iskola: 0,
-                muveletisorrend: 0
+                muveletisorrend: 0,
+                eger: 0,
+                windows: 0
             },
             hiddenLessons: [],
             hiddenLessonsUpdatedAt: 0,
